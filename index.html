@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <title>ChineseClass By Krukong</title>
+  <link rel="icon" href="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+ </head>
+ <body class="w-full h-full min-h-screen">
+  
+  <div id="global-loader">
+      <div class="flex flex-col items-center gap-4">
+          <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div class="text-white font-bold text-xl">Loading...</div>
+      </div>
+  </div>
+
+  <div id="app-root" class="w-full h-full min-h-screen flex items-stretch justify-center p-2 md:p-4">
+   <div class="w-full max-w-7xl rounded-3xl glass-ios flex flex-col relative overflow-hidden shadow-2xl">
+    
+    <header class="w-full px-6 py-4 border-b border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 z-10 no-print">
+     <div class="flex items-center gap-4">
+      <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-red-600 via-yellow-500 to-blue-600 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+          <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="School Logo" class="relative h-16 w-16 object-contain bg-black/20 rounded-full p-1 border border-white/10">
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-wide drop-shadow-md">Chinese<span class="text-yellow-400">Class</span> By Krukong</h1>
+        <p class="text-blue-200 text-xs">ครูกีรติ ประสพพรรังสี - กลุ่มสาระการเรียนรู้ภาษาต่างประเทศ</p>
+      </div>
+     </div>
+     <nav class="inline-flex rounded-full bg-black/20 p-1 border border-white/5">
+        <button id="tab-btn-admin" onclick="switchMainTab('admin')" class="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"><i class="fa-solid fa-chalkboard-user mr-2"></i>คุณครู</button> 
+        <button id="tab-btn-student" onclick="switchMainTab('student')" class="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"><i class="fa-solid fa-user-graduate mr-2"></i>นักเรียน</button>
+     </nav>
+    </header>
+
+    <main class="flex-1 w-full px-4 md:px-6 pb-6 overflow-y-auto no-print scroll-smooth">
+     <div class="w-full max-w-7xl mx-auto mt-6 flex flex-col gap-6">
+      
+      <div id="section-admin" class="flex flex-col gap-5 hidden">
+        <div id="admin-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
+            <div class="glass-ios p-10 rounded-3xl w-full max-w-sm flex flex-col items-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500"></div>
+                <h2 class="text-2xl font-bold text-white mb-6">เข้าสู่ระบบคุณครู</h2>
+                <form id="admin-login-form" class="space-y-4 w-full">
+                    <input id="admin-username" type="text" placeholder="Username" class="w-full rounded-xl glass-input px-4 py-3 text-white placeholder-white/30 text-center">
+                    <input id="admin-password" type="password" placeholder="Password" class="w-full rounded-xl glass-input px-4 py-3 text-white placeholder-white/30 text-center">
+                    <button type="submit" class="w-full py-3 rounded-xl btn-yellow font-bold shadow-lg text-lg mt-2">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-content-wrapper" class="hidden flex flex-col gap-6">
+            <div class="flex justify-between items-center glass-ios px-4 py-3 rounded-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-lg text-white font-bold shadow-lg ring-2 ring-white/20"><i class="fa-solid fa-user-tie"></i></div>
+                    <div><h3 class="text-sm font-bold text-white">ผู้ดูแลระบบ</h3><p class="text-[10px] text-green-400 font-bold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Online</p></div>
+                </div>
+                <button onclick="handleAdminLogout()" class="bg-white/10 hover:bg-red-500/80 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-white/10"><i class="fa-solid fa-power-off mr-2"></i>ออก</button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <button onclick="switchAdminSubTab('basic')" id="menu-basic" class="menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg"><i class="fa-solid fa-folder-open block text-xl mb-1"></i> ข้อมูล</button> 
+                <button onclick="switchAdminSubTab('scan')" id="menu-scan" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-qrcode block text-xl mb-1"></i> ให้คะแนน</button>
+                <button onclick="switchAdminSubTab('report')" id="menu-report" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-print block text-xl mb-1"></i> พิมพ์/CSV</button>
+                 <button onclick="switchAdminSubTab('homework')" id="menu-homework" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold relative"><i class="fa-solid fa-list-check block text-xl mb-1"></i> ตรวจงาน<span id="badge-homework" class="absolute top-2 right-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                 <button onclick="switchAdminSubTab('attendance')" id="menu-attendance" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-user-check block text-xl mb-1"></i> เช็คชื่อ</button>
+                <button onclick="switchAdminSubTab('material')" id="menu-material" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-book-open block text-xl mb-1"></i> เนื้อหา</button>
+            </div>
+
+            <section id="admin-panel-basic" class="admin-panel hidden glass-ios rounded-3xl p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                       <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
+                       <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">1. วิชา & ห้องเรียน</h4>
+                       <form id="form-subject" class="flex gap-2 mb-4"><input id="subject-name" class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" placeholder="ชื่อวิชา"><button type="submit" class="btn-yellow px-4 py-2 rounded-lg text-xs font-bold">เพิ่ม</button></form>
+                       <form id="form-class" class="flex gap-2 pt-4 border-t border-white/10"><input id="class-name" class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" placeholder="ห้อง"><select id="class-subject-ref" class="w-1/3 glass-input rounded-lg px-2 py-2 text-xs"></select><button type="submit" class="btn-yellow px-4 py-2 rounded-lg text-xs font-bold">เพิ่ม</button></form>
+                    </div>
+                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                       <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                       <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">2. นักเรียน</h4>
+                       <form id="form-student" class="space-y-3">
+                           <div class="grid grid-cols-12 gap-2">
+                               <div class="col-span-5"><select id="student-class" class="w-full glass-input rounded-lg px-2 py-2 text-sm"></select></div>
+                               <div class="col-span-3"><input id="student-no" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-sm text-center" placeholder="เลขที่"></div>
+                               <div class="col-span-4"><input id="student-id" class="w-full glass-input rounded-lg px-2 py-2 text-sm" placeholder="ID"></div>
+                           </div>
+                           <div><input id="student-name" class="w-full glass-input rounded-lg px-3 py-2 text-sm" placeholder="ชื่อ-นามสกุล"></div>
+                           <button type="submit" class="w-full btn-blue py-2 rounded-lg text-sm font-bold">บันทึก</button>
+                       </form>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                            <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">3. สร้างงาน</h4>
+                            <form id="form-task" class="space-y-3">
+                               <div><label class="text-[10px] text-white/50">เลือกวิชา</label><select id="task-subject-filter" class="w-full glass-input rounded-lg px-2 py-2 text-xs" onchange="renderTaskClassCheckboxes()"><option value="">-- เลือกวิชา --</option></select></div>
+                               <div><label class="text-[10px] text-white/50">เลือกห้อง</label><div id="task-class-checkboxes" class="grid grid-cols-3 gap-2 bg-black/20 border border-white/5 rounded-lg p-2 max-h-24 overflow-y-auto"></div></div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] text-white/50">ประเภท</label><select id="task-category" class="w-full glass-input rounded-lg px-2 py-2 text-xs font-bold text-yellow-400"><option value="accum">คะแนนเก็บ (60)</option><option value="midterm">กลางภาค (20)</option><option value="final">ปลายภาค (30)</option><option value="special">พิเศษ</option></select></div>
+                                    <div id="chapter-wrapper">
+                                        <label class="text-[10px] text-white/50">บทที่</label>
+                                        <div class="flex gap-2">
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="1" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">1</div></label>
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="2" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">2</div></label>
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="3" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">3</div></label>
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="4" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">4</div></label>
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="5" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">5</div></label>
+                                            <label class="cursor-pointer relative"><input type="checkbox" name="task_chap" value="6" class="chapter-checkbox sr-only"><div class="w-8 h-8 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-xs font-bold text-white/50 hover:bg-white/10 transition-all">6</div></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-12 gap-2"><div class="col-span-8"><input id="task-name" class="w-full glass-input rounded-lg px-3 py-2 text-xs" placeholder="ชื่องาน"></div><div class="col-span-4"><input id="task-max" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-xs text-center" value="10" placeholder="Max"></div></div>
+                                <button type="submit" class="w-full btn-red py-2 rounded-lg text-sm font-bold shadow-lg">สร้างงาน</button>
+                            </form>
+                      </div>
+                      <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                           <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                           <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">4. ตารางสอน</h4>
+                           <form id="form-schedule" class="space-y-3">
+                               <div class="grid grid-cols-2 gap-2">
+                                   <select id="sch-day" class="glass-input rounded-lg px-2 py-2 text-xs">
+                                       <option value="1">จันทร์</option><option value="2">อังคาร</option><option value="3">พุธ</option><option value="4">พฤหัสบดี</option><option value="5">ศุกร์</option><option value="6">เสาร์</option><option value="0">อาทิตย์</option>
+                                   </select>
+                                   <select id="sch-period" class="glass-input rounded-lg px-2 py-2 text-xs">
+                                       <option value="1">คาบ 1 (08:30)</option><option value="2">คาบ 2 (09:20)</option><option value="3">คาบ 3 (10:10)</option><option value="4">คาบ 4 (11:00)</option>
+                                       <option value="5">คาบ 5 (11:50)</option><option value="6">คาบ 6 (12:40)</option><option value="7">คาบ 7 (13:30)</option><option value="8">คาบ 8 (14:20)</option>
+                                   </select>
+                               </div>
+                               <select id="sch-class" class="w-full glass-input rounded-lg px-2 py-2 text-xs"></select>
+                               <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg text-sm font-bold shadow-lg">บันทึกตาราง</button>
+                           </form>
+                           <div id="schedule-list" class="mt-4 max-h-40 overflow-y-auto space-y-2 pr-1"></div>
+                      </div>
+                  </div>
+            </section>
+            
+            <section id="admin-panel-attendance" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
+                 <div id="smart-att-banner" class="hidden bg-gradient-to-r from-blue-900/50 to-blue-600/50 border border-blue-400/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
+                     <div class="flex items-center gap-4">
+                         <div class="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-2xl animate-pulse"><i class="fa-solid fa-bell"></i></div>
+                         <div><h3 class="font-bold text-white text-lg">ถึงเวลาสอนแล้ว!</h3><p class="text-blue-200 text-sm">คาบ <span id="smart-period" class="font-bold text-white"></span> : ห้อง <span id="smart-class-name" class="font-bold text-amber-400 text-lg"></span></p></div>
+                     </div>
+                     <button onclick="useSmartClass()" class="btn-yellow px-6 py-2 rounded-xl font-bold shadow-lg">เช็คชื่อห้องนี้</button>
+                 </div>
+                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px]">
+                     <div class="lg:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-5">
+                         <h3 class="font-bold text-white text-lg border-b border-white/10 pb-2">ควบคุม & ค้นหา</h3>
+                         <div class="bg-black/30 p-3 rounded-xl mb-2">
+                             <input id="att-date-input" type="date" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-mono text-center mb-2">
+                             <select id="att-class-select" class="w-full glass-input rounded-xl px-3 py-2 text-sm mb-2 mt-1"></select>
+                             <div id="att-stats" class="text-center py-2 border-t border-white/10 mt-2">
+                                 <div class="grid grid-cols-3 gap-1 mt-1 text-sm font-bold">
+                                     <div class="text-green-400"><i class="fa-solid fa-check"></i> <span id="stat-present">0</span></div>
+                                     <div class="text-yellow-400"><i class="fa-solid fa-envelope"></i> <span id="stat-leave">0</span></div>
+                                     <div class="text-red-400"><i class="fa-solid fa-xmark"></i> <span id="stat-absent">0</span></div>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="mb-2">
+                             <input id="att-scan-input" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-lg text-center font-bold text-yellow-400 focus:border-yellow-500 outline-none" placeholder="ยิงบาร์โค้ด...">
+                         </div>
+                         <div class="space-y-3">
+                             <button onclick="setAttMode('มา')" id="btn-att-present" class="w-full py-3 rounded-xl border border-green-500/50 bg-green-500/10 text-green-400 font-bold flex justify-between px-4 transition-all"><span>มาเรียน</span> <i class="fa-solid fa-check"></i></button>
+                             <button onclick="setAttMode('ลา')" id="btn-att-leave" class="w-full py-3 rounded-xl border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-bold flex justify-between px-4 transition-all"><span>ลา</span> <i class="fa-solid fa-envelope"></i></button>
+                             <button onclick="setAttMode('ขาด')" id="btn-att-absent" class="w-full py-3 rounded-xl border border-red-500/50 bg-red-500/10 text-red-400 font-bold flex justify-between px-4 transition-all"><span>ขาด</span> <i class="fa-solid fa-xmark"></i></button>
+                         </div>
+                         <div class="mt-auto pt-4 border-t border-white/10">
+                             <button onclick="exportAttendanceCSV()" class="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-green-600 text-white font-bold shadow-lg hover:from-teal-500 hover:to-green-500"><i class="fa-solid fa-file-csv mr-2"></i>รายงาน (CSV)</button>
+                         </div>
+                     </div>
+                     <div class="lg:col-span-3 bg-black/20 p-5 rounded-2xl border border-white/10 flex flex-col">
+                         <div id="att-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1"></div>
+                     </div>
+                 </div>
+            </section>
+            
+            <section id="admin-panel-scan" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
+                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px]">
+                     <div class="lg:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-5">
+                         <h3 class="font-bold text-white text-lg border-b border-white/10 pb-2">ให้คะแนน</h3>
+                         <div><select id="scan-class-select" class="w-full glass-input rounded-xl px-3 py-2 text-xs mb-2"></select><select id="scan-task-select" class="w-full glass-input rounded-xl px-3 py-2 text-xs font-bold text-yellow-400"></select></div>
+                         <div class="bg-black/20 p-3 rounded-xl border border-white/5 flex flex-col gap-2"><div id="score-buttons-container" class="grid grid-cols-5 gap-1"></div><button onclick="setScoreMode('manual')" id="btn-score-manual" class="w-full py-2 rounded-lg border border-white/20 bg-white/5 text-white/70 text-xs font-bold hover:bg-white/10">ระบุเอง</button></div>
+                         <div><input id="scan-score-input" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-lg text-center font-bold focus:border-yellow-500 outline-none" placeholder="Scan here..."></div>
+                     </div>
+                     <div class="lg:col-span-3 bg-black/20 p-5 rounded-2xl border border-white/10 flex flex-col">
+                         <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white/80">📋 รายชื่อนักเรียน</h3></div>
+                         <div id="score-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1"></div>
+                     </div>
+                 </div>
+            </section>
+
+            <section id="admin-panel-report" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <h3 class="text-xl font-bold text-white">รายงานผลการเรียน</h3>
+                    <div class="flex gap-3">
+                        <button onclick="printOfficialReport()" class="btn-blue px-6 py-2.5 rounded-xl text-sm font-bold flex gap-2 shadow-lg items-center"><i class="fa-solid fa-print"></i> พิมพ์ PDF</button>
+                        <button onclick="exportGradeCSV()" class="btn-yellow px-6 py-2.5 rounded-xl text-sm font-bold flex gap-2 shadow-lg items-center"><i class="fa-solid fa-file-csv"></i> โหลด CSV</button>
+                    </div>
+                </div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><label class="text-xs text-white/50 block mb-1">เลือกห้องเรียน</label><select id="report-class" class="w-full md:w-1/3 glass-input rounded-xl px-4 py-2 text-sm"></select></div>
+                <div class="overflow-x-auto bg-black/20 rounded-2xl border border-white/10">
+                    <table class="min-w-full text-sm text-white/80">
+                        <thead class="bg-white/5 text-xs uppercase font-semibold text-white/60">
+                            <tr><th class="px-2 py-4">#</th><th class="px-2 py-4 text-left">ชื่อ-นามสกุล</th><th>บท1</th><th>บท2</th><th>บท3</th><th>บท4</th><th>บท5</th><th>บท6</th><th class="text-blue-400">กลาง</th><th class="text-red-400">ปลาย</th><th class="bg-white/10">รวม</th><th>เกรด</th></tr>
+                        </thead>
+                        <tbody id="report-table-body" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </section>
+            
+             <section id="admin-panel-homework" class="admin-panel hidden glass-ios rounded-3xl p-6"><div id="incoming-list" class="grid grid-cols-1 gap-4"></div></section>
+             <section id="admin-panel-material" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div class="md:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 h-fit">
+                         <h3 class="font-bold text-white mb-4 border-b border-white/10 pb-2">เพิ่มเนื้อหา</h3>
+                         <form id="form-material" class="space-y-4">
+                             <div><label class="text-xs text-white/50">วิชา</label><select id="mat-subject" class="w-full glass-input rounded-xl px-3 py-2 text-sm" required></select></div>
+                             <div><label class="text-xs text-white/50">หัวข้อ</label><input id="mat-title" type="text" class="w-full glass-input rounded-xl px-3 py-2 text-sm" required></div>
+                             <div><label class="text-xs text-white/50">ลิงก์</label><input id="mat-link" type="url" class="w-full glass-input rounded-xl px-3 py-2 text-blue-300 text-sm" placeholder="https://..." required></div>
+                             <button type="submit" class="w-full btn-yellow py-2 rounded-xl font-bold shadow-lg">บันทึก</button>
+                         </form>
+                     </div>
+                     <div class="md:col-span-2 flex flex-col gap-4"><div id="admin-mat-list" class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[600px] pr-2"></div></div>
+                 </div>
+             </section>
+
+        </div>
+      </div>
+
+      <div id="section-student" class="hidden flex flex-col gap-5">
+         <div id="student-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
+            <div class="glass-ios p-10 rounded-3xl w-full max-w-sm flex flex-col items-center relative">
+                <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-24 h-24 object-contain mb-6 drop-shadow-lg">
+                <h2 class="text-2xl font-bold text-white mb-6">นักเรียน</h2>
+                <input id="student-login-id" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-center text-white text-lg" placeholder="รหัสนักเรียน">
+                <button onclick="handleStudentLogin()" class="w-full py-3 rounded-xl btn-blue font-bold shadow-lg mt-4 text-lg">เข้าใช้งาน</button>
+            </div>
+        </div>
+        <div id="student-dashboard" class="hidden flex flex-col gap-6">
+             <div class="glass-ios p-6 rounded-3xl flex items-center justify-between">
+                 <div><h2 id="std-dash-name" class="text-2xl font-bold text-white">-</h2><span id="std-dash-class" class="text-blue-300 font-bold text-sm">-</span></div>
+                 <button onclick="logoutStudent()" class="text-white/50 hover:text-red-400 text-xl"><i class="fa-solid fa-right-from-bracket"></i></button>
+             </div>
+             <div id="std-subjects-container" class="flex flex-col gap-6"></div>
+             <div class="glass-ios p-5 rounded-3xl border border-white/10">
+                 <h3 class="font-bold text-white mb-4 border-b border-white/10 pb-2">ประวัติการเข้าเรียน</h3>
+                 <div class="overflow-y-auto max-h-60"><table class="w-full text-sm text-left text-white/80"><thead class="text-xs uppercase bg-white/5 text-white/50"><tr><th class="px-3 py-2">วันที่</th><th class="px-3 py-2 text-center">สถานะ</th></tr></thead><tbody id="std-att-body" class="divide-y divide-white/5"></tbody></table></div>
+             </div>
+        </div>
+      </div>
+
+     </div>
+    </main>
+    
+    <div id="score-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="glass-ios p-8 rounded-3xl w-full max-w-xs shadow-2xl transform scale-100 transition-all">
+            <h3 class="text-lg font-bold text-white mb-2 text-center">บันทึกคะแนน</h3>
+            <p class="text-white/60 text-sm mb-1 text-center" id="modal-task-name"></p>
+            <p class="text-yellow-400 text-xl font-bold mb-6 text-center" id="modal-student-name"></p>
+            <div class="relative mb-6"><input id="modal-score-input" type="number" class="w-full bg-black/40 border-2 border-yellow-500 rounded-2xl px-4 py-4 text-4xl text-center text-white font-bold focus:outline-none"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">/ <span id="modal-max-score"></span></span></div>
+            <div class="grid grid-cols-2 gap-3"><button onclick="document.getElementById('score-modal').classList.add('hidden')" class="py-3 rounded-xl bg-white/10 text-white font-bold">ยกเลิก</button><button id="btn-modal-save" class="py-3 rounded-xl btn-blue font-bold">บันทึก</button></div>
+        </div>
+    </div>
+    
+    <div id="submit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="glass-ios border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2">ส่งงาน</h3>
+            <p class="text-sm text-white/50 mb-4" id="submit-modal-title"></p>
+            <form id="form-submit-work" class="space-y-4">
+                <input type="hidden" id="submit-task-id"><input type="hidden" id="submit-student-id">
+                <div><label class="text-xs text-white/50 mb-1 block">1. ลิงก์งาน</label><input id="submit-link-input" type="url" class="w-full glass-input rounded-xl px-3 py-2 text-white text-sm" placeholder="https://..." required></div>
+                <div><label class="text-xs text-white/50 mb-1 block">2. ข้อความถึงครู</label><textarea id="submit-comment-input" class="w-full glass-input rounded-xl px-3 py-2 text-white text-sm h-16 resize-none"></textarea></div>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label class="text-xs text-yellow-400 mb-2 block font-bold">เพื่อนร่วมกลุ่ม</label><div id="friend-selector-container" class="max-h-32 overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="document.getElementById('submit-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-white/10 text-white/70 text-sm">ยกเลิก</button><button type="submit" class="px-4 py-2 rounded-xl btn-blue text-white text-sm font-bold shadow-lg">ส่งงาน</button></div>
+            </form>
+        </div>
+    </div>
+
+   </div>
+  </div>
+
+  <div id="print-area" class="hidden">
+      <table id="print-table" style="width: 100%;">
+          <thead>
+              <tr class="print-header-row"><td colspan="13" style="text-align:center; border: none; padding-bottom: 10px;"><img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" style="width: 70px; height: auto;"><h2 style="font-size: 18px; font-weight: bold;">รายงานผลสัมฤทธิ์ทางการเรียน</h2><h3 style="font-size: 16px;">รายวิชาภาษาจีน (ChineseClass System)</h3><p id="print-subtitle" style="font-size: 14px;"></p></td></tr>
+              <tr class="column-header"><th>ที่</th><th>รหัส</th><th>ชื่อ - นามสกุล</th><th>บท 1</th><th>บท 2</th><th>บท 3</th><th>บท 4</th><th>บท 5</th><th>บท 6</th><th>กลางภาค</th><th>ปลายภาค</th><th>รวม</th><th>เกรด</th></tr>
+          </thead>
+          <tbody id="print-table-body"></tbody>
+      </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(err => console.error('SW Fail', err));
+    }
+  </script>
+ </body>
+</html>
