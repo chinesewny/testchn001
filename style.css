@@ -85,3 +85,46 @@ body {
   .print-header-row td { border: none !important; padding-bottom: 10px; }
   .column-header th { background-color: #e5e7eb !important; color: black !important; font-weight: bold; border: 1px solid #000; }
 }
+/* --- ตั้งค่าสำหรับการพิมพ์ (Print Layout) --- */
+@media print {
+    /* จัดกึ่งกลางหัวกระดาษทั้งหมด */
+    #print-header {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* จัดกึ่งกลางรูปโลโก้ */
+    #print-header img {
+        display: block;
+        margin: 0 auto 10px auto !important; /* จัดกึ่งกลางแนวนอน */
+        max-width: 80px; /* ปรับขนาดโลโก้ตามต้องการ */
+        height: auto;
+    }
+
+    /* จัดกึ่งกลางข้อความหัวเรื่อง */
+    #print-header h2, 
+    #print-header h3, 
+    #print-header p {
+        text-align: center !important;
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* ซ่อนองค์ประกอบที่ไม่จำเป็นตอนปริ้น */
+    body * {
+        visibility: hidden;
+    }
+    #print-area, #print-area * {
+        visibility: visible;
+    }
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
