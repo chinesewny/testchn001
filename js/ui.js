@@ -26,7 +26,15 @@ export function renderDropdown(id, list, placeholder = "-- เลือก --") 
     });
     el.value = currentVal;
 }
-
+export function renderAdminMaterials(materials, subjects) {
+    const div = document.getElementById('admin-mat-list');
+    if(!div) return;
+    div.innerHTML = '';
+    materials.forEach(m => {
+        const sub = subjects.find(s => s.id == m.subjectId)?.name || '-';
+        div.innerHTML += `<div class="bg-white/5 p-3 rounded-xl border border-white/10 flex justify-between"><div><div class="text-xs text-yellow-400">${sub}</div><div class="font-bold text-sm text-white"><a href="${m.link}" target="_blank" class="hover:underline">${m.title}</a></div></div></div>`;
+    });
+}
 export function renderScheduleList(schedules, classes) {
     const div = document.getElementById('schedule-list');
     if(!div) return;
