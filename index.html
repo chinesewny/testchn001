@@ -39,7 +39,7 @@
 
       /* Buttons & Status */
       .btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: 1px solid rgba(255,255,255,0.2); }
-      .btn-blue:hover { box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); transform: translateY(-1px); }
+      .btn-blue:hover:not(:disabled) { box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); transform: translateY(-1px); }
       
       .btn-red { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: 1px solid rgba(255,255,255,0.2); }
       .btn-yellow { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: 1px solid rgba(255,255,255,0.2); }
@@ -76,7 +76,7 @@
         #print-area { display: block !important; position: relative !important; width: 100% !important; background: white !important; color: black !important; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         thead { display: table-header-group; } 
-        tr { page-break-inside: avoid; }
+        tr { page-break-inside: avoid; page-break-after: auto; } /* ป้องกันบรรทัดขาด */
         th, td { border: 1px solid #000; padding: 6px; text-align: center; color: black; }
         .print-header-row td { border: none !important; padding-bottom: 10px; }
         .column-header th { background-color: #e5e7eb !important; color: black !important; font-weight: bold; border: 1px solid #000; }
@@ -289,10 +289,20 @@
                         </button>
                     </div>
                 </div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <label class="text-xs text-white/50 block mb-1">เลือกห้องเรียน</label>
-                    <select id="report-class" class="w-full md:w-1/3 glass-input rounded-xl px-4 py-2 text-sm"></select>
+                
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs text-white/50 block mb-1">1. เลือกวิชา</label>
+                        <select id="report-subject" class="w-full glass-input rounded-xl px-4 py-2 text-sm"></select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-white/50 block mb-1">2. เลือกห้องเรียน</label>
+                        <select id="report-class" class="w-full glass-input rounded-xl px-4 py-2 text-sm">
+                            <option value="">-- กรุณาเลือกวิชาก่อน --</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="overflow-x-auto bg-black/20 rounded-2xl border border-white/10">
                     <table class="min-w-full text-sm text-white/80">
                         <thead class="bg-white/5 text-xs uppercase font-semibold text-white/60">
@@ -360,7 +370,7 @@
             <p class="text-white/60 text-sm mb-1 text-center" id="modal-task-name"></p>
             <p class="text-yellow-400 text-xl font-bold mb-6 text-center" id="modal-student-name"></p>
             <div class="relative mb-6"><input id="modal-score-input" type="number" class="w-full bg-black/40 border-2 border-yellow-500 rounded-2xl px-4 py-4 text-4xl text-center text-white font-bold focus:outline-none"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">/ <span id="modal-max-score"></span></span></div>
-            <div class="grid grid-cols-2 gap-3"><button onclick="document.getElementById('score-modal').classList.add('hidden')" class="py-3 rounded-xl bg-white/10 text-white font-bold">ยกเลิก</button><button id="btn-modal-save" class="py-3 rounded-xl btn-blue font-bold">บันทึก</button></div>
+            <div class="grid grid-cols-2 gap-3"><button onclick="closeScoreModal()" class="py-3 rounded-xl bg-white/10 text-white font-bold">ยกเลิก</button><button id="btn-modal-save" class="py-3 rounded-xl btn-blue font-bold">บันทึก</button></div>
         </div>
     </div>
     
@@ -384,12 +394,13 @@
 
                 <div class="bg-white/5 p-3 rounded-xl border border-white/10">
                     <label class="text-xs text-yellow-400 mb-2 block font-bold"><i class="fa-solid fa-users mr-1"></i> เพิ่มเพื่อนร่วมกลุ่ม (ถ้ามี)</label>
-                    <div id="friend-selector-container" class="max-h-32 overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div>
+                    <input type="text" id="friend-search" placeholder="🔍 ค้นหาชื่อเพื่อน..." class="w-full glass-input rounded-lg px-2 py-1 text-xs mb-2">
+                    <div id="friend-selector-container" class="max-h-48 overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="document.getElementById('submit-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-white/10 text-white/70 text-sm">ยกเลิก</button>
-                    <button type="submit" class="px-4 py-2 rounded-xl btn-blue text-white text-sm font-bold shadow-lg">ส่งงาน</button>
+                    <button type="submit" id="btn-submit-final" class="px-4 py-2 rounded-xl btn-blue text-white text-sm font-bold shadow-lg">ส่งงาน</button>
                 </div>
             </form>
         </div>
@@ -428,6 +439,7 @@
 
  <script>
     // ***********************************************
+    // ⚠️ เปลี่ยน URL ด้านล่างให้เป็น URL ของ Google Apps Script ที่ Deploy ใหม่ของคุณ
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQNjMSE06u5xO4dtyipa5P-YzoaicppubdwlUgMpaX4L4TUjk3-xY2PRnzhS42AxZe/exec"; 
     // ***********************************************
 
@@ -463,7 +475,6 @@
 
     async function syncData() {
         try {
-            // FIX: Added timestamp to prevent browser caching
             const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData&t=${new Date().getTime()}`);
             const json = await res.json();
             if(json) { 
@@ -516,12 +527,14 @@
         if(p.action === 'addTask') {
                 p.classIds.forEach((cid, idx) => {
                     const chapStr = Array.isArray(p.chapter) ? p.chapter.join(',') : p.chapter;
-                    dataState.tasks.push({ id: p.id + idx, classId: cid, subjectId: p.subjectId, category: p.category, chapter: chapStr, name: p.name, maxScore: p.maxScore, dueDateISO: p.dueDateISO });
+                    dataState.tasks.push({ id: Number(p.id) + idx, classId: cid, subjectId: p.subjectId, category: p.category, chapter: chapStr, name: p.name, maxScore: p.maxScore, dueDateISO: p.dueDateISO });
                 });
         }
         if(p.action === 'addScore') {
             const idx = dataState.scores.findIndex(s => s.studentId == p.studentId && s.taskId == p.taskId);
             if(idx >= 0) dataState.scores[idx].score = p.score; else dataState.scores.push({studentId:p.studentId, taskId:p.taskId, score:p.score});
+            // Clear return status if score added
+            if(dataState.returns) dataState.returns = dataState.returns.filter(r => !(r.studentId == p.studentId && r.taskId == p.taskId));
         }
         if(p.action === 'addAttendance') {
             const idx = dataState.attendance.findIndex(a => a.studentId == p.studentId && a.date == p.date);
@@ -529,17 +542,19 @@
         }
         if(p.action === 'addMaterial') dataState.materials.push({id:p.id, subjectId:p.subjectId, title:p.title, link:p.link, type:p.type});
         if(p.action === 'addSchedule') dataState.schedules.push({ id:p.id, day:p.day, period:p.period, classId:p.classId });
-        if(p.action === 'returnForRevision') dataState.submissions = dataState.submissions.filter(s => !(s.studentId == p.studentId && s.taskId == p.taskId));
+        if(p.action === 'returnForRevision') {
+             dataState.submissions = dataState.submissions.filter(s => !(s.studentId == p.studentId && s.taskId == p.taskId));
+             if(!dataState.returns) dataState.returns = [];
+             dataState.returns.push({taskId:p.taskId, studentId:p.studentId, comment:p.comment, timestampISO: new Date().toISOString()});
+        }
         if(p.action === 'submitTask') {
-            const idx = dataState.submissions.findIndex(s => s.studentId == p.studentIds[0] && s.taskId == p.taskId); // Simple check for first student
-             if(idx >= 0) { 
-                 dataState.submissions[idx].link = p.link; 
-                 dataState.submissions[idx].timestampISO = new Date().toISOString(); 
-             } else {
-                 p.studentIds.forEach(sid => {
-                    dataState.submissions.push({taskId:p.taskId, studentId:sid, link:p.link, timestampISO: new Date().toISOString()});
-                 });
-             }
+            p.studentIds.forEach(sid => {
+                 // Remove old submission & return
+                 dataState.submissions = dataState.submissions.filter(s => !(s.studentId == sid && s.taskId == p.taskId));
+                 if(dataState.returns) dataState.returns = dataState.returns.filter(r => !(r.studentId == sid && r.taskId == p.taskId));
+                 
+                 dataState.submissions.push({taskId:p.taskId, studentId:sid, link:p.link, timestampISO: new Date().toISOString(), comment: p.comment});
+            });
         }
     }
 
@@ -671,8 +686,8 @@
                 </div>
                 ${sub.comment ? `<div class="bg-black/20 p-2 rounded text-xs text-white/70 border-l-2 border-blue-500">"${sub.comment}"</div>` : ''}
                 <div class="flex gap-2 items-center">
-                    <input id="grade-${sub.id}" type="number" class="glass-input rounded px-2 py-1 text-xs w-20 text-center" placeholder="Max ${task.maxScore}">
-                    <button onclick="submitGrade('${sub.id}', '${sub.studentId}', '${sub.taskId}', ${task.maxScore})" class="btn-blue px-3 py-1 rounded text-xs font-bold">ให้คะแนน</button>
+                    <input id="grade-${sub.taskId}-${sub.studentId}" type="number" class="glass-input rounded px-2 py-1 text-xs w-20 text-center" placeholder="Max ${task.maxScore}">
+                    <button onclick="submitGrade('${sub.studentId}', '${sub.taskId}', ${task.maxScore})" class="btn-blue px-3 py-1 rounded text-xs font-bold">ให้คะแนน</button>
                     <button onclick="returnWork('${sub.studentId}', '${sub.taskId}')" class="btn-yellow px-3 py-1 rounded text-xs">ส่งคืน</button>
                 </div>
             `;
@@ -680,8 +695,8 @@
         });
     }
 
-    window.submitGrade = function(subId, sid, tid, max) {
-        const val = document.getElementById(`grade-${subId}`).value;
+    window.submitGrade = function(sid, tid, max) {
+        const val = document.getElementById(`grade-${tid}-${sid}`).value;
         if(val === '') return alert("กรุณาใส่คะแนน");
         if(Number(val) > Number(max)) return alert("คะแนนเกินค่าเต็ม");
         saveAndRefresh({ action:'addScore', studentId: sid, taskId: tid, score: val });
@@ -691,6 +706,16 @@
         const reason = prompt("ระบุเหตุผลที่ส่งคืน (นักเรียนจะเห็นข้อความนี้):");
         if(reason) { saveAndRefresh({ action:'returnForRevision', studentId: sid, taskId: tid, comment: reason }); }
     };
+    
+    // Function to close modal and refocus scanner
+    window.closeScoreModal = function() {
+        document.getElementById('score-modal').classList.add('hidden');
+        // Re-focus scanner after short delay
+        setTimeout(() => {
+            const scanInput = document.getElementById('scan-score-input');
+            if(scanInput) scanInput.focus();
+        }, 300);
+    }
 
     function initEventListeners() {
         document.getElementById('admin-login-form').onsubmit = async (e) => { 
@@ -717,9 +742,16 @@
             saveAndRefresh({ action:'addSchedule', id:Date.now(), day: document.getElementById('sch-day').value, period: document.getElementById('sch-period').value, classId: document.getElementById('sch-class').value });
         };
 
-        // STUDENT SUBMIT FORM LISTENER
-        document.getElementById('form-submit-work').onsubmit = (e) => {
+        // STUDENT SUBMIT FORM LISTENER (with Debounce)
+        document.getElementById('form-submit-work').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btn-submit-final');
+            const originalText = btn.innerHTML;
+            
+            // Disable Button
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+
             const tid = document.getElementById('submit-task-id').value;
             const sid = document.getElementById('submit-student-id').value;
             const link = document.getElementById('submit-link-input').value;
@@ -730,17 +762,38 @@
             let allStudentIds = [sid]; 
             checkboxes.forEach(cb => allStudentIds.push(cb.value));
 
-            saveAndRefresh({ action: 'submitTask', taskId: tid, studentIds: allStudentIds, link: link, comment: comment });
-            document.getElementById('submit-modal').classList.add('hidden');
-            showToast(allStudentIds.length > 1 ? `ส่งงานกลุ่ม (${allStudentIds.length} คน) เรียบร้อย` : "ส่งงานเรียบร้อย");
-            setTimeout(handleStudentLogin, 100); 
+            try {
+                await saveAndRefresh({ action: 'submitTask', taskId: tid, studentIds: allStudentIds, link: link, comment: comment });
+                document.getElementById('submit-modal').classList.add('hidden');
+                showToast(allStudentIds.length > 1 ? `ส่งงานกลุ่ม (${allStudentIds.length} คน) เรียบร้อย` : "ส่งงานเรียบร้อย");
+                setTimeout(handleStudentLogin, 100); 
+            } catch(err) {
+                alert("เกิดข้อผิดพลาดในการส่งงาน");
+            } finally {
+                // Re-enable button
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         };
+
+        // Friend Search Listener
+        document.getElementById('friend-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.friend-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(term) ? 'flex' : 'none';
+            });
+        });
 
         document.getElementById('task-category').onchange = (e) => { e.target.value === 'accum' ? document.getElementById('chapter-wrapper').classList.remove('hidden') : document.getElementById('chapter-wrapper').classList.add('hidden'); }
         document.getElementById('form-subject').onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action:'addSubject', id:Date.now(), name:document.getElementById('subject-name').value }); e.target.reset(); };
         document.getElementById('form-class').onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action:'addClass', id:Date.now(), name:document.getElementById('class-name').value, subjectId:document.getElementById('class-subject-ref').value }); e.target.reset(); };
         document.getElementById('form-student').onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action: 'addStudent', id: Date.now(), classId: document.getElementById('student-class').value, no: document.getElementById('student-no').value, code: document.getElementById('student-id').value, name: document.getElementById('student-name').value }); e.target.reset(); };
+        
+        // NEW: Report Filters
+        document.getElementById('report-subject').onchange = updateReportClassDropdown;
         document.getElementById('report-class').onchange = renderGradeReport;
+
         document.getElementById('scan-class-select').onchange = () => { updateScanTaskDropdown(); renderScoreRoster(); };
         document.getElementById('scan-task-select').onchange = renderScoreRoster;
         document.getElementById('att-class-select').onchange = renderAttRoster;
@@ -750,7 +803,7 @@
             const {s,t} = pendingScore;
             if(Number(val) > Number(t.maxScore)) return alert("เกินคะแนนเต็ม");
             saveAndRefresh({action:'addScore', studentId:s.id, taskId:t.id, score:val});
-            document.getElementById('score-modal').classList.add('hidden');
+            closeScoreModal(); // Use new close function
             showToast("บันทึกแล้ว");
         };
         document.getElementById('form-material').onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action: 'addMaterial', id: Date.now(), subjectId: document.getElementById('mat-subject').value, title: document.getElementById('mat-title').value, type: 'link', link: document.getElementById('mat-link').value }); e.target.reset(); }
@@ -826,7 +879,19 @@
     }
 
     function getThaiDateISO() { const d=new Date(); const u=d.getTime()+(d.getTimezoneOffset()*60000); const b=new Date(u+(7*3600000)); return b.toISOString().slice(0,10); }
-    function formatThaiDate(dateString) { if(!dateString) return "-"; if(dateString.includes('T') || dateString.includes('Z')) { const d = new Date(dateString); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`; } const [year, month, day] = dateString.split('-'); return `${year}/${month}/${day}`; }
+    
+    // Improved Thai Date Formatter
+    function formatThaiDate(dateString) {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "-"; 
+        
+        return new Intl.DateTimeFormat('th-TH', {
+            day: 'numeric',
+            month: 'short', // ม.ค., ก.พ.
+            year: '2-digit' // 67, 68
+        }).format(date);
+    }
     
     function calculateScores(studentId, classId, tasks) {
         let chapData = Array(6).fill().map(() => ({ earn: 0, max: 0 }));
@@ -875,8 +940,29 @@
     }
     function refreshDropdowns() {
         const setOpts = (id, list) => { const el=document.getElementById(id); if(!el) return; const cur=el.value; el.innerHTML='<option value="">-- เลือก --</option>'; list.forEach(i=>{ const o=document.createElement('option'); o.value=i.id; o.textContent=i.name; el.appendChild(o); }); el.value=cur; };
-        setOpts('class-subject-ref', dataState.subjects); setOpts('student-class', dataState.classes); setOpts('scan-class-select', dataState.classes); setOpts('task-subject-filter', dataState.subjects); setOpts('report-class', dataState.classes); setOpts('att-class-select', dataState.classes); setOpts('mat-subject', dataState.subjects); setOpts('sch-class', dataState.classes);
+        setOpts('class-subject-ref', dataState.subjects); setOpts('student-class', dataState.classes); setOpts('scan-class-select', dataState.classes); setOpts('task-subject-filter', dataState.subjects); setOpts('att-class-select', dataState.classes); setOpts('mat-subject', dataState.subjects); setOpts('sch-class', dataState.classes);
+        // NEW: Load Subjects for Report
+        setOpts('report-subject', dataState.subjects);
     }
+    
+    function updateReportClassDropdown() {
+        const subId = document.getElementById('report-subject').value;
+        const classSelect = document.getElementById('report-class');
+        classSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+        document.getElementById('report-table-body').innerHTML = ''; // Clear table
+
+        if(!subId) return;
+
+        // Filter classes for selected subject
+        const filteredClasses = dataState.classes.filter(c => c.subjectId == subId);
+        filteredClasses.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.id;
+            o.textContent = c.name;
+            classSelect.appendChild(o);
+        });
+    }
+
     function updateScanTaskDropdown() {
         const cid = document.getElementById('scan-class-select').value; const el = document.getElementById('scan-task-select'); 
         const currentTaskId = el.value; // Store value
@@ -889,7 +975,6 @@
         dataState.classes.filter(c=>c.subjectId==subId).forEach(c => { const lbl = document.createElement('label'); lbl.className="flex items-center gap-2 p-2 rounded hover:bg-white/10 cursor-pointer"; lbl.innerHTML=`<input type="checkbox" value="${c.id}" class="accent-yellow-500 w-4 h-4 rounded"><span class="text-xs text-white/80">${c.name}</span>`; div.appendChild(lbl); });
     }
     
-    // --- FIX: CLEAR CACHE ON LOGOUT ---
     function handleAdminLogout() { 
         if(confirm("ออกจากระบบ?")) { 
             localStorage.removeItem('wany_admin_session'); 
@@ -922,7 +1007,6 @@
     }
     
     // --- VISUAL HIGHLIGHTS (ATTENDANCE) ---
-    // FIX: Added safer date comparison for Google Sheet timestamp variations
     function renderAttRoster() {
         const cid = document.getElementById('att-class-select').value, div = document.getElementById('att-roster-grid'), date = document.getElementById('att-date-input').value; div.innerHTML = ''; if(!cid) return;
         
@@ -992,6 +1076,7 @@
         students.forEach((s, idx) => { 
             const { chapScores, midterm, final, total } = calculateScores(s.id, cid, tasks);
             const tr = document.createElement('tr');
+            tr.className = "print-row"; // Add class for print control
             
             let html = `<td>${s.no || idx+1}</td><td>${s.code || '-'}</td><td style="text-align:left;">${s.name}</td>`;
             chapScores.forEach(sc => html += `<td>${sc}</td>`);
@@ -1001,7 +1086,7 @@
             tbody.appendChild(tr);
         });
         
-        // 3. (จุดที่แก้ไข) รอ 0.5 วินาที ให้หน้าเว็บนิ่งก่อน แล้วค่อยสั่งพิมพ์
+        // 3. รอ 0.5 วินาที แล้วสั่งพิมพ์
         setTimeout(() => {
             window.print();
         }, 500);
@@ -1147,6 +1232,7 @@
         document.getElementById('submit-modal-title').textContent = "งาน: " + tname;
         document.getElementById('submit-link-input').value = "";
         document.getElementById('submit-comment-input').value = ""; 
+        document.getElementById('friend-search').value = ""; // Reset search
 
         const container = document.getElementById('friend-selector-container'); container.innerHTML = '';
         const currentStudent = dataState.students.find(s => s.id == sid);
@@ -1155,7 +1241,7 @@
             if(friends.length === 0) container.innerHTML = '<div class="text-xs text-white/30 text-center">- ไม่มีรายชื่อเพื่อน -</div>';
             friends.forEach(f => {
                 const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-black/20 p-2 rounded hover:bg-white/5 cursor-pointer border border-transparent hover:border-blue-500/50";
+                div.className = "friend-item flex items-center gap-2 bg-black/20 p-2 rounded hover:bg-white/5 cursor-pointer border border-transparent hover:border-blue-500/50";
                 div.innerHTML = `<input type="checkbox" id="friend-${f.id}" value="${f.id}" class="accent-blue-500 w-4 h-4 rounded cursor-pointer friend-checkbox"><label for="friend-${f.id}" class="text-xs text-white/70 cursor-pointer select-none flex-1"><span class="font-bold text-white mr-1">${f.no}.</span> ${f.name}</label>`;
                 container.appendChild(div);
             });
@@ -1167,4 +1253,3 @@
  </script>
  </body>
 </html>
-
