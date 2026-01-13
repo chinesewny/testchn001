@@ -443,19 +443,25 @@
         }
     }
 
-    function handleStudentLogin() {
+    async function handleStudentLogin() {
         const inputId = document.getElementById('student-login-id').value.trim();
         if (!inputId) return alert("กรุณากรอกรหัสนักเรียน");
         
+        showLoading("กำลังเข้าสู่ระบบ...");
+        await new Promise(r => setTimeout(r, 500)); // Delay for smooth UI
+
         const student = dataState.students.find(s => String(s.code) === String(inputId) || String(s.id) === String(inputId));
+        
+        hideLoading();
+
         if (student) {
             localStorage.setItem('current_student_code', student.code);
             document.getElementById('student-login-wrapper').classList.add('hidden');
             document.getElementById('student-dashboard').classList.remove('hidden');
-            refreshUI();
+            if(student.code) renderStudentDashboard(student.code);
             showToast(`ยินดีต้อนรับ ${student.name}`);
         } else {
-            alert("ไม่พบข้อมูลนักเรียน");
+            alert("ไม่พบข้อมูลนักเรียน (หรือข้อมูลยังโหลดไม่เสร็จ)");
         }
     }
 
@@ -848,10 +854,15 @@
     async function saveAndRefresh(payload) { 
         // 1. ถ้าเป็นการ Login ให้ส่งทันที (ไม่เข้าคิว)
         if(payload.action === 'login') {
+            showLoading("กำลังตรวจสอบข้อมูล..."); // Add this
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) }); 
+                hideLoading(); // Add this
                 return await res.json(); 
-            } catch(e) { return {status:'error'}; }
+            } catch(e) { 
+                hideLoading(); // Add this
+                return {status:'error'}; 
+            }
         }
 
         // 2. ถ้าเป็นการบันทึกข้อมูลทั่วไป: ทำ Optimistic Update ทันที
@@ -895,6 +906,8 @@
         
         if (requestQueue.length === 0) {
             updateSyncUI('All Synced', 'green');
+            // แจ้งเตือนเมื่อข้อมูลถูกส่งไป Google Sheet สำเร็จแล้ว
+            showToast("ข้อมูลถูกบันทึกลงฐานข้อมูลเรียบร้อย", "bg-green-600");
         }
         
         isProcessingQueue = false;
@@ -1047,7 +1060,15 @@
 
     function saveToLocalStorage() { localStorage.setItem('wany_data_backup', JSON.stringify({ timestamp: new Date().getTime(), data: dataState })); }
     function loadFromLocalStorage() { const b = localStorage.getItem('wany_data_backup'); if(b) { const p = JSON.parse(b); if(new Date().getTime() - p.timestamp < 1800000) dataState = p.data; } }
-    window.handleLogout = function(force=false) { if(force || confirm("ออกจากระบบ?")) { localStorage.removeItem('wany_admin_session'); localStorage.removeItem('wany_data_backup'); localStorage.removeItem('current_student_code'); location.reload(); } }
+    window.handleLogout = function(force=false) { 
+        if(force || confirm("ออกจากระบบ?")) { 
+            showLoading("กำลังออกจากระบบ...");
+            localStorage.removeItem('wany_admin_session'); 
+            localStorage.removeItem('wany_data_backup'); 
+            localStorage.removeItem('current_student_code'); 
+            setTimeout(() => location.reload(), 500);
+        } 
+    }
 
     function showAdminPanel(auto=false) { 
         document.getElementById('admin-login-wrapper').classList.add('hidden'); 
@@ -1071,7 +1092,7 @@
         updateInboxBadge();
         if(!document.getElementById('student-dashboard').classList.contains('hidden')) {
              const code = localStorage.getItem('current_student_code');
-             if(code) { const s = dataState.students.find(x => x.code == code); if(s) renderStudentDashboard(s); }
+             if(code) { renderStudentDashboard(code); }
         }
     }
 
@@ -1112,7 +1133,6 @@
             
             if (role === 'admin') {
                 localStorage.setItem('admin_email', email);
-                // Admin email usually local, but let's fake a delay or send if backend supports
                 await new Promise(r => setTimeout(r, 800)); 
             } else {
                 const code = localStorage.getItem('current_student_code');
@@ -1174,34 +1194,41 @@
         } 
     };
 
-    function renderStudentDashboard(s) {
-        // --- ส่วนที่แก้ไข 1: บังคับกรอกอีเมลถ้าข้อมูลว่าง ---
-        if (!s.email || s.email === "") {
+    function renderStudentDashboard(studentCode) {
+        // --- 1. ค้นหาข้อมูลนักเรียนทั้งหมดจากรหัสนักเรียน (เผื่อมีหลายห้อง/หลายวิชา) ---
+        const studentRecords = dataState.students.filter(s => String(s.code) === String(studentCode));
+        if (studentRecords.length === 0) return;
+
+        // ใช้ข้อมูลโปรไฟล์จาก Record แรก (ชื่อ/อีเมลควรเหมือนกัน)
+        const mainProfile = studentRecords[0];
+
+        // --- ตรวจสอบอีเมล (ใช้จาก Profile หลัก) ---
+        if (!mainProfile.email || mainProfile.email === "") {
             openEmailModal('student');
         }
-        // ----------------------------------------------
 
-        // --- ส่วนที่แก้ไข 2: แสดงชื่อและห้องที่หัวเว็บ ---
-        document.getElementById('std-dash-name').textContent = s.name;
-        const clsName = dataState.classes.find(c => c.id == s.classId)?.name || '-';
-        document.getElementById('std-dash-class').textContent = clsName;
-        // ----------------------------------------------
+        document.getElementById('std-dash-name').textContent = mainProfile.name;
+        
+        // รวมชื่อห้องเรียนทั้งหมดที่นักเรียนอยู่
+        const classNames = [...new Set(studentRecords.map(s => dataState.classes.find(c => c.id == s.classId)?.name))].filter(Boolean).join(', ');
+        document.getElementById('std-dash-class').textContent = classNames;
 
         const container = document.getElementById('std-subjects-container'); 
         container.innerHTML = '';
         
-        const myTasks = dataState.tasks.filter(t => t.classId == s.classId);
-        const subjectsFound = [...new Set(myTasks.map(t => t.subjectId))];
         const today = getThaiDateISO();
-        
-        if (subjectsFound.length === 0) {
-            container.innerHTML = '<div class="text-center text-white/50 py-10">ยังไม่มีรายวิชาที่ลงทะเบียน</div>';
-            return;
-        }
 
-        subjectsFound.forEach(subId => {
-            const subj = dataState.subjects.find(sub => sub.id == subId) || {name:'-', scoreConfig:[]};
-            const subjectTasks = myTasks.filter(t => t.subjectId == subId);
+        // --- 2. วนลูปสร้างการ์ดสำหรับ "ทุกวิชา" ที่นักเรียนลงทะเบียน ---
+        studentRecords.forEach(s => {
+            const currentClass = dataState.classes.find(c => c.id == s.classId);
+            if (!currentClass) return;
+            
+            const subj = dataState.subjects.find(sub => sub.id == currentClass.subjectId);
+            if (!subj) return;
+
+            // ดึงงานของห้องเรียนนี้
+            const subjectTasks = dataState.tasks.filter(t => t.classId == s.classId && t.subjectId == subj.id);
+            
             const { midterm, final, total } = calculateScores(s.id, s.classId, subjectTasks); 
             const grade = calGrade(total);
             const atts = dataState.attendance.filter(a => a.studentId == s.id);
@@ -1250,6 +1277,24 @@
             });
             let progress = subjectTasks.length > 0 ? Math.round((completedCount/subjectTasks.length)*100) : 0;
 
+            // --- 3. ดึงเนื้อหา (Material) ของวิชานี้ ---
+            const subjectMaterials = dataState.materials.filter(m => m.subjectId == subj.id);
+            let materialHTML = '';
+            if (subjectMaterials.length > 0) {
+                materialHTML = `<div class="mt-4 border-t border-white/10 pt-4">
+                    <h4 class="text-xs font-bold text-white/60 mb-2 uppercase"><i class="fa-solid fa-book-open mr-1"></i> เนื้อหาบทเรียน</h4>
+                    <div class="grid grid-cols-1 gap-2">`;
+                subjectMaterials.forEach(m => {
+                    materialHTML += `<a href="${m.link}" target="_blank" class="block bg-white/5 hover:bg-white/10 p-2 rounded flex items-center justify-between group transition-all">
+                        <span class="text-sm text-white group-hover:text-blue-300"><i class="fa-solid fa-link text-[10px] mr-2 opacity-50"></i>${m.title}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-white/30"></i>
+                    </a>`;
+                });
+                materialHTML += `</div></div>`;
+            } else {
+                materialHTML = `<div class="mt-4 border-t border-white/10 pt-4 text-center text-xs text-white/30">ยังไม่มีเนื้อหาในวิชานี้</div>`;
+            }
+
             // สร้าง Card วิชา
             const card = document.createElement('div');
             card.className = "flex flex-col gap-6 p-5 bg-gradient-to-r from-blue-900/40 to-blue-600/20 rounded-2xl border border-blue-500/30 mb-6";
@@ -1260,7 +1305,7 @@
                     <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl shadow-lg">📚</div>
                     <div>
                         <h2 class="text-xl font-bold text-white tracking-wide">${subj.name}</h2>
-                        <p class="text-blue-300 text-sm font-mono mt-1">เกรดเฉลี่ย: <span class="text-yellow-400 font-bold text-lg">${grade}</span></p>
+                        <p class="text-blue-300 text-sm font-mono mt-1">ห้องเรียน: <span class="text-white font-bold">${currentClass.name}</span> | เกรด: <span class="text-yellow-400 font-bold text-lg">${grade}</span></p>
                     </div>
                 </div>
                 <div class="flex gap-4 bg-black/20 p-3 rounded-xl">
@@ -1285,6 +1330,7 @@
                         <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-2"><div class="text-xl font-bold text-red-400">${a}</div><div class="text-[9px] text-white/50 uppercase">ขาด</div></div>
                         <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-2"><div class="text-xl font-bold text-orange-400">${act}</div><div class="text-[9px] text-white/50 uppercase">กิจกรรม</div></div>
                     </div>
+                    ${materialHTML}
                 </div>
 
                 <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden">
@@ -1298,18 +1344,18 @@
                     </div>
                     <div class="space-y-2 max-h-60 overflow-y-auto pr-1">`;
 
-            // เรียงลำดับงาน: งานตีกลับ > งานค้างส่ง > ยังไม่ส่ง > รอตรวจ > ตรวจแล้ว
+            // เรียงลำดับงาน... (เหมือนเดิม)
             const getPriority = (t) => {
                 const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
                 const sub = dataState.submissions.find(x => x.studentId == s.id && x.taskId == t.id);
                 const ret = dataState.returns ? dataState.returns.find(x => x.studentId == s.id && x.taskId == t.id) : null;
                 const isLate = t.dueDateISO < today;
                 
-                if (ret) return 1;          // โดนตีกลับ (สำคัญสุด)
-                if (!sc && !sub && isLate) return 2; // เลยกำหนดส่ง
-                if (!sc && !sub) return 3;  // ยังไม่ส่ง (ปกติ)
-                if (sub && !sc) return 4;   // รอตรวจ
-                return 5;                   // ตรวจแล้ว
+                if (ret) return 1;          
+                if (!sc && !sub && isLate) return 2; 
+                if (!sc && !sub) return 3;  
+                if (sub && !sc) return 4;   
+                return 5;                   
             };
             const sortedTasks = [...subjectTasks].sort((a,b) => getPriority(a) - getPriority(b));
 
@@ -1386,8 +1432,9 @@
                 await saveAndRefresh({ action: 'submitTask', taskId: tid, studentIds: allStudentIds, link: link, comment: comment });
                 document.getElementById('submit-modal').classList.add('hidden');
                 // showToast("ส่งงานเรียบร้อย"); // Already handled in saveAndRefresh
+                // รีเฟรชแดชบอร์ดโดยใช้รหัสนักเรียนจาก Record ปัจจุบัน
                 const s = dataState.students.find(x => x.id == sid);
-                if(s) renderStudentDashboard(s);
+                if(s) renderStudentDashboard(s.code);
             } catch(err) { alert("เกิดข้อผิดพลาด"); } 
             finally { btn.disabled = false; btn.innerHTML = originalText; }
         };
