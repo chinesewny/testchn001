@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>ChineseClass By Krukong</title>
   <link rel="icon" href="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,6 +14,7 @@
           background: radial-gradient(circle at top left, #1e3a8a, #0f172a, #000000); 
           background-attachment: fixed;
           color: #e2e8f0;
+          -webkit-tap-highlight-color: transparent;
       }
       .glass-ios {
           background: rgba(255, 255, 255, 0.07);
@@ -33,10 +34,24 @@
           border-color: rgba(255, 255, 255, 0.3);
           outline: none;
       }
+      /* Autofill Fix for Dark Theme */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover, 
+      input:-webkit-autofill:focus, 
+      input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.5) inset !important;
+          -webkit-text-fill-color: white !important;
+          caret-color: white !important;
+          transition: background-color 5000s ease-in-out 0s;
+      }
+
       .btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: 1px solid rgba(255,255,255,0.2); }
       .btn-blue:hover:not(:disabled) { box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); transform: translateY(-1px); }
+      .btn-blue:active { transform: scale(0.98); }
+      
       .btn-red { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: 1px solid rgba(255,255,255,0.2); }
       .btn-yellow { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: 1px solid rgba(255,255,255,0.2); }
+      
       .btn-score-active { background: #eab308 !important; color: black !important; border: 2px solid #fff !important; font-weight: bold; transform: scale(1.1); box-shadow: 0 0 15px rgba(234, 179, 8, 0.6); }
       
       /* Attendance Buttons */
@@ -48,10 +63,15 @@
       .status-box { transition: all 0.2s; border-radius: 12px; }
       .status-none { background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2); color: #94a3b8; }
       .status-done { background: rgba(5, 150, 105, 0.2); border: 1px solid #059669; color: #34d399; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
+      
       .chapter-checkbox:checked + div { background: linear-gradient(135deg, #d97706, #b45309); color: white; border-color: white; }
+      
+      /* Custom Scrollbar */
       ::-webkit-scrollbar { width: 6px; height: 6px; }
-      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
       #toast-notification { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
       .toast-show { transform: translate(-50%, 0) !important; opacity: 1 !important; }
       
@@ -66,7 +86,6 @@
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         thead { display: table-header-group; } 
         tr { page-break-inside: avoid; page-break-after: auto; }
-        /* แก้ไขเพิ่มเส้นตารางให้ชัดเจนตอนพิมพ์ */
         table, th, td { border: 1px solid black !important; }
         th, td { padding: 6px; text-align: center; color: black; }
         .print-header-row td { border: none !important; padding-bottom: 10px; }
@@ -938,7 +957,14 @@
         if(p.action === 'updateSubjectConfig') { const s = dataState.subjects.find(x=>x.id==p.id); if(s) s.scoreConfig = p.config; }
         if(p.action === 'addClass') dataState.classes.push({id:p.id, name:p.name, subjectId:p.subjectId});
         if(p.action === 'addStudent') dataState.students.push({id:p.id, classId:p.classId, no:p.no, code:p.code, name:p.name});
-        if(p.action === 'updateEmail') { const s = dataState.students.find(x=>x.id==p.studentId); if(s) s.email = p.email; }
+        if(p.action === 'updateEmail') { 
+            // อัพเดทอีเมลให้ทุก record ของนักเรียนคนนี้
+            dataState.students.forEach(student => {
+                if(student.code === p.code || student.id == p.studentId) {
+                    student.email = p.email;
+                }
+            });
+        }
         if(p.action === 'addTask') { p.classIds.forEach((cid, idx) => { const chapStr = Array.isArray(p.chapter) ? p.chapter.join(',') : p.chapter; dataState.tasks.push({ id: Number(p.id) + idx, classId: cid, subjectId: p.subjectId, category: p.category, chapter: chapStr, name: p.name, maxScore: p.maxScore, dueDateISO: p.dueDateISO }); }); }
         if(p.action === 'addScore') { const idx = dataState.scores.findIndex(s => s.studentId == p.studentId && s.taskId == p.taskId); if(idx >= 0) dataState.scores[idx].score = p.score; else dataState.scores.push({studentId:p.studentId, taskId:p.taskId, score:p.score}); if(dataState.returns) dataState.returns = dataState.returns.filter(r => !(r.studentId == p.studentId && r.taskId == p.taskId)); }
         if(p.action === 'addAttendance') { const idx = dataState.attendance.findIndex(a => a.studentId == p.studentId && a.date == p.date); if(idx >= 0) dataState.attendance[idx].status = p.status; else dataState.attendance.push({studentId:p.studentId, classId:p.classId, date:p.date, status:p.status}); }
@@ -1120,10 +1146,24 @@
         document.getElementById('email-modal-role').value = role;
         const closeBtn = document.getElementById('btn-close-email');
         let currentEmail = "";
-        if (role === 'admin') { currentEmail = localStorage.getItem('admin_email') || ""; } 
-        else { const code = localStorage.getItem('current_student_code'); const s = dataState.students.find(x => x.code == code); if(s && s.email) currentEmail = s.email; }
+        if (role === 'admin') { 
+            currentEmail = localStorage.getItem('admin_email') || ""; 
+        } else { 
+            // แก้ไข: ใช้ mainProfile จาก studentRecords[0]
+            const code = localStorage.getItem('current_student_code'); 
+            const studentRecords = dataState.students.filter(s => String(s.code) === String(code));
+            if(studentRecords.length > 0) {
+                const mainProfile = studentRecords[0];
+                currentEmail = mainProfile.email || "";
+            }
+        }
+        
         document.getElementById('user-email-input').value = currentEmail;
-        if (!currentEmail) { closeBtn.classList.add('hidden'); } else { closeBtn.classList.remove('hidden'); }
+        if (!currentEmail) { 
+            closeBtn.classList.add('hidden'); 
+        } else { 
+            closeBtn.classList.remove('hidden'); 
+        }
     }
 
     function showLoading(text="กำลังประมวลผล...") {
@@ -1143,11 +1183,9 @@
         
         if(!email.includes('@')) return alert("รูปแบบอีเมลไม่ถูกต้อง");
 
-        // 1. Show Loading
         showLoading("กำลังบันทึกอีเมล...");
 
         try {
-            // 2. Direct Fetch to Google Sheet (Bypass Queue for critical path)
             let payload = { action: 'updateEmail', email: email };
             
             if (role === 'admin') {
@@ -1155,23 +1193,28 @@
                 await new Promise(r => setTimeout(r, 800)); 
             } else {
                 const code = localStorage.getItem('current_student_code');
-                const s = dataState.students.find(x => x.code == code);
-                if (s) {
-                    payload.studentId = s.id;
-                    s.email = email; // Optimistic local update
-                    saveToLocalStorage();
-                    
-                    // Critical: Await the server response
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
+                const studentRecords = dataState.students.filter(s => String(s.code) === String(code));
+                
+                if (studentRecords.length > 0) {
+                    // อัพเดทอีเมลให้ทุก record ของนักเรียนคนนี้
+                    studentRecords.forEach(studentRecord => {
+                        payload.studentId = studentRecord.id;
+                        payload.code = studentRecord.code;
+                        studentRecord.email = email; // Optimistic local update
+                        
+                        // ส่งข้อมูลไปยัง Google Sheet
+                        fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify(payload)
+                        }).catch(err => console.error("Error updating email:", err));
                     });
+                    
+                    saveToLocalStorage();
                 } else {
                     throw new Error("Student not found");
                 }
             }
 
-            // 3. Success
             document.getElementById('email-modal').classList.add('hidden');
             showToast("บันทึกข้อมูลเรียบร้อย");
             
@@ -1221,15 +1264,13 @@
         // ใช้ข้อมูลโปรไฟล์จาก Record แรก (ชื่อ/อีเมลควรเหมือนกัน)
         const mainProfile = studentRecords[0];
 
-        // --- ตรวจสอบอีเมล (ใช้จาก Profile หลัก) ---
-        if (!mainProfile.email || mainProfile.email === "") {
-            openEmailModal('student');
-        }
-
         document.getElementById('std-dash-name').textContent = mainProfile.name;
         
         // รวมชื่อห้องเรียนทั้งหมดที่นักเรียนอยู่
-        const classNames = [...new Set(studentRecords.map(s => dataState.classes.find(c => c.id == s.classId)?.name))].filter(Boolean).join(', ');
+        const classNames = [...new Set(studentRecords.map(s => {
+            const cls = dataState.classes.find(c => c.id == s.classId);
+            return cls ? cls.name : null;
+        }))].filter(Boolean).join(', ');
         document.getElementById('std-dash-class').textContent = classNames;
 
         const container = document.getElementById('std-subjects-container'); 
@@ -1238,19 +1279,22 @@
         const today = getThaiDateISO();
 
         // --- 2. วนลูปสร้างการ์ดสำหรับ "ทุกวิชา" ที่นักเรียนลงทะเบียน ---
-        studentRecords.forEach(s => {
-            const currentClass = dataState.classes.find(c => c.id == s.classId);
+        studentRecords.forEach(studentRecord => {
+            const currentClass = dataState.classes.find(c => c.id == studentRecord.classId);
             if (!currentClass) return;
             
             const subj = dataState.subjects.find(sub => sub.id == currentClass.subjectId);
             if (!subj) return;
 
-            // ดึงงานของห้องเรียนนี้
-            const subjectTasks = dataState.tasks.filter(t => t.classId == s.classId && t.subjectId == subj.id);
+            // ดึงงานของห้องเรียนนี้ - แก้ไข: ใช้ studentRecord.classId
+            const subjectTasks = dataState.tasks.filter(t => t.classId == studentRecord.classId && t.subjectId == subj.id);
             
-            const { midterm, final, total } = calculateScores(s.id, s.classId, subjectTasks); 
+            // แก้ไข: ใช้ studentRecord.id แทน s.id
+            const { midterm, final, total } = calculateScores(studentRecord.id, studentRecord.classId, subjectTasks); 
             const grade = calGrade(total);
-            const atts = dataState.attendance.filter(a => a.studentId == s.id);
+            
+            // แก้ไข: ใช้ studentRecord.id
+            const atts = dataState.attendance.filter(a => a.studentId == studentRecord.id);
             
             let p=0, l=0, a=0, act=0;
             atts.forEach(att => { 
@@ -1264,7 +1308,8 @@
             let midDisplay = `<span class="text-white/20 font-bold">-</span>`; 
             const midTask = subjectTasks.find(t => t.category === 'midterm');
             if (midTask) {
-                const hasScore = dataState.scores.some(sc => sc.studentId == s.id && sc.taskId == midTask.id);
+                // แก้ไข: ใช้ studentRecord.id
+                const hasScore = dataState.scores.some(sc => sc.studentId == studentRecord.id && sc.taskId == midTask.id);
                 if (hasScore) { 
                     midDisplay = `<span class="text-blue-300 font-bold">${midterm}</span>`; 
                     if (midterm < (midTask.maxScore / 2)) { 
@@ -1277,7 +1322,8 @@
             let finalDisplay = `<span class="text-white/20 font-bold">-</span>`; 
             const finalTask = subjectTasks.find(t => t.category === 'final');
             if (finalTask) {
-                const hasScore = dataState.scores.some(sc => sc.studentId == s.id && sc.taskId == finalTask.id);
+                // แก้ไข: ใช้ studentRecord.id
+                const hasScore = dataState.scores.some(sc => sc.studentId == studentRecord.id && sc.taskId == finalTask.id);
                 if (hasScore) { 
                     if (Number(final) > 0) { 
                         finalDisplay = `<i class="fa-solid fa-check text-green-400 text-xl"></i>`; 
@@ -1287,11 +1333,11 @@
                 }
             }
 
-            // คำนวณความคืบหน้า
+            // คำนวณความคืบหน้า - แก้ไข: ใช้ studentRecord.id
             let completedCount = 0;
             subjectTasks.forEach(t => { 
-                const hasScore = dataState.scores.some(sc => sc.studentId == s.id && sc.taskId == t.id); 
-                const hasSub = dataState.submissions.some(sb => sb.studentId == s.id && sb.taskId == t.id); 
+                const hasScore = dataState.scores.some(sc => sc.studentId == studentRecord.id && sc.taskId == t.id); 
+                const hasSub = dataState.submissions.some(sb => sb.studentId == studentRecord.id && sb.taskId == t.id); 
                 if(hasScore || hasSub) completedCount++; 
             });
             let progress = subjectTasks.length > 0 ? Math.round((completedCount/subjectTasks.length)*100) : 0;
@@ -1300,59 +1346,58 @@
             const subjectMaterials = dataState.materials.filter(m => m.subjectId == subj.id);
             let materialHTML = '';
             if (subjectMaterials.length > 0) {
-                materialHTML = `<div class="mt-4 border-t border-white/10 pt-4">
-                    <h4 class="text-xs font-bold text-white/60 mb-2 uppercase"><i class="fa-solid fa-book-open mr-1"></i> เนื้อหาบทเรียน</h4>
+                materialHTML = `<div class="mt-6 border-t border-white/10 pt-4">
+                    <h4 class="text-xs font-bold text-white/60 mb-3 uppercase flex items-center"><i class="fa-solid fa-book-open mr-2 text-yellow-400"></i> เนื้อหาบทเรียน</h4>
                     <div class="grid grid-cols-1 gap-2">`;
                 subjectMaterials.forEach(m => {
-                    materialHTML += `<a href="${m.link}" target="_blank" class="block bg-white/5 hover:bg-white/10 p-2 rounded flex items-center justify-between group transition-all">
-                        <span class="text-sm text-white group-hover:text-blue-300"><i class="fa-solid fa-link text-[10px] mr-2 opacity-50"></i>${m.title}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-white/30"></i>
+                    materialHTML += `<a href="${m.link}" target="_blank" class="block bg-white/5 hover:bg-white/10 p-3 rounded-xl flex items-center justify-between group transition-all border border-white/5 hover:border-blue-500/30">
+                        <span class="text-sm text-white group-hover:text-blue-300 font-medium truncate"><i class="fa-solid fa-link text-xs mr-2 text-blue-400/70"></i>${m.title}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-white/30 group-hover:text-blue-400"></i>
                     </a>`;
                 });
                 materialHTML += `</div></div>`;
             } else {
-                materialHTML = `<div class="mt-4 border-t border-white/10 pt-4 text-center text-xs text-white/30">ยังไม่มีเนื้อหาในวิชานี้</div>`;
+                materialHTML = `<div class="mt-6 border-t border-white/10 pt-4 text-center text-xs text-white/30 py-2">ยังไม่มีเนื้อหาในวิชานี้</div>`;
             }
 
             // สร้าง Card วิชา
             const card = document.createElement('div');
-            card.className = "flex flex-col gap-6 p-5 bg-gradient-to-r from-blue-900/40 to-blue-600/20 rounded-2xl border border-blue-500/30 mb-6";
+            card.className = "flex flex-col gap-6 p-5 bg-gradient-to-r from-blue-900/40 to-blue-600/20 rounded-2xl border border-blue-500/30 mb-6 shadow-xl";
             
             let html = `
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl shadow-lg">📚</div>
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl shadow-lg text-white ring-2 ring-white/20">📚</div>
                     <div>
-                        <h2 class="text-xl font-bold text-white tracking-wide">${subj.name}</h2>
-                        <p class="text-blue-300 text-sm font-mono mt-1">ห้องเรียน: <span class="text-white font-bold">${currentClass.name}</span> | เกรด: <span class="text-yellow-400 font-bold text-lg">${grade}</span></p>
+                        <h2 class="text-xl font-bold text-white tracking-wide drop-shadow-md">${subj.name}</h2>
+                        <p class="text-blue-200 text-sm font-mono mt-1">ห้องเรียน: <span class="text-white font-bold">${currentClass.name}</span> | เกรด: <span class="text-yellow-400 font-bold text-lg">${grade}</span></p>
                     </div>
                 </div>
-                <div class="flex gap-4 bg-black/20 p-3 rounded-xl">
+                <div class="flex gap-4 bg-black/20 p-3 rounded-xl border border-white/5">
                     <div class="text-center px-4 border-r border-white/10">
-                        <div class="text-[10px] text-white/50 uppercase">กลางภาค</div>
-                        <div class="mt-1">${midDisplay}</div>
+                        <div class="text-[10px] text-white/50 uppercase font-bold tracking-wider">กลางภาค</div>
+                        <div class="mt-1 text-lg">${midDisplay}</div>
                     </div>
                     <div class="text-center px-4">
-                        <div class="text-[10px] text-white/50 uppercase">ปลายภาค</div>
-                        <div class="mt-1">${finalDisplay}</div>
+                        <div class="text-[10px] text-white/50 uppercase font-bold tracking-wider">ปลายภาค</div>
+                        <div class="mt-1 text-lg">${finalDisplay}</div>
                     </div>
                 </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-green-500/30 transition-all">
                     <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
                     <h3 class="text-sm font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-user-clock mr-2 text-green-400"></i>ประวัติการเข้าเรียน</h3>
-                    <div class="grid grid-cols-4 gap-2 text-center mb-4">
+                    <div class="grid grid-cols-4 gap-2 text-center mb-0">
                         <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-2"><div class="text-xl font-bold text-green-400">${p}</div><div class="text-[9px] text-white/50 uppercase">มา</div></div>
                         <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-2"><div class="text-xl font-bold text-yellow-400">${l}</div><div class="text-[9px] text-white/50 uppercase">ลา</div></div>
                         <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-2"><div class="text-xl font-bold text-red-400">${a}</div><div class="text-[9px] text-white/50 uppercase">ขาด</div></div>
                         <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-2"><div class="text-xl font-bold text-orange-400">${act}</div><div class="text-[9px] text-white/50 uppercase">กิจกรรม</div></div>
                     </div>
-                    ${materialHTML}
                 </div>
 
-                <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden">
+                <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-yellow-500/30 transition-all">
                     <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
                     <h3 class="text-sm font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check mr-2 text-yellow-400"></i>สถานะการส่งงาน</h3>
                     <div class="mb-4">
@@ -1361,13 +1406,14 @@
                             <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2.5 rounded-full transition-all duration-1000" style="width: ${progress}%"></div>
                         </div>
                     </div>
-                    <div class="space-y-2 max-h-60 overflow-y-auto pr-1">`;
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">`;
 
             // เรียงลำดับงาน... (เหมือนเดิม)
             const getPriority = (t) => {
-                const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
-                const sub = dataState.submissions.find(x => x.studentId == s.id && x.taskId == t.id);
-                const ret = dataState.returns ? dataState.returns.find(x => x.studentId == s.id && x.taskId == t.id) : null;
+                // แก้ไข: ใช้ studentRecord.id
+                const sc = dataState.scores.find(x => x.studentId == studentRecord.id && x.taskId == t.id);
+                const sub = dataState.submissions.find(x => x.studentId == studentRecord.id && x.taskId == t.id);
+                const ret = dataState.returns ? dataState.returns.find(x => x.studentId == studentRecord.id && x.taskId == t.id) : null;
                 const isLate = t.dueDateISO < today;
                 
                 if (ret) return 1;          
@@ -1378,38 +1424,43 @@
             };
             const sortedTasks = [...subjectTasks].sort((a,b) => getPriority(a) - getPriority(b));
 
+            if (sortedTasks.length === 0) {
+                html += `<div class="text-center text-xs text-white/30 py-4">ไม่มีงานที่มอบหมาย</div>`;
+            }
+
             sortedTasks.forEach(t => {
-                const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
-                const submission = dataState.submissions.find(x => x.studentId == s.id && x.taskId == t.id);
-                const returned = dataState.returns ? dataState.returns.find(x => x.studentId == s.id && x.taskId == t.id) : null;
+                // แก้ไข: ใช้ studentRecord.id
+                const sc = dataState.scores.find(x => x.studentId == studentRecord.id && x.taskId == t.id);
+                const submission = dataState.submissions.find(x => x.studentId == studentRecord.id && x.taskId == t.id);
+                const returned = dataState.returns ? dataState.returns.find(x => x.studentId == studentRecord.id && x.taskId == t.id) : null;
                 
-                let bgClass = "bg-white/5 border-white/10";
+                let bgClass = "bg-white/5 border-white/10 hover:bg-white/10";
                 let statusBadge = `<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/50">รอส่ง</span>`;
-                let actionBtn = `<button onclick="openSubmitModal('${t.id}', '${s.id}', '${t.name}')" class="text-[10px] bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded border border-white/20">ส่งงาน</button>`;
+                let actionBtn = `<button onclick="openSubmitModal('${t.id}', '${studentRecord.id}', '${t.name}')" class="text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg border border-white/20 transition-all font-bold">ส่งงาน</button>`;
 
                 if (returned) { 
-                    bgClass = "bg-orange-500/10 border-orange-500/30"; 
+                    bgClass = "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20"; 
                     statusBadge = `<span class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded font-bold">ต้องแก้ไข</span>`; 
-                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${s.id}', '${t.name}')" class="text-[10px] bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded shadow">แก้ใหม่</button>`; 
+                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${studentRecord.id}', '${t.name}')" class="text-[10px] bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg shadow-lg font-bold animate-pulse">แก้ใหม่</button>`; 
                 } 
                 else if (sc) { 
                     bgClass = "bg-green-500/10 border-green-500/30"; 
-                    statusBadge = `<span class="text-[10px] text-green-400 font-bold"><i class="fa-solid fa-check mr-1"></i>ตรวจแล้ว</span>`; 
+                    statusBadge = `<span class="text-[10px] text-green-400 font-bold"><i class="fa-solid fa-check mr-1"></i>ตรวจแล้ว (${sc.score})</span>`; 
                     actionBtn = ``; 
                 } 
                 else if (submission) { 
                     bgClass = "bg-blue-500/10 border-blue-500/30"; 
                     statusBadge = `<span class="text-[10px] text-blue-300"><i class="fa-solid fa-hourglass-half mr-1"></i>รอตรวจ</span>`; 
-                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${s.id}', '${t.name}')" class="text-[10px] bg-blue-600/30 hover:bg-blue-600/50 text-white px-2 py-1 rounded">แก้ไข</button>`; 
+                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${studentRecord.id}', '${t.name}')" class="text-[10px] bg-blue-600/30 hover:bg-blue-600/50 text-white px-3 py-1.5 rounded-lg border border-blue-500/30">แก้ไข</button>`; 
                 } 
                 else if (t.dueDateISO < today) { 
-                    bgClass = "bg-red-500/10 border-red-500/30"; 
+                    bgClass = "bg-red-500/10 border-red-500/30 hover:bg-red-500/20"; 
                     statusBadge = `<span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">ค้างส่ง</span>`; 
-                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${s.id}', '${t.name}')" class="text-[10px] bg-red-700 hover:bg-red-600 text-white px-2 py-1 rounded shadow">ส่ง(ช้า)</button>`; 
+                    actionBtn = `<button onclick="openSubmitModal('${t.id}', '${studentRecord.id}', '${t.name}')" class="text-[10px] bg-red-700 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-lg font-bold">ส่ง(ช้า)</button>`; 
                 }
 
-                html += `<div class="flex items-center justify-between p-2 rounded-lg border ${bgClass}">
-                            <div class="flex-1 min-w-0 mr-2">
+                html += `<div class="flex items-center justify-between p-2.5 rounded-lg border ${bgClass} transition-all mb-1">
+                            <div class="flex-1 min-w-0 mr-3">
                                 <div class="text-xs font-bold text-white truncate">${t.name}</div>
                                 <div class="mt-1">${statusBadge}</div>
                             </div>
@@ -1417,7 +1468,7 @@
                         </div>`;
             });
             
-            html += `</div></div></div></div>`; // ปิด div ของ Task List และ Grid และ Card
+            html += `</div></div></div> ${materialHTML}`; // ปิด div, ปิด Grid, ปิด Card, ใส่ Material ด้านล่างสุดของ Card
             
             card.innerHTML = html; 
             container.appendChild(card);
