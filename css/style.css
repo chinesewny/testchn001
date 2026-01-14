@@ -1,0 +1,167 @@
+body { 
+    font-family: 'Sarabun', sans-serif; 
+    background: radial-gradient(circle at top left, #1e3a8a, #0f172a, #000000); 
+    background-attachment: fixed;
+    color: #e2e8f0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.glass-ios {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s;
+}
+
+.glass-input:focus {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.3);
+    outline: none;
+}
+
+/* Autofill Fix for Dark Theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.5) inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.btn-blue { 
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+    color: white; 
+    border: 1px solid rgba(255,255,255,0.2); 
+}
+
+.btn-blue:hover:not(:disabled) { 
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); 
+    transform: translateY(-1px); 
+}
+
+.btn-blue:active { 
+    transform: scale(0.98); 
+}
+
+.btn-red { 
+    background: linear-gradient(135deg, #dc2626, #b91c1c); 
+    color: white; 
+    border: 1px solid rgba(255,255,255,0.2); 
+}
+
+.btn-yellow { 
+    background: linear-gradient(135deg, #d97706, #b45309); 
+    color: white; 
+    border: 1px solid rgba(255,255,255,0.2); 
+}
+
+.btn-score-active { 
+    background: #eab308 !important; 
+    color: black !important; 
+    border: 2px solid #fff !important; 
+    font-weight: bold; 
+    transform: scale(1.1); 
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.6); 
+}
+
+/* Attendance Buttons */
+.btn-att-active-present { 
+    background: #059669 !important; 
+    color: white !important; 
+    border-color: white !important; 
+}
+
+.btn-att-active-leave { 
+    background: #d97706 !important; 
+    color: white !important; 
+    border-color: white !important; 
+}
+
+.btn-att-active-absent { 
+    background: #dc2626 !important; 
+    color: white !important; 
+    border-color: white !important; 
+}
+
+.btn-att-active-activity { 
+    background: #f97316 !important; 
+    color: white !important; 
+    border-color: white !important; 
+}
+
+.status-box { 
+    transition: all 0.2s; 
+    border-radius: 12px; 
+}
+
+.status-none { 
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px dashed rgba(255, 255, 255, 0.2); 
+    color: #94a3b8; 
+}
+
+.status-done { 
+    background: rgba(5, 150, 105, 0.2); 
+    border: 1px solid #059669; 
+    color: #34d399; 
+    box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); 
+}
+
+.chapter-checkbox:checked + div { 
+    background: linear-gradient(135deg, #d97706, #b45309); 
+    color: white; 
+    border-color: white; 
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+
+::-webkit-scrollbar-track { 
+    background: rgba(0,0,0,0.1); 
+}
+
+::-webkit-scrollbar-thumb { 
+    background: rgba(255,255,255,0.15); 
+    border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+    background: rgba(255,255,255,0.3); 
+}
+
+#toast-notification { 
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; 
+}
+
+.toast-show { 
+    transform: translate(-50%, 0) !important; 
+    opacity: 1 !important; 
+}
+
+@keyframes fadeIn { 
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    } 
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    } 
+}
+
+.animate-fade-in { 
+    animation: fadeIn 0.3s ease-out forwards; 
+}

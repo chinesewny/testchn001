@@ -1,0 +1,61 @@
+@media print {
+    @page { 
+        size: A4 portrait; 
+        margin: 1cm; 
+    }
+    
+    body { 
+        background: white !important; 
+        color: black !important; 
+        -webkit-print-color-adjust: exact; 
+    }
+    
+    #app-root, #toast-notification, #loading-overlay, .no-print { 
+        display: none !important; 
+    }
+    
+    #print-area { 
+        display: block !important; 
+        position: relative !important; 
+        width: 100% !important; 
+        background: white !important; 
+        color: black !important; 
+    }
+    
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 12px; 
+    }
+    
+    thead { 
+        display: table-header-group; 
+    } 
+    
+    tr { 
+        page-break-inside: avoid; 
+        page-break-after: auto; 
+    }
+    
+    table, th, td { 
+        border: 1px solid black !important; 
+    }
+    
+    th, td { 
+        padding: 6px; 
+        text-align: center; 
+        color: black; 
+    }
+    
+    .print-header-row td { 
+        border: none !important; 
+        padding-bottom: 10px; 
+    }
+    
+    .column-header th { 
+        background-color: #e5e7eb !important; 
+        color: black !important; 
+        font-weight: bold; 
+        border: 1px solid #000; 
+    }
+}
