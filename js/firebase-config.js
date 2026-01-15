@@ -34,10 +34,13 @@ async function initializeFirebase() {
         firestoreDb = firebase.firestore();
         
         // Configure Firestore settings to reduce quota usage
-        const settings = {
-            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-        };
-        if (!firestoreDb._initialSettingsApplied) {
+        // บรรทัดประมาณ 39-41 แก้เป็น:
+const settings = {
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+};
+
+// Apply settings only once
+if (!firestoreDb._initialSettingsApplied) {
     firestoreDb.settings(settings);
     firestoreDb._initialSettingsApplied = true;
 }
