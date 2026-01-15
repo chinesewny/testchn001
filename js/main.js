@@ -19,7 +19,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Initialize UI components
     renderScoreButtons();
     initEventListeners();
-    loadFromLocalStorage();
+    setTimeout(() => {
+    try {
+        if (typeof loadFromLocalStorage === 'function') {
+            loadFromLocalStorage();
+        }
+    } catch (error) {
+        console.warn("Could not load from localStorage:", error);
+    }
+}, 100);
     setupInactivityTimer();
     
     // Initial UI refresh and data sync
