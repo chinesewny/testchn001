@@ -1,282 +1,189 @@
-// Main initialization and utility functions (Updated)
-window.addEventListener('DOMContentLoaded', async () => {
-    // Set today's date in attendance date input
-    if(document.getElementById('att-date-input')) {
-        document.getElementById('att-date-input').value = getThaiDateISO();
-    }
-    
-    // Initialize Firebase
-    showLoading("กำลังเตรียมระบบ...");
-    try {
-        await initializeFirebase();
-        console.log("Firebase initialized successfully");
-    } catch (error) {
-        console.warn("Firebase initialization failed, continuing without cache:", error);
-    } finally {
-        hideLoading();
-    }
-    
-    // Initialize UI components - wait for other files to load
-    setTimeout(() => {
-        // Initialize core functions
-        if (typeof renderScoreButtons === 'function') {
-            renderScoreButtons();
-        }
-        
-        if (typeof initEventListeners === 'function') {
-            initEventListeners();
-        }
-        
-        if (typeof loadFromLocalStorage === 'function') {
-            loadFromLocalStorage();
-        }
-        
-        if (typeof setupInactivityTimer === 'function') {
-            setupInactivityTimer();
-        }
-        
-        // Initial UI refresh
-        if (typeof refreshUI === 'function') {
-            refreshUI();
-        }
-        
-        // Initial data sync - with safety check
-        setTimeout(() => {
-            if (typeof syncData === 'function') {
-                syncData();
-                console.log("Data sync started");
-            } else {
-                console.error("syncData function not available");
-                showToast("ระบบกำลังโหลด กรุณารอสักครู่...", "bg-yellow-600", "fa-solid fa-spinner fa-spin");
-            }
-        }, 300);
-    }, 500);
-
-    // Check queue every 5 seconds (Auto Retry)
-    setInterval(() => {
-        if (typeof processQueue === 'function') {
-            processQueue();
-        }
-    }, 5000);
-
-    // Check existing sessions
-    const adminSession = localStorage.getItem('wany_admin_session');
-    const studentCode = localStorage.getItem('current_student_code');
-
-    if (adminSession) {
-        switchMainTab('admin');
-        // Delay to ensure functions are loaded
-        setTimeout(() => {
-            if (typeof showAdminPanel === 'function') {
-                showAdminPanel(true);
-            }
-        }, 300);
-    } else if (studentCode) {
-        switchMainTab('student');
-        document.getElementById('student-login-wrapper').classList.add('hidden');
-        document.getElementById('student-dashboard').classList.remove('hidden');
-        
-        // Try to render student dashboard
-        setTimeout(() => {
-            if (typeof renderStudentDashboard === 'function' && studentCode) {
-                renderStudentDashboard(studentCode);
-            }
-        }, 500);
-    } else {
-        switchMainTab('student'); 
-    }
-
-    // Set up periodic checks
-    setInterval(() => {
-        if (typeof checkSmartSchedule === 'function') {
-            checkSmartSchedule();
-        }
-    }, 60000);
-    
-    setInterval(() => {
-        if (typeof syncData === 'function') {
-            syncData();
-        }
-    }, 5 * 60 * 1000); // Sync every 5 minutes
-    
-    // Check for real-time updates (optional)
-    if (typeof firebaseInitialized !== 'undefined' && firebaseInitialized) {
-        if (typeof setupRealtimeUpdates === 'function') {
-            setupRealtimeUpdates();
-        }
-    }
-});
-
-// Optional: Setup real-time updates for active users
-function setupRealtimeUpdates() {
-    // Only setup real-time for admin users
-    const adminSession = localStorage.getItem('wany_admin_session');
-    if (!adminSession) return;
-    
-    // Check if firebaseManager exists
-    if (typeof firebaseManager === 'undefined') {
-        console.warn("firebaseManager not available for real-time updates");
+import { syncData, saveAndRefresh, backupToGoogleSheet, restoreFromGoogleSheet } from './firebase-service.js';
+import { dataState, globalState, loadFromLocalStorage, updateLocalState, saveToLocalStorage } from "./state.js";
+import { GOOGLE_SCRIPT_URL } from "./config.js"; // <--- วางตรงนี้ถ้ายังไม่มี
+import { 
+    refreshUI, 
+    renderScoreRoster, 
+    renderAttRoster, 
+    renderGradeReport, 
+    updateScanTaskDropdown, 
+    renderStudentDashboard, 
+    renderConfigSlots, 
+    renderTaskClassCheckboxesAccum, 
+    renderTaskChapterCheckboxesAccum, 
+    renderTaskClassCheckboxesExam,
+    renderIncomingSubmissions, 
+    renderAdminMaterials, 
+    renderExamPanel, 
+    renderScoreManagerPanel,
+    renderExamTable,
+    addExamColumn,openExamEditor, 
+    closeExamModal,
+    addQuestionItem,
+    openEditColumnModal, renderScoreManagerTable, editChapterConfig,renderExamManagerPage,renderMainExamHub
+} from "./ui-render.js";
+import { getThaiDateISO, formatThaiDate, calGrade, showToast, showLoading, hideLoading, calculateScores } from "./utils.js";
+import { PERIODS } from "./config.js";
+window.deleteTask = function(taskId) {
+    if(!confirm("⚠️ คำเตือน: คุณต้องการลบงานชิ้นนี้ใช่หรือไม่?\n\n- คะแนนทั้งหมดในงานนี้จะหายไป\n- การกระทำนี้ไม่สามารถย้อนกลับได้")) {
         return;
     }
-    
-    // Listen for attendance updates
-    firebaseManager.setupRealtimeListener('attendance', (attendanceData) => {
-        if (typeof dataState !== 'undefined') {
-            dataState.attendance = attendanceData;
-            
-            // Only refresh if attendance panel is active
-            if (!document.getElementById('admin-panel-attendance').classList.contains('hidden')) {
-                if (typeof renderAttRoster === 'function') {
-                    renderAttRoster();
-                }
-            }
-        }
-    });
-    
-    // Listen for score updates
-    firebaseManager.setupRealtimeListener('scores', (scoresData) => {
-        if (typeof dataState !== 'undefined') {
-            dataState.scores = scoresData;
-            
-            // Only refresh if relevant panels are active
-            if (!document.getElementById('admin-panel-scan').classList.contains('hidden')) {
-                if (typeof renderScoreRoster === 'function') {
-                    renderScoreRoster();
-                }
-            }
-            if (!document.getElementById('admin-panel-report').classList.contains('hidden')) {
-                if (typeof renderGradeReport === 'function') {
-                    renderGradeReport();
-                }
-            }
-        }
-    });
-    
-    // Listen for submission updates
-    firebaseManager.setupRealtimeListener('submissions', (submissionsData) => {
-        if (typeof dataState !== 'undefined') {
-            dataState.submissions = submissionsData;
-            
-            // Update homework badge
-            if (typeof updateInboxBadge === 'function') {
-                updateInboxBadge();
-            }
-            
-            // Refresh homework panel if active
-            if (!document.getElementById('admin-panel-homework').classList.contains('hidden')) {
-                if (typeof renderIncomingSubmissions === 'function') {
-                    renderIncomingSubmissions();
-                }
-            }
-        }
-    });
-}
+    window.loadMaterialsFromSheet();
+// ในไฟล์ js/main.js
 
-// Utility Functions
-function showToast(message, colorClass = "", icon = "") { 
-    const toast = document.getElementById('toast-notification'); 
-    if (!toast) {
-        console.warn("Toast element not found");
+// 3. ฟังก์ชันแก้ไขชื่องาน (Edit Task Name)
+window.updateTaskName = function(taskId, newName) {
+    const task = dataState.tasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+
+    const oldName = task.name;
+    const name = newName.trim();
+
+    // ถ้าชื่อว่าง หรือ เป็นชื่อเดิม ไม่ต้องทำอะไร
+    if (!name) {
+        showToast("ชื่อห้ามว่าง!", "bg-red-600");
+        renderScoreManagerPanel(); // รีโหลดเพื่อคืนค่าเดิม
         return;
     }
-    
-    const messageEl = document.getElementById('toast-message');
-    if (messageEl) {
-        messageEl.textContent = message; 
-    }
-    
-    // Update Icon
-    const iconEl = toast.querySelector('i');
-    if(iconEl) iconEl.className = icon || "fa-solid fa-circle-check text-2xl";
+    if (name === oldName) return;
 
-    const theme = colorClass || "bg-gradient-to-r from-green-600 to-teal-600 border-green-400/50";
-    toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 text-white px-8 py-4 rounded-full shadow-2xl z-50 flex items-center gap-3 translate-y-20 opacity-0 font-bold border ${theme} toast-show`; 
+    // 1. อัปเดตในเครื่องทันที
+    task.name = name;
+    saveToLocalStorage();
+
+    // 2. ส่งไปบันทึกที่ Server (Google Sheet/Firebase)
+    // ส่ง action: 'editTask' (ต้องไปดักจับใน Apps Script เพิ่มเติมถ้าต้องการให้แก้ใน Sheet ด้วย)
+    // หรือถ้าใช้ระบบ overwrite dataState อยู่แล้ว มันจะอัปเดตให้อัตโนมัติเมื่อ Sync
+    saveAndRefresh({ action: 'editTask', id: taskId, name: name });
+
+    console.log(`Renamed task ${taskId} to ${name}`);
+    showToast("เปลี่ยนชื่อเรียบร้อย");
+};
+    showLoading("กำลังลบข้อมูล...");
+    // ลบ Task ออกจากรายการ
+    dataState.tasks = dataState.tasks.filter(t => String(t.id) !== String(taskId));
     
-    setTimeout(() => {
-        if (toast.classList.contains('toast-show')) {
-            toast.classList.remove('toast-show');
+    // ลบ คะแนน (Scores) ที่ผูกกับ Task นี้ทิ้งไป
+    dataState.scores = dataState.scores.filter(s => String(s.taskId) !== String(taskId));
+
+    // ลบ ประวัติการส่งงาน
+    dataState.submissions = dataState.submissions.filter(s => String(s.taskId) !== String(taskId));
+    if(dataState.returns) {
+        dataState.returns = dataState.returns.filter(r => String(r.taskId) !== String(taskId));
+    }
+
+    // บันทึกลงเครื่องทันที
+    saveToLocalStorage(); 
+    
+    // ส่งคำสั่งไป Sync (บอก Server ว่าลบงานนี้)
+    saveAndRefresh({ action: 'deleteTask', taskId: taskId }); 
+    
+    // รีเฟรชเฉพาะตารางจัดการคะแนนเพื่อความลื่นไหล
+    renderScoreManagerPanel();
+    
+    hideLoading();
+    showToast("ลบงานเรียบร้อยแล้ว", "bg-red-600");
+};
+
+// 2. ฟังก์ชันอัปเดตคะแนนทันทีเมื่อพิมพ์เสร็จ (Direct Update)
+window.updateScoreDirect = function(studentId, taskId, val, maxScore) {
+    // ตรวจสอบค่าคะแนน
+    if (val !== '' && Number(val) > Number(maxScore)) {
+        alert(`คะแนนเกินค่าเต็ม (${maxScore})`);
+        // คืนค่าเดิม (โดยการโหลดตารางใหม่)
+        renderScoreManagerPanel();
+        return;
+    }
+
+    // อัปเดตข้อมูลในตัวแปร (Local State)
+    updateLocalState({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
+    
+    // บันทึกลง LocalStorage ทันที กันข้อมูลหาย
+    saveToLocalStorage();
+    
+    // เทคนิค Debounce: รอให้หยุดพิมพ์แป๊บนึงค่อยส่งไป Server (ลดภาระการยิงข้อมูลรัวๆ)
+    if(window.saveTimeout) clearTimeout(window.saveTimeout);
+    window.saveTimeout = setTimeout(() => {
+        // ส่งข้อมูลไปบันทึกที่ Firebase/Sheet แบบเงียบๆ (ไม่ต้องหมุนติ้วๆ)
+        saveAndRefresh({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
+        console.log("Auto saved score: " + val);
+    }, 1000); // รอ 1 วินาทีหลังจากหยุดพิมพ์ค่อยบันทึก
+};
+// --- Global Functions (Exposed to Window) ---
+window.renderStudentDashboard = renderStudentDashboard;
+window.saveAndRefresh = saveAndRefresh;
+window.openEditColumnModal = openEditColumnModal;
+// 🛠 1. ฟังก์ชันสลับแท็บ (Tab Switching)
+// ในไฟล์ js/main.js
+
+window.switchMainTab = function(t) { 
+    const secAdmin = document.getElementById('section-admin');
+    const secStudent = document.getElementById('section-student');
+    
+    // ป้องกัน Error กรณีหา Element ไม่เจอ
+    if(secAdmin) secAdmin.classList.add('hidden'); 
+    if(secStudent) secStudent.classList.add('hidden'); 
+    
+    const target = document.getElementById(`section-${t}`);
+    if(target) target.classList.remove('hidden'); 
+    
+    const btnA = document.getElementById('tab-btn-admin');
+    const btnS = document.getElementById('tab-btn-student');
+
+    if(btnA && btnS) {
+        if(t === 'admin'){ 
+            btnA.className="px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all"; 
+            btnS.className="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"; 
+        } else { 
+            btnS.className="px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all"; 
+            btnA.className="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"; 
         }
-    }, 3000); 
-}
-
-function switchMainTab(tab) { 
-    // Hide all sections
-    const sectionAdmin = document.getElementById('section-admin');
-    const sectionStudent = document.getElementById('section-student');
-    
-    if (sectionAdmin) sectionAdmin.classList.add('hidden'); 
-    if (sectionStudent) sectionStudent.classList.add('hidden'); 
-    
-    // Show selected section
-    const selectedSection = document.getElementById(`section-${tab}`);
-    if (selectedSection) {
-        selectedSection.classList.remove('hidden'); 
     }
-    
-    // Update tab button styles
-    const btnAdmin = document.getElementById('tab-btn-admin');
-    const btnStudent = document.getElementById('tab-btn-student');
-    
-    if(tab === 'admin' && btnAdmin && btnStudent) {
-        btnAdmin.className = "px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all";
-        btnStudent.className = "px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all";
-    } else if (tab === 'student' && btnAdmin && btnStudent) {
-        btnStudent.className = "px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all";
-        btnAdmin.className = "px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all";
-    } 
-}
+};
 
-function switchAdminSubTab(tab) { 
-    // Hide all admin panels
-    document.querySelectorAll('.admin-panel').forEach(panel => panel.classList.add('hidden')); 
+// ไฟล์ js/main.js
+
+// แก้ไขฟังก์ชันสลับเมนู Admin
+// js/main.js
+
+window.switchAdminSubTab = function(t) {
+    // 1. ซ่อนทุกหน้าก่อน
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.add('hidden')); 
     
-    // Show selected panel
-    const panel = document.getElementById(`admin-panel-${tab}`);
-    if (panel) {
-        panel.classList.remove('hidden'); 
+    // 2. หา Panel ที่จะแสดง
+    let panelId = `admin-panel-${t}`;
+    
+    // กรณีพิเศษ: map ชื่อ tab เข้ากับ id ของ div
+    if(t === 'scores') {
+        panelId = document.getElementById('admin-panel-scores') ? 'admin-panel-scores' : 'admin-panel-management';
     }
-    
-    // Update menu button styles
-    document.querySelectorAll('.menu-btn').forEach(btn => { 
-        btn.className = "menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"; 
+
+    const target = document.getElementById(panelId);
+    if(target) target.classList.remove('hidden');
+
+    // 3. ปรับสีปุ่มเมนู (Active State)
+    document.querySelectorAll('.menu-btn').forEach(b => { 
+        b.className = "menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"; 
     }); 
+    const activeBtn = document.getElementById(`menu-${t}`); 
+    if(activeBtn) activeBtn.className = "menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg text-white"; 
     
-    // Highlight active button
-    const activeBtn = document.getElementById(`menu-${tab}`);
-    if(activeBtn) {
-        activeBtn.className = "menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg text-white";
+    // 4. เรียกฟังก์ชันแสดงผลตามแท็บที่เลือก
+    if(t === 'exam') {
+        // ✨ แก้ไขตรงนี้: เรียกหน้า Hub รวม (แทนที่จะเรียกหน้าใดหน้าหนึ่ง) ✨
+        if(typeof renderMainExamHub === 'function') {
+            renderMainExamHub(); 
+        } else {
+            console.error("หาฟังก์ชัน renderMainExamHub ไม่เจอ กรุณาเช็คการ import ในไฟล์ main.js");
+        }
+    } else if (t === 'scores' || t === 'management') {
+        window.renderScoreManagerPanel(); 
+    } else {
+        refreshUI(); 
     }
-    
-    // Refresh UI for the selected tab
-    if (typeof refreshUI === 'function') {
-        refreshUI();
-    }
-}
+};
 
-function setupInactivityTimer() {
-    let time;
-    
-    // Reset timer on user activity
-    const resetTimer = () => { 
-        clearTimeout(time); 
-        time = setTimeout(logout, 30 * 60 * 1000); // 30 minutes
-    };
-    
-    const logout = () => { 
-        alert("หมดเวลาการใช้งาน (30 นาที) ระบบจะออกจากระบบเพื่อความปลอดภัย"); 
-        localStorage.removeItem('wany_admin_session'); 
-        localStorage.removeItem('current_student_code'); 
-        location.reload(); 
-    };
-    
-    window.onload = resetTimer; 
-    document.onmousemove = resetTimer; 
-    document.onkeypress = resetTimer; 
-    document.ontouchstart = resetTimer; 
-    document.onclick = resetTimer;
-}
-
-window.handleLogout = function(force = false) { 
+window.handleLogout = function(force=false) {
     if(force || confirm("ออกจากระบบ?")) { 
         showLoading("กำลังออกจากระบบ...");
         localStorage.removeItem('wany_admin_session'); 
@@ -286,158 +193,2824 @@ window.handleLogout = function(force = false) {
     } 
 };
 
-function showAdminPanel(auto = false) { 
-    const loginWrapper = document.getElementById('admin-login-wrapper');
-    const contentWrapper = document.getElementById('admin-content-wrapper');
+window.handleStudentLogin = async function() {
+    const inputId = document.getElementById('student-login-id').value.trim();
+    if (!inputId) return alert("กรุณากรอกรหัสนักเรียน");
     
-    if (loginWrapper) loginWrapper.classList.add('hidden'); 
-    if (contentWrapper) contentWrapper.classList.remove('hidden'); 
-    
-    if (typeof refreshUI === 'function') {
-        refreshUI(); 
+    if (dataState.students.length === 0) {
+        showLoading("กำลังโหลดฐานข้อมูล...");
+        await new Promise(r => setTimeout(r, 1000));
     }
-    
-    if(!auto) {
-        if (typeof syncData === 'function') {
-            syncData();
-        }
-    }
-    
-    const adminEmail = localStorage.getItem('admin_email');
-    if(!adminEmail) {
-        if (typeof openEmailModal === 'function') {
-            openEmailModal('admin');
-        }
-    }
-}
 
-function logoutStudent() { 
-    const dashboard = document.getElementById('student-dashboard');
-    const loginWrapper = document.getElementById('student-login-wrapper');
-    const loginInput = document.getElementById('student-login-id');
-    
-    if (dashboard) dashboard.classList.add('hidden'); 
-    if (loginWrapper) loginWrapper.classList.remove('hidden'); 
-    if (loginInput) loginInput.value = ''; 
-}
+    const student = dataState.students.find(s => String(s.code) === String(inputId) || String(s.id) === String(inputId));
+    hideLoading();
 
-// Firebase utility functions
-async function forceRefreshCache() {
-    if (typeof firebaseInitialized === 'undefined' || !firebaseInitialized) {
-        alert("Firebase not initialized");
-        return;
+    if (student) {
+        localStorage.setItem('current_student_code', student.code);
+        document.getElementById('student-login-wrapper').classList.add('hidden');
+        document.getElementById('student-dashboard').classList.remove('hidden');
+        renderStudentDashboard(student.code);
+        showToast(`ยินดีต้อนรับ ${student.name}`);
+    } else {
+        showToast("ไม่พบรายชื่อนี้ในระบบ", "bg-red-600 border-red-400");
     }
+};
+
+// --- 2. Email & Config Functions ---
+window.openEmailModal = function(role) {
+    document.getElementById('email-modal').classList.remove('hidden');
+    document.getElementById('email-modal-role').value = role;
+    const closeBtn = document.getElementById('btn-close-email');
+    let currentEmail = "";
+    if (role === 'admin') { currentEmail = localStorage.getItem('admin_email') || ""; } 
+    else { const code = localStorage.getItem('current_student_code'); const s = dataState.students.find(x => x.code == code); if(s && s.email) currentEmail = s.email; }
+    document.getElementById('user-email-input').value = currentEmail;
+    if (!currentEmail) { closeBtn.classList.add('hidden'); } else { closeBtn.classList.remove('hidden'); }
+};
+
+window.saveUserEmail = async function() {
+    const emailInput = document.getElementById('user-email-input');
+    const email = emailInput.value.trim();
+    const role = document.getElementById('email-modal-role').value;
     
-    if (typeof firebaseManager === 'undefined') {
-        alert("Firebase manager not available");
-        return;
-    }
-    
-    showLoading("กำลังรีเฟรชแคช...");
+    if(!email.includes('@')) return alert("รูปแบบอีเมลไม่ถูกต้อง");
+    showLoading("กำลังบันทึกอีเมล...");
+
     try {
-        // Clear existing cache
-        await firebaseManager.clearCache();
-        
-        // Reload from Google Sheet
-        if (typeof syncFromGoogleSheet === 'function') {
-            await syncFromGoogleSheet();
-            showToast("รีเฟรชแคชสำเร็จ", "bg-green-600");
+        let payload = { action: 'updateEmail', email: email };
+        if (role === 'admin') {
+            localStorage.setItem('admin_email', email);
+            await new Promise(r => setTimeout(r, 500)); 
         } else {
-            showToast("syncFromGoogleSheet function not available", "bg-red-600");
+            const code = localStorage.getItem('current_student_code');
+            const s = dataState.students.find(x => x.code == code);
+            if (s) { payload.studentId = s.id; await saveAndRefresh(payload); } 
+            else { throw new Error("Student not found"); }
         }
+        document.getElementById('email-modal').classList.add('hidden');
+        showToast("บันทึกข้อมูลเรียบร้อย");
+    } catch (error) { alert("บันทึกไม่สำเร็จ: " + error.message); } 
+    finally { hideLoading(); }
+};
+
+window.openSubjectConfig = function(subjectId) {
+    document.getElementById('subject-config-modal').classList.remove('hidden');
+    document.getElementById('config-subject-id').value = subjectId;
+    const sub = dataState.subjects.find(s => s.id == subjectId);
+    document.getElementById('config-subject-name').textContent = sub ? sub.name : '-';
+    globalState.tempConfig = (sub && sub.scoreConfig && sub.scoreConfig.length > 0) ? [...sub.scoreConfig] : [10,10,10,10,10];
+    renderConfigSlots();
+};
+
+window.addConfigSlot = function() { globalState.tempConfig.push(10); renderConfigSlots(); };
+window.removeConfigSlot = function(idx) { globalState.tempConfig.splice(idx, 1); renderConfigSlots(); };
+window.updateTempConfig = function(idx, val) { globalState.tempConfig[idx] = Number(val); renderConfigSlots(); };
+window.saveSubjectConfig = function() {
+    const subId = document.getElementById('config-subject-id').value;
+    saveAndRefresh({ action: 'updateSubjectConfig', id: subId, config: globalState.tempConfig });
+    document.getElementById('subject-config-modal').classList.add('hidden');
+    showToast("บันทึกโครงสร้างคะแนนแล้ว");
+};
+
+// --- 3. Score & Attendance Functions ---
+window.setScoreMode = function(m) { 
+    globalState.scoreMode = m; 
+    document.querySelectorAll('.btn-score').forEach(b => { 
+        b.classList.remove('btn-score-active'); 
+        if(b.textContent == m) b.classList.add('btn-score-active'); 
+    }); 
+    if(m=='manual') document.getElementById('btn-score-manual').classList.add('btn-score-active'); 
+    else document.getElementById('btn-score-manual').classList.remove('btn-score-active'); 
+    document.getElementById('scan-score-input').focus(); 
+};
+
+window.setAttMode = function(mode) {
+    globalState.attMode = mode; 
+    ['present','leave','absent','activity'].forEach(t => { 
+        const el = document.getElementById(`btn-att-${t}`);
+        if(el) el.classList.remove(`btn-att-active-${t}`); 
+    });
+    let btnMap = { 'มา': 'present', 'ลา': 'leave', 'ขาด': 'absent', 'กิจกรรม': 'activity' };
+    let btnId = btnMap[mode];
+    if(btnId) document.getElementById(`btn-att-${btnId}`).classList.add(`btn-att-active-${btnId}`);
+    document.getElementById('att-scan-input').focus();
+    showToast(`โหมดเช็คชื่อ: ${mode}`, "bg-blue-600");
+};
+
+window.closeScoreModal = function() {
+    document.getElementById('score-modal').classList.add('hidden');
+    document.getElementById('scan-score-input').value = '';
+    setTimeout(()=>document.getElementById('scan-score-input').focus(), 100);
+};
+
+window.useSmartClass = function() { 
+    if(globalState.smartClassId) { 
+        document.getElementById('att-class-select').value = globalState.smartClassId; 
+        renderAttRoster(); 
+    } 
+};
+
+window.searchIndividual = function(keyword) {
+    const container = document.getElementById('individual-search-results');
+    container.innerHTML = '';
+    if(!keyword) { container.classList.add('hidden'); return; }
+    const results = dataState.students.filter(s => s.name.includes(keyword) || String(s.code).includes(keyword) || String(s.no) == keyword);
+    if(results.length > 0) {
+        container.classList.remove('hidden');
+        results.forEach(s => {
+            const div = document.createElement('div');
+            div.className = "p-3 hover:bg-white/10 cursor-pointer text-white border-b border-white/5 last:border-0";
+            div.innerHTML = `<div class="font-bold text-sm">${s.name}</div><div class="text-xs text-white/50">${s.code}</div>`;
+            div.onclick = () => { 
+                document.getElementById('individual-result-container').classList.remove('hidden');
+                document.getElementById('ind-name').textContent = s.name;
+                document.getElementById('ind-id').textContent = s.code;
+                document.getElementById('ind-class').textContent = dataState.classes.find(c=>c.id==s.classId)?.name || '-';
+
+                const tasks = dataState.tasks.filter(t => t.classId == s.classId);
+                const { total, midterm, final } = calculateScores(s.id, s.classId, tasks);
+                document.getElementById('ind-gpa').textContent = calGrade(total);
+                document.getElementById('ind-score-mid').textContent = midterm || '-';
+                document.getElementById('ind-score-final').textContent = final || '-';
+
+                const atts = dataState.attendance.filter(a => a.studentId == s.id);
+                let p=0, l=0, a=0, act=0, aDates=[];
+                atts.forEach(att => {
+                    if(att.status === 'มา') p++;
+                    else if(att.status === 'ลา') l++;
+                    else if(att.status === 'ขาด') { a++; aDates.push(formatThaiDate(att.date)); }
+                    else if(att.status === 'กิจกรรม') act++;
+                });
+
+                document.getElementById('ind-att-present').textContent = p;
+                document.getElementById('ind-att-leave').textContent = l;
+                document.getElementById('ind-att-absent').textContent = a;
+                document.getElementById('ind-att-activity').textContent = act;
+                document.getElementById('ind-absent-dates').innerHTML = aDates.length > 0 ? aDates.map(d => `<span class="inline-block bg-red-500/20 text-red-200 px-1.5 py-0.5 rounded text-[10px] mr-1 mb-1">${d}</span>`).join('') : '<span class="text-green-400/60 text-xs">ไม่มีประวัติการขาดเรียน</span>';
+
+                const allTasks = tasks;
+                const submittedIds = [];
+                dataState.scores.forEach(sc => { if(sc.studentId == s.id) submittedIds.push(sc.taskId); });
+                dataState.submissions.forEach(sub => { if(sub.studentId == s.id) submittedIds.push(sub.taskId); });
+                
+                const uniqueSubmitted = [...new Set(submittedIds)];
+                const totalCount = allTasks.length;
+                const doneCount = uniqueSubmitted.filter(id => allTasks.find(t => t.id == id)).length;
+                const percent = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100);
+
+                document.getElementById('ind-work-progress-text').textContent = `${percent}%`;
+                document.getElementById('ind-work-bar').style.width = `${percent}%`;
+
+                const missingListDiv = document.getElementById('ind-missing-list');
+                missingListDiv.innerHTML = '';
+                const missingTasks = allTasks.filter(t => !uniqueSubmitted.includes(t.id));
+                
+                if (missingTasks.length > 0) {
+                    missingTasks.forEach(t => {
+                        const el = document.createElement('div');
+                        el.className = "bg-white/5 p-2 rounded border-l-2 border-red-400 flex items-center justify-between";
+                        el.innerHTML = `<span class="text-xs text-white/80 truncate">${t.name}</span><span class="text-xs text-red-400">ยังไม่ส่ง</span>`;
+                        missingListDiv.appendChild(el);
+                    });
+                } else {
+                    missingListDiv.innerHTML = `<div class="text-center py-2 text-green-400 text-xs"><i class="fa-solid fa-check-circle mr-1"></i>ส่งงานครบแล้ว</div>`;
+                }
+                container.classList.add('hidden'); 
+                document.getElementById('individual-search').value = '';
+            };
+            container.appendChild(div);
+        });
+    } else { container.classList.add('hidden'); }
+};
+
+window.openSubmitModal = function(taskId, studentId, taskName, isEdit = false) {
+    document.getElementById('submit-modal').classList.remove('hidden');
+    document.getElementById('submit-task-id').value = taskId;
+    document.getElementById('submit-student-id').value = studentId;
+    
+    // เปลี่ยนหัวข้อถ้าเป็นการแก้ไข
+    const titleText = isEdit ? `📝 แก้ไขงาน: ${taskName}` : `🚀 ส่งงาน: ${taskName}`;
+    document.getElementById('submit-modal-title').textContent = titleText;
+    
+    // ดึงข้อมูลเดิมมาใส่ถ้าเป็นการแก้ไข
+    const existingSub = dataState.submissions.find(s => s.taskId == taskId && s.studentId == studentId);
+    
+    if (isEdit && existingSub) {
+        document.getElementById('submit-link-input').value = existingSub.link;
+        document.getElementById('submit-comment-input').value = existingSub.comment || '';
+        document.getElementById('btn-submit-final').textContent = "บันทึกการแก้ไข";
+    } else {
+        document.getElementById('submit-link-input').value = '';
+        document.getElementById('submit-comment-input').value = '';
+        document.getElementById('btn-submit-final').textContent = "ส่งงาน";
+    }
+
+    // (ส่วนเพื่อนร่วมกลุ่มคงเดิม...)
+    document.getElementById('friend-selector-container').innerHTML = '';
+    const student = dataState.students.find(s => s.id == studentId);
+    if(student) {
+        const friends = dataState.students.filter(s => s.classId == student.classId && s.id != studentId);
+        const container = document.getElementById('friend-selector-container');
+        friends.forEach(f => {
+            const div = document.createElement('div');
+            div.className = "friend-item flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer";
+            div.innerHTML = `<input type="checkbox" value="${f.id}" class="friend-checkbox accent-blue-500"><span class="text-xs text-white/80">${f.name}</span>`;
+            container.appendChild(div);
+        });
+    }
+};
+
+window.submitGroupGrade = async function(studentIdsStr, taskId, max, inputId) { 
+    const val = document.getElementById(inputId).value; 
+    if(val === '') return alert("กรุณาใส่คะแนน"); 
+    if(Number(val) > Number(max)) return alert("คะแนนเกินค่าเต็ม"); 
+    const sids = studentIdsStr.split(','); 
+    for (const sid of sids) updateLocalState({ action:'addScore', studentId: sid, taskId: taskId, score: val }); 
+    refreshUI();
+    sids.forEach(sid => saveAndRefresh({ action:'addScore', studentId: sid, taskId: taskId, score: val })); 
+    showToast(`บันทึกคะแนนกลุ่มเรียบร้อย`, "bg-green-600");
+};
+
+window.returnGroupWork = async function(studentIdsStr, taskId) { 
+    const reason = prompt("ระบุเหตุผลที่ส่งคืน:"); 
+    if(reason) { 
+        const sids = studentIdsStr.split(','); 
+        for (const sid of sids) updateLocalState({ action:'returnForRevision', studentId: sid, taskId: taskId, comment: reason }); 
+        refreshUI();
+        sids.forEach(sid => saveAndRefresh({ action:'returnForRevision', studentId: sid, taskId: taskId, comment: reason })); 
+        showToast("ส่งคืนงานเรียบร้อย", "bg-yellow-600");
+    } 
+};
+
+// --- 4. Exam & CSV Functions ---
+// ในไฟล์ js/main.js
+
+window.setExamTab = function(type) {
+    // 1. อัปเดตสถานะ Global
+    if (!window.globalState) window.globalState = {};
+    window.globalState.currentExamType = type;
+
+    // 2. เปลี่ยนสีปุ่ม (Manual Toggle)
+    const btnMid = document.getElementById('tab-exam-mid');
+    const btnFinal = document.getElementById('tab-exam-final');
+
+    // Safety Check: เผื่อหาปุ่มไม่เจอ
+    if (btnMid && btnFinal) {
+        if(type === 'midterm') {
+            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-lg transition-all";
+            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+        } else {
+            // โหมด Final
+            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow-lg transition-all";
+            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+        }
+    }
+
+    // 3. ⚠️ จุดสำคัญ: เรียกแค่ renderExamTable พอครับ (อย่าเรียก renderExamPanel)
+    // เพื่อป้องกันการวนลูป และเพื่อให้ตารางเปลี่ยนข้อมูลตามประเภทสอบ
+    if(typeof renderExamTable === 'function') {
+        renderExamTable();
+    }
+};
+
+window.renderExamPanel = renderExamPanel;
+window.renderExamTable = renderExamTable;
+window.addExamColumn = addExamColumn;
+window.updateExamConfig = async function() {
+    const classId = document.getElementById('exam-class-select').value;
+    const max = document.getElementById('exam-max-score').value;
+    const type = globalState.currentExamType || 'midterm';
+    if(!classId) return alert("กรุณาเลือกห้องเรียน");
+    
+    let task = dataState.tasks.find(t => t.classId == classId && t.category === type);
+    const subId = dataState.classes.find(c => c.id == classId).subjectId;
+    const name = type === 'midterm' ? 'สอบกลางภาค' : 'สอบปลายภาค';
+    
+    if(task) {
+        alert(`บันทึกค่าคะแนนเต็ม (${max}) สำหรับ ${name} เรียบร้อย`);
+        task.maxScore = max; 
+        saveToLocalStorage(); 
+    } else {
+        await saveAndRefresh({
+            action: 'addTask', id: Date.now(), classIds: [classId], subjectId: subId,
+            category: type, chapter: [], name: name, maxScore: max, dueDateISO: getThaiDateISO()
+        });
+        showToast("สร้างรายการสอบเรียบร้อย");
+    }
+    renderExamPanel();
+};
+
+window.saveExamScore = function(studentId, val) {
+    const classId = document.getElementById('exam-class-select').value;
+    const type = globalState.currentExamType || 'midterm';
+    const task = dataState.tasks.find(t => t.classId == classId && t.category === type);
+    if(!task) return alert("กรุณากดบันทึกตั้งค่าคะแนนเต็มก่อน");
+    if(val !== '' && Number(val) > Number(task.maxScore)) return alert("คะแนนเกินค่าเต็ม");
+    updateLocalState({ action: 'addScore', studentId: studentId, taskId: task.id, score: val });
+    saveAndRefresh({ action: 'addScore', studentId: studentId, taskId: task.id, score: val });
+};
+
+window.processExamCSV = function() {
+    const fileInput = document.getElementById('exam-csv-input');
+    const file = fileInput.files[0];
+    if (!file) return;
+    const classId = document.getElementById('exam-class-select').value;
+    const type = globalState.currentExamType || 'midterm';
+    const task = dataState.tasks.find(t => t.classId == classId && t.category === type);
+    if(!task) return alert("ไม่พบรายการสอบ กรุณาตั้งค่าคะแนนเต็มก่อน");
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const text = e.target.result;
+        const rows = text.split('\n');
+        let successCount = 0;
+        let errorCount = 0;
+        showLoading("กำลังนำเข้าคะแนน...");
+        for (let row of rows) {
+            const cols = row.split(',').map(c => c.trim().replace(/"/g, ''));
+            if(cols.length < 2) continue;
+            const code = cols[0];
+            const score = cols[1];
+            const student = dataState.students.find(s => String(s.code) === String(code) && s.classId == classId);
+            if (student && !isNaN(score) && score !== "") {
+                if(Number(score) <= Number(task.maxScore)) {
+                    updateLocalState({ action: 'addScore', studentId: student.id, taskId: task.id, score: score });
+                    successCount++;
+                } else errorCount++; 
+            } else errorCount++; 
+        }
+        saveToLocalStorage();
+        refreshUI();
+        renderExamPanel(); 
+        hideLoading();
+        fileInput.value = '';
+        document.getElementById('csv-file-name').textContent = "- ยังไม่เลือกไฟล์ -";
+        alert(`นำเข้าสำเร็จ ${successCount} รายการ\n(ไม่พบข้อมูล/ผิดพลาด ${errorCount} รายการ)`);
+        if(successCount > 0) {
+            showToast("ข้อมูลถูกบันทึกเรียบร้อย", "bg-green-600");
+             saveAndRefresh({ action: 'keepAlive' }); 
+        }
+    };
+    reader.readAsText(file);
+};
+
+// แก้ไขฟังก์ชันพิมพ์รายงาน (ในไฟล์ js/main.js)
+
+window.printOfficialReport = function() {
+    // 1. ตรวจสอบว่าเลือกห้องเรียนหรือยัง
+    const classSelect = document.getElementById('report-class');
+    const classId = classSelect ? classSelect.value : null;
+    if (!classId) return alert("กรุณาเลือกห้องเรียนก่อนพิมพ์");
+
+    // 2. ดึงข้อมูลจากตารางหน้าจอ
+    const sourceHead = document.getElementById('report-table-header');
+    const sourceBody = document.getElementById('report-table-body');
+
+    // 3. เตรียมพื้นที่พิมพ์
+    const printHead = document.getElementById('print-column-header');
+    const printBody = document.getElementById('print-table-body');
+    const printSubtitle = document.getElementById('print-subtitle');
+
+    // 4. ฟังก์ชันสำหรับล้างสี (ทำให้เป็นขาว-ดำ)
+    const cleanColors = (html) => {
+        return html
+            // ลบสีตัวอักษรทั้งหมด (text-white, text-red-400, ฯลฯ)
+            .replace(/text-[a-z]+-[0-9]+(\/[0-9]+)?/g, '') 
+            .replace(/text-white(\/[0-9]+)?/g, '')
+            .replace(/text-[a-z]+-[0-9]+/g, '')
+            // ลบพื้นหลังสี (bg-white/10 ฯลฯ)
+            .replace(/bg-[a-z]+(\/[0-9]+)?/g, '')
+            .replace(/bg-[a-z]+-[0-9]+(\/[0-9]+)?/g, ''); 
+    };
+
+    // 5. คัดลอกและล้างสี
+    if (sourceHead && printHead) {
+        printHead.innerHTML = cleanColors(sourceHead.innerHTML);
+    }
+    
+    if (sourceBody && printBody) {
+        // ล้างสีจากตัวตารางข้อมูล
+        printBody.innerHTML = cleanColors(sourceBody.innerHTML);
+    }
+
+    // 6. อัปเดตหัวกระดาษ
+    const className = classSelect.options[classSelect.selectedIndex].text;
+    const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    if (printSubtitle) {
+        printSubtitle.innerHTML = `ระดับชั้น ${className} &nbsp;&nbsp; ข้อมูล ณ วันที่ ${dateStr}`;
+    }
+
+    // 7. สั่งพิมพ์
+    window.print();
+};
+
+window.exportGradeCSV = function() {
+    const classId = document.getElementById('report-class').value;
+    if (!classId) return alert("กรุณาเลือกห้องเรียนก่อนดาวน์โหลด CSV");
+    const mode = document.querySelector('input[name="reportType"]:checked').value;
+    const currentClass = dataState.classes.find(c => c.id == classId);
+    const subj = dataState.subjects.find(s => s.id == currentClass.subjectId);
+    const students = dataState.students.filter(s => s.classId == classId).sort((a, b) => Number(a.no) - Number(b.no));
+    const tasks = dataState.tasks.filter(t => t.classId == classId);
+    let csvContent = "\uFEFF"; 
+    
+    if (mode === 'summary') {
+        const config = (subj && subj.scoreConfig && subj.scoreConfig.length > 0) ? subj.scoreConfig : Array(5).fill(10);
+        let headerRow = ["เลขที่", "รหัสนักเรียน", "ชื่อ-นามสกุล"];
+        config.forEach((m, i) => headerRow.push(`CH${i+1} (${m})`));
+        headerRow.push("กลางภาค", "ปลายภาค", "รวม", "เกรด");
+        csvContent += headerRow.join(",") + "\n";
+        students.forEach(s => {
+            const { chapScores, midterm, final, total } = calculateScores(s.id, classId, tasks);
+            let row = [s.no, `"${s.code}"`, `"${s.name}"`];
+            chapScores.slice(0, config.length).forEach(sc => row.push(Math.round(sc)));
+            row.push(midterm, final, Number(total).toFixed(1), calGrade(total));
+            csvContent += row.join(",") + "\n";
+        });
+    } else {
+        let headerRow = ["เลขที่", "รหัสนักเรียน", "ชื่อ-นามสกุล"];
+        const accumTasks = tasks.filter(t => t.category === 'accum').sort((a,b) => a.id - b.id);
+        accumTasks.forEach(t => headerRow.push(`"${t.name} (${t.maxScore})"`));
+        headerRow.push("กลางภาค", "ปลายภาค", "รวม", "เกรด");
+        csvContent += headerRow.join(",") + "\n";
+        students.forEach(s => {
+            let row = [s.no, `"${s.code}"`, `"${s.name}"`];
+            accumTasks.forEach(t => {
+                const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
+                row.push(sc ? sc.score : 0);
+            });
+            const { midterm, final, total } = calculateScores(s.id, classId, tasks);
+            row.push(midterm, final, Number(total).toFixed(1), calGrade(total));
+            csvContent += row.join(",") + "\n";
+        });
+    }
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Grade_${mode}_${currentClass.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+window.exportAttendanceCSV = function() {
+    const cid = document.getElementById('att-class-select').value;
+    if (!cid) return alert("กรุณาเลือกห้องเรียนก่อน");
+    const currentClass = dataState.classes.find(c => c.id == cid);
+    const students = dataState.students.filter(s => s.classId == cid).sort((a, b) => Number(a.no) - Number(b.no));
+    const uniqueDates = [...new Set(dataState.attendance.filter(a => a.classId == cid).map(a => a.date))].sort();
+    let csvContent = "\uFEFF"; 
+    let headerRow = ["เลขที่", "รหัสนักเรียน", "ชื่อ-นามสกุล"];
+    uniqueDates.forEach(d => headerRow.push(`"${formatThaiDate(d)}"`));
+    headerRow.push("มา", "ลา", "ขาด", "กิจกรรม", "เปอร์เซ็นต์การมา");
+    csvContent += headerRow.join(",") + "\n";
+    students.forEach(s => {
+        let row = [s.no, `"${s.code}"`, `"${s.name}"`];
+        let p=0, l=0, a=0, act=0;
+        uniqueDates.forEach(d => {
+            const log = dataState.attendance.find(att => att.studentId == s.id && att.date == d);
+            const status = log ? log.status : "-";
+            row.push(status);
+            if(status=='มา') p++; else if(status=='ลา') l++; else if(status=='ขาด') a++; else if(status=='กิจกรรม') act++;
+        });
+        const totalDays = uniqueDates.length || 1;
+        const percent = Math.round(((p+act)/totalDays)*100);
+        row.push(p, l, a, act, `${percent}%`);
+        csvContent += row.join(",") + "\n";
+    });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Attendance_${currentClass.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+window.downloadExamTemplate = function() {
+    const classId = document.getElementById('exam-class-select').value;
+    if (!classId) return alert("กรุณาเลือกห้องเรียนก่อนดาวน์โหลดแม่แบบ");
+    const students = dataState.students.filter(s => s.classId == classId).sort((a, b) => Number(a.no) - Number(b.no));
+    if (students.length === 0) return alert("ไม่พบรายชื่อนักเรียนในห้องนี้");
+    const currentClass = dataState.classes.find(c => c.id == classId);
+    const type = globalState.currentExamType === 'final' ? 'Final' : 'Midterm';
+    let csvContent = "\uFEFF"; 
+    csvContent += "รหัสนักเรียน,คะแนน,ชื่อ-นามสกุล (สำหรับตรวจสอบ)\n"; 
+    students.forEach(s => { csvContent += `"${s.code}","",${s.name}\n`; });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Template_${type}_${currentClass.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// --- 5. Backup & Restore Functions ---
+window.handleManualBackup = async function() {
+    if (confirm("ต้องการตรวจสอบและซิงค์ข้อมูลกับ Google Sheet เดี๋ยวนี้หรือไม่?")) {
+        showLoading("กำลังซิงค์ข้อมูล...");
+        try {
+            await syncData(); 
+            if (typeof backupToGoogleSheet === 'function') {
+                await backupToGoogleSheet(); 
+                showToast("ซิงค์ข้อมูลกับ Google Sheet เรียบร้อย", "bg-green-600");
+            } else {
+                console.warn("backupToGoogleSheet function not found");
+                showToast("ดึงข้อมูลล่าสุดเรียบร้อย", "bg-blue-600");
+            }
+        } catch (e) {
+            console.error("Sync Error:", e);
+            showToast("เกิดข้อผิดพลาดในการซิงค์", "bg-red-600");
+        } finally {
+            hideLoading();
+            refreshUI();
+        }
+    }
+};
+
+window.handleRestoreFromSheet = restoreFromGoogleSheet;
+
+// เชื่อมต่อ UI-Render
+window.renderTaskClassCheckboxes = renderTaskClassCheckboxesAccum;
+window.renderTaskChapterCheckboxes = renderTaskChapterCheckboxesAccum;
+window.updateTempConfig = updateTempConfig;
+window.removeConfigSlot = removeConfigSlot;
+window.updateScanTaskDropdown = updateScanTaskDropdown; 
+window.renderScoreRoster = renderScoreRoster;
+
+// --- 6. Event Listeners ---
+function initEventListeners() {
+    // 1. ค้นหารายชื่อเพื่อน
+    const friendSearch = document.getElementById('friend-search');
+    if (friendSearch) {
+        friendSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.friend-item').forEach(item => { 
+                item.style.display = item.textContent.toLowerCase().includes(term) ? 'flex' : 'none'; 
+            });
+        });
+    }
+
+    // 2. กด Enter บันทึกอีเมล
+    const emailInput = document.getElementById('user-email-input');
+    if (emailInput) {
+        emailInput.onkeydown = (e) => { 
+            if(e.key === 'Enter') { e.preventDefault(); window.saveUserEmail(); }
+        };
+    }
+
+    // 3. จัดการเลือกไฟล์ CSV
+    const csvInput = document.getElementById('exam-csv-input');
+    if (csvInput) {
+        csvInput.addEventListener('change', (e) => {
+           const file = e.target.files[0];
+           if(file) {
+               document.getElementById('csv-file-name').textContent = file.name;
+               document.getElementById('csv-file-name').className = "text-xs text-center text-green-400 font-bold mb-2";
+               const btn = document.getElementById('btn-process-csv');
+               if(btn) {
+                   btn.classList.remove('pointer-events-none', 'bg-white/10', 'text-white/50');
+                   btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-500');
+               }
+           }
+       });
+    }
+
+    // 4. ฟอร์มส่งงาน
+    const formSubmitWork = document.getElementById('form-submit-work');
+    if (formSubmitWork) {
+        formSubmitWork.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-final');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+            const tid = document.getElementById('submit-task-id').value;
+            const sid = document.getElementById('submit-student-id').value;
+            const link = document.getElementById('submit-link-input').value;
+            const comment = document.getElementById('submit-comment-input').value;
+            const checkboxes = document.querySelectorAll('.friend-checkbox:checked');
+            let allStudentIds = [sid]; 
+            checkboxes.forEach(cb => allStudentIds.push(cb.value));
+            try {
+                await saveAndRefresh({ action: 'submitTask', taskId: tid, studentIds: allStudentIds, link: link, comment: comment });
+                document.getElementById('submit-modal').classList.add('hidden');
+                const s = dataState.students.find(x => x.id == sid);
+                if(s) renderStudentDashboard(s.code);
+            } catch(err) { alert("เกิดข้อผิดพลาด"); } 
+            finally { btn.disabled = false; btn.innerHTML = originalText; }
+        };
+    }
+
+    // 5. ล็อกอินแอดมิน
+    const adminLoginForm = document.getElementById('admin-login-form');
+    if (adminLoginForm) {
+        adminLoginForm.onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const u=document.getElementById('admin-username').value;
+            const p=document.getElementById('admin-password').value; 
+            const res = await saveAndRefresh({action:'login', username:u, password:p}); 
+            if(res.status=='success'){ 
+                localStorage.setItem('wany_admin_session', res.token); 
+                window.switchMainTab('admin');
+                document.getElementById('admin-login-wrapper').classList.add('hidden'); 
+                document.getElementById('admin-content-wrapper').classList.remove('hidden'); 
+                refreshUI();
+            } else alert("รหัสผ่านไม่ถูกต้อง"); 
+        };
+    }
+
+    // 6. ฟอร์มงานเก็บคะแนน (3.1)
+    const formTaskAccum = document.getElementById('form-task-accum');
+    if (formTaskAccum) {
+        formTaskAccum.onsubmit = (e) => { 
+            e.preventDefault(); 
+            const subId = document.getElementById('task-subject-accum').value;
+            const classCbs = document.querySelectorAll('#task-class-accum input:checked'); 
+            const chapCbs = document.querySelectorAll('#task-chapter-accum .chapter-checkbox:checked'); 
+            if(!subId) return alert("กรุณาเลือกวิชา");
+            if(classCbs.length === 0) return alert("กรุณาเลือกห้องเรียน"); 
+            if(chapCbs.length === 0) return alert("กรุณาเลือกช่องคะแนน (Chapter)"); 
+            
+            // 🟢 เวลาไทย
+            const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+            d.setDate(d.getDate() + 7);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const dueDate = `${year}-${month}-${day}`;
+
+            saveAndRefresh({ 
+                action: 'addTask', id: Date.now(), 
+                classIds: Array.from(classCbs).map(c => c.value), 
+                subjectId: subId, category: 'accum', 
+                chapter: Array.from(chapCbs).map(cb => cb.value), 
+                name: document.getElementById('task-name-accum').value, 
+                maxScore: document.getElementById('task-max-accum').value, 
+                dueDateISO: dueDate 
+            }); 
+            e.target.reset(); 
+            document.querySelectorAll('#task-chapter-accum .chapter-checkbox').forEach(c => c.checked = false);
+            showToast("สร้างงานเก็บคะแนนเรียบร้อย");
+        };
+    }
+
+    // 7. ฟอร์มงานสอบ (3.2)
+    const formTaskExam = document.getElementById('form-task-exam');
+    if (formTaskExam) {
+        formTaskExam.onsubmit = (e) => { 
+            e.preventDefault(); 
+            const subId = document.getElementById('task-subject-exam').value;
+            const classCbs = document.querySelectorAll('#task-class-exam input:checked'); 
+            const category = document.getElementById('task-category-exam').value;
+            if(!subId) return alert("กรุณาเลือกวิชา");
+            if(classCbs.length === 0) return alert("กรุณาเลือกห้องเรียน"); 
+            const names = { 'midterm': 'สอบกลางภาค', 'special_mid': 'คะแนนช่วยกลางภาค', 'final': 'สอบปลายภาค', 'special_final': 'คะแนนช่วยปลายภาค' };
+            saveAndRefresh({ 
+                action: 'addTask', id: Date.now(), 
+                classIds: Array.from(classCbs).map(c => c.value), 
+                subjectId: subId, category: category, chapter: [], 
+                name: names[category], 
+                maxScore: document.getElementById('task-max-exam').value, 
+                dueDateISO: getThaiDateISO() 
+            }); 
+            e.target.reset(); 
+            showToast(`สร้างรายการ ${names[category]} เรียบร้อย`);
+        };
+    }
+
+    // 8. Event เปลี่ยนวิชา
+    const subAccum = document.getElementById('task-subject-accum');
+    if (subAccum) { subAccum.onchange = () => { window.renderTaskClassCheckboxesAccum(); window.renderTaskChapterCheckboxesAccum(); }; }
+    const subExam = document.getElementById('task-subject-exam');
+    if (subExam) { subExam.onchange = () => { window.renderTaskClassCheckboxesExam(); }; }
+
+    // 9. ตารางสอน
+    const formSchedule = document.getElementById('form-schedule');
+    if (formSchedule) {
+        formSchedule.onsubmit = (e) => { 
+            e.preventDefault(); 
+            saveAndRefresh({ action:'addSchedule', id:Date.now(), day: document.getElementById('sch-day').value, period: document.getElementById('sch-period').value, classId: document.getElementById('sch-class').value }); 
+        };
+    }
+
+   // 10. รายงาน
+    const reportSub = document.getElementById('report-subject');
+    if (reportSub) {
+        reportSub.onchange = () => { 
+             const subId = reportSub.value; 
+             const classSelect = document.getElementById('report-class'); 
+             if(!classSelect) return;
+             
+             // เคลียร์ค่าเดิมเมื่อเปลี่ยนวิชา
+             classSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>'; 
+             document.getElementById('report-table-body').innerHTML = ''; 
+             
+             if(!subId) return; 
+             dataState.classes.filter(c => c.subjectId == subId).forEach(c => { 
+                const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; classSelect.appendChild(o); 
+             }); 
+        };
+    }
+
+    // 🟢 [เพิ่มส่วนนี้เข้าไป] สั่งให้แสดงผลทันทีเมื่อเลือกห้องเรียนเสร็จ
+    const reportClass = document.getElementById('report-class');
+    if (reportClass) {
+        reportClass.onchange = () => {
+            renderGradeReport(); // เรียกฟังก์ชันแสดงตารางคะแนนทันที
+        };
+    }
+
+    // 🟢 [เพิ่มส่วนนี้ด้วย] สั่งให้แสดงผลทันทีเมื่อเปลี่ยนรูปแบบรายงาน (แบบสรุป / แบบละเอียด)
+    const reportRadios = document.querySelectorAll('input[name="reportType"]');
+    if (reportRadios) {
+        reportRadios.forEach(radio => {
+            radio.onchange = () => {
+                renderGradeReport(); // เรียกฟังก์ชันคำนวณใหม่ทันทีที่สลับโหมด
+            };
+        });
+    }
+
+    // 11. ให้คะแนน (Scan & Select Task)
+    const scanClass = document.getElementById('scan-class-select');
+    if (scanClass) {
+        scanClass.onchange = () => { 
+            window.updateScanTaskDropdown(); 
+            window.renderScoreRoster(); 
+        };
+    }
+    const scanTask = document.getElementById('scan-task-select');
+    if (scanTask) {
+        scanTask.onchange = () => {
+            window.renderScoreRoster();
+        };
+    }
+
+    // 12. เช็คชื่อ
+    const attClass = document.getElementById('att-class-select');
+    if (attClass) attClass.onchange = renderAttRoster;
+    const attDate = document.getElementById('att-date-input');
+    if (attDate) attDate.onchange = renderAttRoster;
+
+    // 13. จัดการข้อมูล
+    const fSub = document.getElementById('form-subject'); if(fSub) fSub.onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action:'addSubject', id:Date.now(), name:document.getElementById('subject-name').value }); e.target.reset(); };
+    const fCls = document.getElementById('form-class'); if(fCls) fCls.onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action:'addClass', id:Date.now(), name:document.getElementById('class-name').value, subjectId:document.getElementById('class-subject-ref').value }); e.target.reset(); };
+    const fStd = document.getElementById('form-student'); if(fStd) fStd.onsubmit = (e) => { e.preventDefault(); saveAndRefresh({ action: 'addStudent', id: Date.now(), classId: document.getElementById('student-class').value, no: document.getElementById('student-no').value, code: document.getElementById('student-id').value, name: document.getElementById('student-name').value }); e.target.reset(); };
+    
+    // 14. บันทึก Modal (กดปุ่ม)
+    const btnSaveScore = document.getElementById('btn-modal-save');
+    if (btnSaveScore) {
+        btnSaveScore.onclick = () => { 
+            const val = document.getElementById('modal-score-input').value; 
+            const {s,t} = globalState.pendingScore; 
+            if(Number(val) > Number(t.maxScore)) return alert("เกินคะแนนเต็ม"); 
+            saveAndRefresh({action:'addScore', studentId:s.id, taskId:t.id, score:val}); 
+            window.closeScoreModal(); 
+            showToast("บันทึกแล้ว"); 
+        };
+    }
+
+    // 15. สแกนเช็คชื่อ (Barcode)
+    const attScan = document.getElementById('att-scan-input');
+    if (attScan) {
+        attScan.onkeydown = (e) => { 
+            if(e.key === 'Enter') { 
+                const val = e.target.value.trim(); 
+                const cid = document.getElementById('att-class-select').value; 
+                const date = document.getElementById('att-date-input').value; 
+                const mode = globalState.attMode || 'มา'; 
+                if(!cid) { alert("กรุณาเลือกห้องก่อน"); e.target.value=''; return; } 
+                const s = dataState.students.find(st => (String(st.code) == val || String(st.no) == val) && st.classId == cid); 
+                if(s) { 
+                    saveAndRefresh({ action:'addAttendance', studentId:s.id, classId:cid, date:date, status:mode }); 
+                    showToast(`${s.name} : ${mode}`, "bg-green-600"); 
+                } else { 
+                    showToast(`ไม่พบรหัส: ${val}`, "bg-red-600"); 
+                } 
+                e.target.value = ''; 
+            } 
+        };
+    }
+
+    // 🟢 16. กด Enter บันทึกคะแนนในหน้าต่าง Modal ทันที
+    const modalScoreInput = document.getElementById('modal-score-input');
+    if (modalScoreInput) {
+        modalScoreInput.onkeydown = (e) => { 
+            if (e.key === 'Enter') { 
+                e.preventDefault(); 
+                const btnSave = document.getElementById('btn-modal-save');
+                if (btnSave) btnSave.click(); 
+            } 
+        };
+    }
+
+    // 17. สแกนคะแนนหน้าหลัก
+    const scanScoreInput = document.getElementById('scan-score-input');
+    if (scanScoreInput) {
+        scanScoreInput.onkeydown = (e) => { 
+            if(e.key === 'Enter') { 
+                const val = e.target.value.trim(); 
+                const cid = document.getElementById('scan-class-select').value; 
+                if(!cid) return; 
+                const s = dataState.students.find(st => (String(st.code) == val || String(st.no) == val) && st.classId == cid); 
+                if(s) { 
+                    const tid = document.getElementById('scan-task-select').value; 
+                    const t = dataState.tasks.find(x=>x.id==tid); 
+                    if(t) { 
+                        if(globalState.scoreMode !== 'manual') { 
+                            if(Number(globalState.scoreMode) > Number(t.maxScore)) { alert("คะแนนที่เลือกเกินคะแนนเต็ม!"); } 
+                            else { saveAndRefresh({action:'addScore', studentId:s.id, taskId:t.id, score:globalState.scoreMode}); showToast(`${s.name} : ${globalState.scoreMode} คะแนน`); } 
+                        } else { 
+                            globalState.pendingScore = { s, t }; 
+                            document.getElementById('score-modal').classList.remove('hidden'); 
+                            document.getElementById('modal-task-name').textContent = t.name; 
+                            document.getElementById('modal-student-name').textContent = s.name; 
+                            document.getElementById('modal-max-score').textContent = t.maxScore; 
+                            const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id); 
+                            document.getElementById('modal-score-input').value = sc ? sc.score : ''; 
+                            setTimeout(() => document.getElementById('modal-score-input').focus(), 100); 
+                        } 
+                        e.target.value = ''; 
+                    } 
+                } else { showToast("ไม่พบนักเรียน", "bg-red-600"); e.target.value = ''; } 
+            } 
+        };
+    }
+} // ปิดฟังก์ชัน initEventListeners อย่างถูกต้อง
+
+// --- 7. Initialization ---
+function startAutoSyncScheduler() {
+    setInterval(() => {
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+        if (now.getHours() === 0 && now.getMinutes() <= 1) {
+            const lastBackup = localStorage.getItem('last_backup_date');
+            if (lastBackup !== now.toDateString()) {
+                if (typeof backupToGoogleSheet === 'function') backupToGoogleSheet();
+            }
+        }
+    }, 60000); 
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    syncData(); 
+    loadFromLocalStorage(); 
+    refreshUI();
+    
+    if(document.getElementById('att-date-input')) document.getElementById('att-date-input').value = getThaiDateISO();
+    
+    initEventListeners();
+    startAutoSyncScheduler();
+    
+    const c = document.getElementById('score-buttons-container'); 
+    if(c) { 
+        c.innerHTML=''; 
+        [5,6,7,8,9,10].forEach(i => { 
+            const b = document.createElement('button'); 
+            b.textContent=i; 
+            b.className="btn-score py-2 rounded-lg border border-white/20 bg-white/5 text-white hover:bg-white/10"; 
+            b.onclick=()=>window.setScoreMode(i); 
+            c.appendChild(b); 
+        }); 
+    }
+
+    const adminSession = localStorage.getItem('wany_admin_session');
+    const studentCode = localStorage.getItem('current_student_code');
+
+    if (adminSession) {
+        window.switchMainTab('admin');
+        document.getElementById('admin-login-wrapper').classList.add('hidden'); 
+        document.getElementById('admin-content-wrapper').classList.remove('hidden'); 
+    } else if (studentCode) {
+        window.switchMainTab('student');
+        document.getElementById('student-login-wrapper').classList.add('hidden');
+        document.getElementById('student-dashboard').classList.remove('hidden');
+    } else {
+        window.switchMainTab('student');
+    }
+    
+    setInterval(() => {
+        if(!dataState.schedules) return; 
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+        const day = now.getDay(); const timeStr = now.toTimeString().slice(0,5); 
+        let currentPeriod = PERIODS.find(p => timeStr >= p.start && timeStr <= p.end); 
+        const banner = document.getElementById('smart-att-banner'); 
+        if(currentPeriod && dataState.schedules) { 
+            const match = dataState.schedules.find(s => s.day == day && s.period == currentPeriod.p); 
+            if(match) { 
+                const cls = dataState.classes.find(c => c.id == match.classId); 
+                if(cls && banner) { 
+                    banner.classList.remove('hidden'); 
+                    document.getElementById('smart-period').textContent = currentPeriod.p; 
+                    document.getElementById('smart-class-name').textContent = cls.name; 
+                    globalState.smartClassId = cls.id; 
+                    return; 
+                } 
+            } 
+        } 
+        if(banner) banner.classList.add('hidden'); 
+        globalState.smartClassId = null; 
+    }, 60000);
+});
+// ฟังก์ชันบันทึกการแก้ไขจาก Modal
+// ในไฟล์ js/main.js
+
+import { openEditChapterModal } from "./ui-render.js"; // อย่าลืม import
+
+window.openEditChapterModal = openEditChapterModal; // ผูก window
+
+// ในไฟล์ js/main.js
+
+// ในไฟล์ js/main.js
+
+window.saveColumnEdit = function() {
+    const mode = document.getElementById('edit-mode').value;
+    const name = document.getElementById('edit-col-name').value;
+    const max = document.getElementById('edit-col-max').value;
+    const category = document.getElementById('edit-col-category').value; // (ใช้เฉพาะโหมด Exam)
+
+    // Validation
+    if (!name && mode !== 'chapter') return alert("กรุณากรอกชื่อ"); 
+    if (!max) return alert("กรุณากรอกคะแนนเต็ม");
+
+    // ---------------------------------------------------------
+    // 1. โหมดแก้ไขหัวข้อบท (Chapter Header) - แก้ชื่อบท/คะแนนเต็ม
+    // ---------------------------------------------------------
+    if (mode === 'chapter') {
+        const subjectId = document.getElementById('edit-col-id').value;
+        const index = parseInt(document.getElementById('edit-col-index').value);
+        
+        const subject = dataState.subjects.find(s => String(s.id) === String(subjectId));
+        if(!subject) return alert("ไม่พบรายวิชา");
+
+        let newConfig = [...(subject.scoreConfig || [])];
+        let newNames = [...(subject.chapterNames || [])];
+        let newTypes = [...(subject.chapterTypes || [])];
+
+        // เติม Array ให้เต็มถ้า Index เกิน
+        for(let k=0; k<=index; k++) {
+            if(newConfig[k] === undefined) newConfig[k] = 10;
+            if(newNames[k] === undefined) newNames[k] = "";
+            if(newTypes[k] === undefined) newTypes[k] = "normal";
+        }
+
+        newConfig[index] = parseFloat(max);
+        newNames[index] = name;
+        newTypes[index] = category; // ในโหมดนี้ category คือ type (normal/special)
+
+        window.saveAndRefresh({
+            action: 'updateSubjectDetails',
+            id: subjectId,
+            scoreConfig: newConfig,
+            chapterNames: newNames,
+            chapterTypes: newTypes
+        });
+
+        // Update Local State
+        subject.scoreConfig = newConfig;
+        subject.chapterNames = newNames;
+        subject.chapterTypes = newTypes;
+        
+        document.getElementById('edit-column-modal').classList.add('hidden');
+        window.renderScoreManagerTable();
+    } 
+    
+  // ---------------------------------------------------------
+    // 2. 🟢 โหมดแก้ไขงานคะแนนเก็บ (Task Accum) - ย้ายบท/เลือกหลายบท
+    // ---------------------------------------------------------
+    else if (mode === 'task_accum') {
+        const taskId = document.getElementById('edit-col-id').value;
+        
+        // 1. ดึงค่าจาก Checkbox
+        const checkboxes = document.querySelectorAll('.chapter-selector:checked');
+        const newChapters = Array.from(checkboxes).map(cb => cb.value); 
+
+        // 🔍 ค้นหางานที่จะแก้
+        const task = dataState.tasks.find(t => String(t.id) === String(taskId));
+        
+       if (task) {
+            // 2. ⭐ แก้ไขข้อมูลใน State ให้เสร็จ "ก่อน" บันทึก
+            task.name = name;
+            task.maxScore = Number(max); 
+            task.chapter = newChapters;  
+
+            console.log("กำลังบันทึกงาน:", task); 
+
+            // 3. 💾 สั่งบันทึกลง Firebase
+            window.saveAndRefresh(); 
+
+            // -----------------------------------------------------
+            // 🔴 จุดแก้ไข: คอมเมนต์บรรทัดนี้ทิ้งครับ (เพื่อไม่ให้หน้าต่างปิด)
+            // document.getElementById('edit-column-modal').classList.add('hidden');
+            // -----------------------------------------------------
+
+            // 🟢 เพิ่ม: แสดงข้อความแจ้งเตือนเพื่อให้รู้ว่าบันทึกแล้ว
+            // (ถ้าคุณมีฟังก์ชัน showToast ใช้ showToast จะสวยกว่าครับ)
+            alert("บันทึกข้อมูลเรียบร้อย! (แก้ไขต่อได้เลย)"); 
+            
+            // 4. รีเฟรชตารางพื้นหลัง (เพื่อให้คะแนนรวมข้างหลังอัปเดต)
+            // หน้าต่าง Modal จะยังลอยอยู่เหนือตาราง
+            setTimeout(() => {
+                window.renderScoreManagerTable();
+            }, 100);
+            
+        } else {
+            console.error("ไม่พบ Task ID: " + taskId);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 3. โหมดแก้ไขการสอบ (Exam)
+    // ---------------------------------------------------------
+    else {
+        const taskId = document.getElementById('edit-col-id').value;
+        const task = dataState.tasks.find(t => String(t.id) === String(taskId));
+        
+        if (task) {
+            // 1. แก้ไข State ก่อน
+            task.name = name;
+            task.maxScore = Number(max);
+            task.category = category;
+
+            // 2. บันทึก
+            window.saveAndRefresh(); 
+
+            // 3. รีเฟรชหน้าจอ
+            document.getElementById('edit-column-modal').classList.add('hidden');
+            window.renderExamTable();
+        }
+    }
+};
+import { addTaskToChapter } from "./ui-render.js";
+window.addTaskToChapter = addTaskToChapter;
+window.renderScoreManagerPanel = renderScoreManagerPanel;
+window.renderScoreManagerTable = renderScoreManagerTable;
+window.editChapterConfig = editChapterConfig;
+window.openExamEditor = openExamEditor;
+window.closeExamModal = closeExamModal;
+window.addQuestionItem = addQuestionItem;
+// --- ผูกฟังก์ชันแก้ไขงาน (Task Modal) ให้ HTML เรียกใช้ได้ ---
+import { openEditTaskModal } from "./ui-render.js";
+
+window.openEditTaskModal = openEditTaskModal;
+// ในไฟล์ js/main.js (ท้ายไฟล์)
+
+import { openStudentTaskModal } from "./ui-render.js"; // Import เพิ่ม
+window.openStudentTaskModal = openStudentTaskModal;   // ผูก window
+
+// ฟังก์ชันส่งงานนักเรียน
+
+
+window.submitWork = async function() {
+    // 1. ดึงค่าจากหน้าจอ
+    const taskIdElement = document.getElementById('st-modal-task-id');
+    const studentIdElement = document.getElementById('st-modal-student-id');
+    const workElement = document.getElementById('st-modal-submission');
+    const btn = document.getElementById('st-modal-submit-btn');
+
+    if (!taskIdElement || !studentIdElement || !workElement) return;
+
+    const taskId = taskIdElement.value;
+    const studentId = studentIdElement.value;
+    const work = workElement.value;
+
+    const showMsg = (title, text, icon) => {
+        if (typeof Swal !== 'undefined') Swal.fire({ title, text, icon, timer: 2000, showConfirmButton: false });
+        else alert(`${title}\n${text}`);
+    };
+
+    if (!work || work.trim() === "") {
+        showMsg('กรุณาแนบลิงก์งาน', 'พิมพ์ข้อความหรือแปะลิงก์ก่อนส่งนะครับ', 'warning');
+        return;
+    }
+
+    // UI Loading
+    const oldText = btn ? btn.innerHTML : 'ส่งงาน';
+    if(btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+    }
+
+    let allStudentIds = [studentId];
+    const friendCheckboxes = document.querySelectorAll('.st-friend-checkbox:checked');
+    friendCheckboxes.forEach(cb => allStudentIds.push(cb.value));
+
+    try {
+        const timestamp = new Date().toISOString();
+        
+        // 2. อัปเดตข้อมูล Local State (เพื่อให้หน้าจอเปลี่ยนทันที)
+        allStudentIds.forEach(sid => {
+            // Update Submissions
+            if (dataState.submissions) {
+                const existing = dataState.submissions.findIndex(s => s.studentId == sid && s.taskId == taskId);
+                if (existing > -1) {
+                    dataState.submissions[existing] = { ...dataState.submissions[existing], link: work, timestamp };
+                } else {
+                    dataState.submissions.push({
+                        id: `sub_${Date.now()}_${sid}`, studentId: sid, taskId: taskId, link: work, timestamp, score: null
+                    });
+                }
+            }
+            // Update Scores (Optimistic UI)
+            let scoreEntry = dataState.scores.find(s => s.studentId == sid && s.taskId == taskId);
+            if (scoreEntry) {
+                scoreEntry.submission = work;
+                scoreEntry.score = null; 
+            } else {
+                dataState.scores.push({ studentId: sid, taskId: taskId, score: null, submission: work });
+            }
+        });
+        saveToLocalStorage();
+
+        // ⭐ 3. ส่วนสำคัญที่เพิ่มเข้ามา: ส่งข้อมูลไป Server (Firebase/Script) ⭐
+        // ต้องมีคำสั่งนี้ ครูถึงจะเห็นงานครับ
+        if (typeof saveAndRefresh === 'function') {
+            await saveAndRefresh({ 
+                action: 'submitTask', 
+                taskId: taskId, 
+                studentIds: allStudentIds, 
+                link: work, 
+                comment: '',
+                timestamp: timestamp
+            });
+        } else {
+            console.warn("ไม่พบฟังก์ชัน saveAndRefresh อาจทำให้ข้อมูลไม่ซิงค์ไปหาครู");
+        }
+
+        showMsg('ส่งงานเรียบร้อย!', `ส่งงานกลุ่มรวม ${allStudentIds.length} คนแล้วครับ`, 'success');
+
+        const modal = document.getElementById('student-task-modal');
+        if(modal) modal.classList.add('hidden');
+        
+        const student = dataState.students.find(s => s.id == studentId);
+        if(student && typeof window.renderStudentDashboard === 'function') {
+            window.renderStudentDashboard(student.code);
+        } else {
+            location.reload();
+        }
+
+    } catch (err) {
+        console.error("Submit Error:", err);
+        showMsg('เกิดข้อผิดพลาด', err.message, 'error');
+    } finally {
+        if(btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+        }
+    }
+};
+// ในไฟล์ js/main.js
+
+// ฟังก์ชันดาวน์โหลดรายงานเป็น CSV (Excel เปิดได้)
+window.downloadGradeReport = function() {
+    const classId = document.getElementById('report-class-select')?.value;
+    if (!classId) return alert("กรุณาเลือกห้องเรียนก่อนดาวน์โหลดครับ");
+
+    const cls = dataState.classes.find(c => c.id == classId);
+    const students = dataState.students.filter(s => s.classId == classId).sort((a,b) => Number(a.no) - Number(b.no));
+    const tasks = dataState.tasks.filter(t => t.classId == classId);
+
+    // 1. สร้างหัวตาราง (BOM เพื่อให้ Excel อ่านภาษาไทยออก)
+    let csvContent = "\uFEFFเลขที่,รหัสนักเรียน,ชื่อ-นามสกุล,คะแนนเก็บ,กลางภาค,ปลายภาค,รวมคะแนน,เกรด\n";
+
+    // 2. วนลูปข้อมูลนักเรียน
+    students.forEach(s => {
+        const scores = calculateScores(s.id, classId, tasks);
+        const grade = calGrade(scores.total);
+        
+        // จัดรูปแบบข้อมูล CSV
+        const row = [
+            s.no,
+            s.code,
+            `"${s.name}"`, // ใส่ฟันหนูกันชื่อมี comma
+            scores.accumTotal.toFixed(2),
+            scores.midterm.toFixed(2),
+            scores.final.toFixed(2),
+            scores.total.toFixed(2),
+            grade
+        ];
+        
+        csvContent += row.join(",") + "\n";
+    });
+
+    // 3. สร้างลิงก์ดาวน์โหลด
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `GradeReport_${cls.name}_${getThaiDateISO()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+// ในไฟล์ js/main.js (ท้ายไฟล์)
+
+import { previewTasksBySubject } from "./ui-render.js"; // Import เข้ามา
+
+window.previewTasksBySubject = previewTasksBySubject; // ผูกกับ Window
+// --- ส่วน Lucky Draw ---
+import { setLuckyMode, startLuckyDraw, clearLuckyHistory } from "./ui-render.js";
+
+// ผูกฟังก์ชันเข้ากับ Window เพื่อให้ HTML เรียก onclick="..." ได้
+window.setLuckyMode = setLuckyMode;
+window.startLuckyDraw = startLuckyDraw;
+window.clearLuckyHistory = clearLuckyHistory;
+// ==========================================
+// 📂 ส่วนจัดการ Import CSV
+// ==========================================
+
+// 1. โหลดรายชื่องาน (Tasks) เมื่อเลือกห้อง/วิชา
+window.renderImportTasks = function() {
+    const classId = document.getElementById('import-class-select').value;
+    const subjectId = document.getElementById('import-subject-select').value;
+    const taskSelect = document.getElementById('import-task-select');
+    
+    taskSelect.innerHTML = '<option value="">-- เลือกงานที่จะลงคะแนน --</option>';
+    
+    if(!classId || !subjectId) return;
+
+    // กรองงานที่ตรงกับห้องและวิชานี้
+    // (งานต้องถูกสร้างไว้ก่อนแล้ว ถึงจะ import คะแนนเข้าได้)
+    const tasks = dataState.tasks.filter(t => {
+        // เช็คห้อง
+        if(t.classId != classId) return false;
+        
+        // เช็ควิชา (ต้องดูว่าห้องนี้เรียนวิชานี้จริงไหม หรือเช็คจาก subjectId ของ Class ก็ได้)
+        // แต่ในระบบนี้ Task ผูกกับ Class โดยตรง เราจึงดึงมาแสดงได้เลย
+        // เพื่อความชัวร์ เราจะเช็คว่า Class นี้ผูกกับ Subject นี้ไหม
+        const cls = dataState.classes.find(c => c.id == classId);
+        return cls && cls.subjectId == subjectId;
+    });
+
+    if(tasks.length === 0) {
+        taskSelect.innerHTML = '<option value="">(ไม่พบงาน กรุณาสร้างงานก่อน)</option>';
+        return;
+    }
+
+    tasks.forEach(t => {
+        let label = t.name;
+        if(t.category === 'accum') label += ` [เก็บ ${t.maxScore}]`;
+        else if(t.category === 'midterm') label += ` [กลางภาค ${t.maxScore}]`;
+        else if(t.category === 'final') label += ` [ปลายภาค ${t.maxScore}]`;
+        
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = label;
+        taskSelect.appendChild(opt);
+    });
+};
+
+// 2. ดาวน์โหลดแม่แบบ CSV (พร้อมรายชื่อเด็ก)
+window.downloadCSVTemplate = function() {
+    const classId = document.getElementById('import-class-select').value;
+    if(!classId) return alert("กรุณาเลือกห้องเรียนก่อนดาวน์โหลดแม่แบบครับ");
+
+    const students = dataState.students.filter(s => s.classId == classId).sort((a,b) => Number(a.no) - Number(b.no));
+    const cls = dataState.classes.find(c => c.id == classId);
+
+    // Header ของ CSV (BOM เพื่อให้ Excel อ่านไทยออก)
+    let csvContent = "\uFEFFNo,StudentCode,Name,Score\n";
+
+    // สร้างแถวรายชื่อเด็ก
+    students.forEach(s => {
+        // ใส่ " " ครอบชื่อเพื่อป้องกันกรณีมี comma ในชื่อ
+        csvContent += `${s.no},${s.code},"${s.name}",\n`; 
+    });
+
+    // ดาวน์โหลดไฟล์
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Template_Score_${cls.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// 3. ประมวลผลไฟล์ CSV และบันทึกคะแนน
+window.processCSVImport = function() {
+    const fileInput = document.getElementById('import-file-input');
+    const taskId = document.getElementById('import-task-select').value;
+    const classId = document.getElementById('import-class-select').value;
+
+    if(!classId) return alert("กรุณาเลือกห้องเรียน");
+    if(!taskId) return alert("กรุณาเลือกงานที่จะลงคะแนน");
+    if(fileInput.files.length === 0) return alert("กรุณาเลือกไฟล์ CSV");
+
+    const task = dataState.tasks.find(t => t.id == taskId);
+    const maxScore = parseFloat(task.maxScore);
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = text.split('\n');
+        
+        let successCount = 0;
+        let errorCount = 0;
+
+        // เริ่มวนลูปบรรทัดที่ 2 (ข้าม Header)
+        for(let i=1; i<rows.length; i++) {
+            const row = rows[i].trim();
+            if(!row) continue;
+
+            // แยกคอลัมน์ด้วย comma (รองรับกรณีชื่อมี quote)
+            // วิธีง่ายๆ: split(',') แต่อาจมีปัญหากับชื่อที่มี ,
+            // เพื่อความง่าย เราจะใช้ regex หรือ split ธรรมดาโดยสมมติว่าไม่มี , ในข้อมูลอื่น
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex แยก comma นอก quote
+            
+            if(cols.length < 4) continue;
+
+            // คอลัมน์: [0]=No, [1]=StudentCode, [2]=Name, [3]=Score
+            const studentCode = cols[1].trim();
+            let scoreVal = cols[3].trim().replace(/"/g, ''); // ลบ quote ออกถ้ามี
+
+            if(scoreVal === "" || isNaN(scoreVal)) continue; // ข้ามถ้าไม่มีคะแนน
+
+            const score = parseFloat(scoreVal);
+            
+            // ตรวจสอบคะแนนเกิน
+            if(score > maxScore) {
+                console.warn(`คะแนนเกิน: รหัส ${studentCode} ได้ ${score}/${maxScore}`);
+                // จะข้าม หรือจะปัดให้เท่ากับ Max ก็ได้ (ที่นี่ขอปัดเท่า Max)
+                // score = maxScore; 
+            }
+
+            // หา ID นักเรียนจากรหัส
+            const student = dataState.students.find(s => String(s.code) === String(studentCode));
+            
+            if(student) {
+                // บันทึกคะแนน (เรียกใช้ฟังก์ชันที่มีอยู่แล้ว)
+                // เราต้องจำลองการบันทึกโดยตรง
+                let scoreObj = dataState.scores.find(s => s.studentId == student.id && s.taskId == taskId);
+                
+                if(scoreObj) {
+                    scoreObj.score = score;
+                } else {
+                    dataState.scores.push({
+                        studentId: student.id,
+                        taskId: taskId,
+                        score: score
+                    });
+                }
+                successCount++;
+            } else {
+                errorCount++;
+                console.warn(`ไม่พบนักเรียนรหัส: ${studentCode}`);
+            }
+        }
+
+        // บันทึกลง LocalStorage/Server
+        saveData(); 
+        
+        alert(`นำเข้าเรียบร้อย!\n✅ สำเร็จ: ${successCount} คน\n❌ ไม่พบรหัส/ผิดพลาด: ${errorCount} คน`);
+        
+        // รีเฟรชหน้าจอ (ถ้าเปิดตารางคะแนนอยู่)
+        if(window.renderScoreManagerTable) window.renderScoreManagerTable();
+        
+        // ล้างไฟล์
+        fileInput.value = '';
+    };
+
+    reader.readAsText(file);
+};
+// --- ส่วนจัดการข้อสอบ (Exam Logic) ---
+
+window.saveExamData = function() {
+    // 1. ดึงข้อมูลจาก Form
+    const id = document.getElementById('exam-id').value || `exam_${Date.now()}`;
+    const title = document.getElementById('exam-title').value;
+    const subjectId = document.getElementById('exam-subject').value;
+    const timeLimit = parseInt(document.getElementById('exam-duration').value) || 60;
+    const allowSwitch = parseInt(document.getElementById('exam-max-switch').value) || 2;
+    const password = document.getElementById('exam-password').value;
+    const shuffleQ = document.getElementById('exam-shuffle-q').checked;
+    const shuffleC = document.getElementById('exam-shuffle-c').checked;
+
+    if(!title || !subjectId) {
+        alert("กรุณากรอกชื่อข้อสอบและเลือกวิชา");
+        return;
+    }
+
+    // 2. ดึงข้อมูลคำถาม (Loop ผ่าน element)
+    const questions = [];
+    const qElements = document.querySelectorAll('.question-item');
+    
+    qElements.forEach((el, index) => {
+        const text = el.querySelector('.q-text').value;
+        const choicesRaw = el.querySelectorAll('.c-text');
+        const correctRadio = el.querySelectorAll('input[type="radio"]');
+        
+        // ✨ เพิ่มส่วนดึงรูปภาพ
+        const imgEl = el.querySelector('.q-image-data');
+        const image = (imgEl && imgEl.src && !imgEl.src.endsWith('undefined')) ? imgEl.src : null;
+        // ------------------
+
+        const choices = [];
+        choicesRaw.forEach((cInput, cIndex) => {
+            choices.push({
+                id: `c${cIndex+1}`,
+                text: cInput.value,
+                isCorrect: correctRadio[cIndex].checked
+            });
+        });
+
+        questions.push({
+            id: `q${index+1}`,
+            text: text,
+            image: image, // ✨ บันทึกลง Object
+            choices: choices
+        });
+    });
+
+    if(questions.length === 0) {
+        alert("กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ");
+        return;
+    }
+
+    // 3. สร้าง Object ข้อสอบ
+    const newExam = {
+        id, title, subjectId, timeLimit, allowSwitch, password,
+        shuffleQuestions: shuffleQ,
+        shuffleChoices: shuffleC,
+        questions,
+        updatedAt: new Date().toISOString()
+    };
+
+    // 4. บันทึกลง State
+    const existingIdx = dataState.exams.findIndex(e => e.id === id);
+    if(existingIdx > -1) {
+        dataState.exams[existingIdx] = newExam; // Update
+    } else {
+        dataState.exams.push(newExam); // Insert New
+    }
+
+    // 5. บันทึกลง Storage/Firebase
+    saveAndRefresh({ action: 'update_exam_data' }); 
+    
+    closeExamModal();
+    showToast("บันทึกชุดข้อสอบเรียบร้อย!", "success");
+    
+    // รีเฟรชหน้าจอถ้ากำลังเปิดหน้า Exam Manager อยู่
+    if(typeof renderExamManagerPage === 'function') renderExamManagerPage();
+}
+// ในไฟล์ js/main.js
+
+window.deleteExam = async function(examId) {
+    if(!confirm("⚠️ คุณต้องการลบชุดข้อสอบนี้ใช่หรือไม่?\n\nข้อมูลการสอบและคะแนนที่เกี่ยวข้องทั้งหมดจะถูกลบด้วย และไม่สามารถกู้คืนได้")) return;
+
+    // 1. ลบข้อมูลออกจาก Local State
+    const index = dataState.exams.findIndex(e => e.id == examId);
+    if(index > -1) {
+        dataState.exams.splice(index, 1);
+    }
+
+    // (Optional) ลบ Session และ คะแนนที่เกี่ยวข้องกับข้อสอบนี้ทิ้งด้วย เพื่อไม่ให้เป็นขยะ
+    if(dataState.examSessions) {
+        dataState.examSessions = dataState.examSessions.filter(s => s.examId != examId);
+    }
+    // หมายเหตุ: dataState.scores อาจจะเก็บไว้ดูประวัติ หรือจะลบก็ได้แล้วแต่ Logic (ในที่นี้แนะนำให้ลบถ้าเป็น Online Exam ล้วนๆ)
+    // if(dataState.scores) {
+    //    dataState.scores = dataState.scores.filter(s => s.taskId != examId);
+    // }
+
+    saveToLocalStorage();
+
+    // 2. ⭐ จุดที่แก้ไข: ต้องส่ง Object เข้าไปใน saveAndRefresh ⭐
+    if (typeof saveAndRefresh === 'function') {
+        try {
+            await saveAndRefresh({
+                action: 'deleteExam', // ต้องมี action เสมอ
+                examId: examId
+            });
+        } catch (err) {
+            console.error("Firebase Sync Error:", err);
+            // ไม่ต้อง throw error ใส่หน้า user ถ้าลบในเครื่องสำเร็จแล้ว
+        }
+    }
+
+    // 3. รีเฟรชหน้าจอ
+    if(typeof renderExamPanel === 'function') renderExamPanel();
+    
+    // แจ้งเตือน
+    if(typeof showToast === 'function') {
+        showToast("ลบข้อสอบเรียบร้อย", "success");
+    } else {
+        alert("ลบข้อสอบเรียบร้อย");
+    }
+};
+
+
+window.editExam = function(id) {
+    openExamEditor(id);
+}
+// js/main.js
+
+// --- ตัวแปร Global สำหรับการสอบ ---
+let currentExam = null;
+let examTimerInterval = null;
+let examAnswers = {}; // เก็บคำตอบ { qId: choiceId }
+let examViolations = 0; // จำนวนครั้งที่สลับหน้าจอ
+let examStartTime = null;
+
+
+
+// =================== 2. ระบบจับเวลา & Render (Exam UI) ===================
+
+function startTimer(durationSeconds) {
+    let timer = durationSeconds;
+    const display = document.getElementById('exam-timer');
+    
+    clearInterval(examTimerInterval);
+    examTimerInterval = setInterval(() => {
+        const minutes = parseInt(timer / 60, 10);
+        const seconds = parseInt(timer % 60, 10);
+
+        display.textContent = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+        if (--timer < 0) {
+            clearInterval(examTimerInterval);
+            alert("⏰ หมดเวลาทำข้อสอบ! ระบบจะส่งคำตอบทันที");
+            submitExam(true); // Auto submit
+        }
+    }, 1000);
+}
+
+// ในไฟล์ js/main.js
+
+window.renderExamUI = function(examData) {
+    // 1. เช็คค่า: ถ้ามีส่งมาให้ใช้ที่ส่งมา ถ้าไม่มีให้ไปหาจาก Global
+    const exam = examData || window.currentExam;
+
+    if (!exam) {
+        console.error("renderExamUI: Exam data is missing!");
+        return;
+    }
+
+    // อัปเดต Global เพื่อความชัวร์
+    window.currentExam = exam;
+
+    // 2. Render Navigator (ปุ่มเลขข้อด้านซ้าย)
+    const navGrid = document.getElementById('exam-nav-grid');
+    if (navGrid && exam.questions) {
+        navGrid.innerHTML = exam.questions.map((q, idx) => `
+            <button onclick="scrollToQuestion('q-${idx}')" id="nav-btn-${q.id}" class="w-10 h-10 rounded bg-white/10 text-white/70 text-sm hover:bg-yellow-500 hover:text-black transition-colors border border-white/5">
+                ${idx + 1}
+            </button>
+        `).join('');
+    }
+
+    // 3. Render Questions (โจทย์ทั้งหมด)
+    const displayArea = document.getElementById('question-display-area');
+    if (displayArea && exam.questions) {
+        // สุ่มข้อถ้าตั้งค่าไว้
+        let questionsToShow = [...exam.questions];
+        if (exam.shuffleQuestions) {
+            questionsToShow.sort(() => Math.random() - 0.5);
+        }
+
+        displayArea.innerHTML = `
+            <div class="max-w-3xl w-full space-y-8 pb-20">
+                ${questionsToShow.map((q, idx) => {
+                    // สุ่มช้อยส์
+                    let choices = [...q.choices];
+                    if (exam.shuffleChoices) choices.sort(() => Math.random() - 0.5);
+
+                    return `
+                    <div id="q-${idx}" class="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                        <div class="flex gap-3 mb-4">
+                            <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded h-fit text-sm">ข้อ ${idx+1}</span>
+                            <div class="w-full">
+                                ${q.image ? `<img src="${q.image}" class="max-w-full md:max-w-md rounded-lg mb-4 border border-white/20">` : ''}
+                                <p class="text-white text-lg leading-relaxed whitespace-pre-line">${q.text}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 pl-2 md:pl-10">
+                            ${choices.map(c => `
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:bg-white/10 cursor-pointer transition-all group">
+                                    <div class="relative flex items-center">
+                                        <input type="radio" name="ans-${q.id}" value="${c.id}" onchange="selectAnswer('${q.id}', '${c.id}')" class="peer w-5 h-5 appearance-none border-2 border-white/30 rounded-full checked:border-green-500 checked:bg-green-500 transition-all">
+                                        <i class="fa-solid fa-check text-white text-[10px] absolute top-1 left-1 opacity-0 peer-checked:opacity-100"></i>
+                                    </div>
+                                    <span class="text-white/80 group-hover:text-white">${c.text}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+    }
+};
+
+window.selectAnswer = function(qId, choiceId) {
+    examAnswers[qId] = choiceId;
+    // เปลี่ยนสีปุ่ม Navigator ให้รู้ว่าทำแล้ว
+    const btn = document.getElementById(`nav-btn-${qId}`);
+    if(btn) {
+        btn.classList.add('bg-blue-600', 'text-white', 'border-transparent');
+        btn.classList.remove('bg-white/10', 'text-white/70');
+    }
+}
+
+window.scrollToQuestion = function(elementId) {
+    document.getElementById(elementId).scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// =================== 3. ระบบ Anti-Cheat (ป้องกันการโกง) ===================
+
+function initAntiCheat() {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur); // จับการคลิกโปรแกรมอื่น
+}
+
+function removeAntiCheat() {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    window.removeEventListener("blur", handleBlur);
+}
+
+function handleVisibilityChange() {
+    if (document.hidden) {
+        triggerViolation("สลับหน้าจอ / พับหน้าจอ");
+    }
+}
+
+function handleBlur() {
+    // เช็คเพิ่มเติมเพื่อป้องกัน False Positive (บางทีแค่คลิกพื้นที่ว่างใน Browser ก็โดน)
+    if(document.activeElement === document.querySelector('iframe')) return; 
+    triggerViolation("คลิกออกนอกหน้าต่างสอบ");
+}
+
+function triggerViolation(reason) {
+    if(!currentExam) return;
+
+    examViolations++;
+    const max = currentExam.allowSwitch || 2;
+    
+    // อัพเดท UI เตือน
+    const box = document.getElementById('cheat-warning-box');
+    box.classList.remove('hidden');
+    document.getElementById('warn-count').textContent = examViolations;
+
+    // แจ้งเตือนนักเรียน
+    if(examViolations <= max) {
+        alert(`⚠️ คำเตือนครั้งที่ ${examViolations}/${max}\n\nระบบตรวจพบ: ${reason}\n\nหากทำเกินกำหนด ระบบจะปรับตกทันที!`);
+        // ส่ง Log ไปให้ครูเห็น
+        updateExamSessionStatus(currentExam.id, getCurrentStudentId(), 'WARNING', examViolations);
+    } else {
+        removeAntiCheat(); // หยุดจับ
+        alert(`⛔ ผิดกฎการสอบ!\n\nคุณทำผิดกฎเกินจำนวนครั้งที่กำหนด\nระบบจะยุติการสอบและส่งคะแนนทันที`);
+        submitExam(true, true); // true=auto, true=cheated
+    }
+}
+
+// Helper หา ID นักเรียนปัจจุบัน (แบบง่าย)
+function getCurrentStudentId() {
+    // ในที่นี้เราไม่ได้เก็บ Global User ไว้ชัดเจน ขอใช้ Logic หาจาก dataState เอา
+    // *ในการใช้งานจริง ควรเก็บ currentUser ไว้ตอน login* // เพื่อความง่ายใน Demo นี้ ผมขออนุญาต **Mock** หรือให้ Teacher กรอกรหัสตอนเริ่ม
+    // ซึ่งใน function startExamProcess เราหา student ไว้แล้ว แต่ scope หลุด
+    // **แก้ปัญหา:** เราจะเก็บ `currentStudentId` ไว้ใน Global scope ด้วย
+    return window.currentStudentId; 
+}
+
+
+// =================== 4. ส่งข้อสอบ & คำนวณคะแนน ===================
+
+window.submitExam = function(isAuto = false, isCheated = false) {
+    // -----------------------------------------------------------
+    // 🛡️ 1. ส่วนกู้คืนข้อมูล (Recovery Block) - แก้ Error: null
+    // -----------------------------------------------------------
+    if (!window.currentExam) {
+        console.warn("⚠️ currentExam is null. Attempting to recover...");
+        
+        // กู้คืน Student ID
+        if (!window.currentStudentId) {
+            const code = localStorage.getItem('current_student_code');
+            const student = dataState.students.find(s => String(s.code) === String(code));
+            if (student) window.currentStudentId = student.id;
+        }
+
+        // กู้คืน Exam Data จาก Session ที่ค้างอยู่
+        const session = dataState.examSessions?.find(s => 
+            s.studentId == window.currentStudentId && 
+            s.status === 'TESTING'
+        );
+
+        if (session) {
+            window.currentExam = dataState.exams.find(e => e.id == session.examId);
+            console.log("✅ Recovered exam data for:", window.currentExam?.title);
+        }
+    }
+
+    // Safety Check: ถ้ากู้ไม่สำเร็จจริงๆ ให้รีโหลด
+    if (!window.currentExam) {
+        alert("❌ ไม่พบข้อมูลข้อสอบ (Session หลุด)\nระบบจะทำการรีโหลดหน้าจอ..");
+        window.location.reload();
+        return;
+    }
+    // -----------------------------------------------------------
+
+    if (!isAuto && !confirm("ยืนยันการส่งคำตอบ?\n\nเมื่อส่งแล้วจะไม่สามารถแก้ไขได้อีก")) return;
+
+    // หยุดเวลาและ Anti-Cheat
+    if (typeof examTimerInterval !== 'undefined') clearInterval(examTimerInterval);
+    if (typeof removeAntiCheat === 'function') removeAntiCheat();
+
+    // 2. ตรวจคะแนน
+    let rawScore = 0;
+    const totalQuestions = window.currentExam.questions.length;
+
+    window.currentExam.questions.forEach(q => {
+        const userAnsId = examAnswers[q.id];
+        const correctChoice = q.choices.find(c => c.isCorrect);
+        if (userAnsId && correctChoice && userAnsId === correctChoice.id) {
+            rawScore++;
+        }
+    });
+
+    const finalScore = isCheated ? 0 : rawScore;
+
+    // 3. บันทึกคะแนนลง Memory
+    if (!isCheated) {
+        recordExamScore(window.currentExam.id, window.currentStudentId, finalScore);
+    } else {
+        recordExamScore(window.currentExam.id, window.currentStudentId, 0);
+    }
+
+    // 4. อัปเดตสถานะ Session (FINISHED / CHEATED)
+    updateExamSessionStatus(
+        window.currentExam.id, 
+        window.currentStudentId, 
+        isCheated ? 'CHEATED' : 'FINISHED', 
+        typeof examViolations !== 'undefined' ? examViolations : 0, 
+        finalScore
+    );
+
+    // ⭐⭐ จุดสำคัญที่เพิ่มเข้ามา: บันทึกลงเครื่องทันที (แก้ปัญหาสอบซ้ำ) ⭐⭐
+    saveToLocalStorage(); 
+    // ------------------------------------------------------------------
+
+    // 5. ปิดหน้าจอสอบ
+    const overlay = document.getElementById('exam-room-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    
+    // 6. แจ้งผลและรีเฟรช (ใช้ Swal ถ้ามี เพื่อบังคับ User กด OK)
+    if (isCheated) {
+        alert("การสอบเป็นโมฆะ เนื่องจากทำผิดกฎการสอบ");
+        window.location.reload();
+    } else {
+        // ใช้ setTimeout เล็กน้อยเพื่อให้ saveToLocalStorage ทำงานทัน
+        setTimeout(() => {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ส่งข้อสอบเรียบร้อย!',
+                    text: `คะแนนที่ได้: ${finalScore} / ${totalQuestions}`,
+                    allowOutsideClick: false,
+                    confirmButtonText: 'กลับหน้าหลัก'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                alert(`ส่งข้อสอบเรียบร้อย!\n\nคะแนนที่ได้: ${finalScore} / ${totalQuestions}`);
+                window.location.reload();
+            }
+        }, 500);
+    }
+    
+    // Clear ค่า
+    window.currentExam = null;
+}
+// ในไฟล์ js/main.js
+
+function recordExamScore(examId, studentId, score) {
+    // 1. อัปเดตข้อมูลในเครื่องทันที (Optimistic UI)
+    // เพื่อให้หน้าจอแสดงผลว่ามีคะแนนแล้วทันที ไม่ต้องรอ Server ตอบกลับ
+    let scoreObj = dataState.scores.find(s => s.taskId == examId && s.studentId == studentId);
+    
+    if (scoreObj) {
+        scoreObj.score = score;
+        scoreObj.submission = { type: 'exam', date: new Date().toISOString() };
+    } else {
+        dataState.scores.push({
+            studentId: studentId,
+            taskId: examId,
+            score: score,
+            submission: { type: 'exam', date: new Date().toISOString() }
+        });
+    }
+
+    // 2. ⭐ แก้ไขจุดที่ Error: ส่งข้อมูลไปบันทึกที่ Server ⭐
+    // ต้องส่ง Object ที่มี action: 'addScore' เข้าไปเสมอ
+    saveAndRefresh({
+        action: 'addScore',
+        studentId: studentId,
+        taskId: examId,
+        score: score
+    });
+}
+
+// ฟังก์ชันช่วยอัพเดทสถานะ Realtime (จำลองโดยการบันทึกเข้า dataState.examSessions)
+function updateExamSessionStatus(examId, studentId, status, violations = 0, score = 0) {
+    // หา Session เดิม
+    let sessions = dataState.examSessions || [];
+    let session = sessions.find(s => s.examId === examId && s.studentId === studentId);
+
+    if(session) {
+        session.status = status;
+        session.violations = violations;
+        session.score = score;
+        session.lastUpdate = new Date().getTime();
+    } else {
+        sessions.push({
+            examId, studentId, status, violations, score,
+            startTime: new Date().getTime(),
+            lastUpdate: new Date().getTime()
+        });
+    }
+    
+    dataState.examSessions = sessions;
+    
+    // บันทึกเงียบๆ (ไม่ต้อง Refresh หน้าจอ) -> แต่ถ้าจะให้ครูเห็น Realtime 
+    // ควรใช้ Firebase set() โดยตรงแยกต่างหาก แต่เพื่อความง่ายใช้ saveAndRefresh แบบไม่ reload
+    saveToLocalStorage();
+    syncData(); // ส่งไป Firebase
+}
+
+window.resetStudentExam = async function(examId, studentId) {
+    if(!confirm("⚠️ ต้องการรีเซ็ตการสอบของนักเรียนคนนี้ใช่หรือไม่?\n\n- สถานะการสอบจะถูกล้าง\n- คะแนนจะถูกลบ\n- นักเรียนจะเริ่มทำข้อสอบใหม่ได้")) return;
+
+    // 1. ลบคะแนน (ถ้ามี) ใน Local State
+    const scoreIdx = dataState.scores.findIndex(s => String(s.taskId) === String(examId) && String(s.studentId) === String(studentId));
+    if(scoreIdx > -1) {
+        dataState.scores.splice(scoreIdx, 1);
+    }
+
+    // 2. ลบ Session (สถานะการสอบ) ใน Local State
+    const sessionIdx = dataState.examSessions.findIndex(s => String(s.examId) === String(examId) && String(s.studentId) === String(studentId));
+    if(sessionIdx > -1) {
+        dataState.examSessions.splice(sessionIdx, 1);
+    }
+
+    // บันทึกลงเครื่องทันที
+    saveToLocalStorage();
+
+    // 3. ⭐ แก้ไขจุดที่ Error: ส่งคำสั่งไปที่ Server ⭐
+    try {
+        await saveAndRefresh({
+            action: 'resetStudentExam', // ระบุชื่อ action
+            examId: examId,
+            studentId: studentId
+        });
+    } catch (err) {
+        console.warn("Server sync error (ignored):", err);
+    }
+    
+    // 4. รีเฟรชหน้าจอ Monitor
+    // เช็คก่อนว่าฟังก์ชัน refreshMonitor มีอยู่จริงไหม เพื่อกัน Error
+    if(typeof window.refreshMonitor === 'function') {
+        const monitorModal = document.getElementById('exam-monitor-modal');
+        if(monitorModal && !monitorModal.classList.contains('hidden')) {
+            window.refreshMonitor(); 
+        }
+    }
+    
+    showToast("รีเซ็ตสถานะเรียบร้อย", "success");
+};
+// ==========================================
+// 🖼️ จัดการรูปภาพ (Image Handling)
+// ==========================================
+
+window.previewQuestionImage = function(input, qId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        // เช็คขนาดไฟล์ (ไม่ควรเกิน 1MB เพราะจะทำให้ DB หนัก)
+        if(input.files[0].size > 1024 * 1024) {
+            alert("⚠️ ไฟล์รูปภาพมีขนาดใหญ่เกินไป (ควรน้อยกว่า 1MB)");
+            return;
+        }
+
+        reader.onload = function(e) {
+            const previewBox = document.getElementById(`preview-${qId}`);
+            const img = previewBox.querySelector('img');
+            
+            img.src = e.target.result; // Base64 string
+            previewBox.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+window.removeQuestionImage = function(qId) {
+    const previewBox = document.getElementById(`preview-${qId}`);
+    const img = previewBox.querySelector('img');
+    
+    img.src = ''; // ล้างค่า
+    previewBox.classList.add('hidden');
+}
+
+
+// ==========================================
+// 📝 จัดการไฟล์ Word (Docx Import)
+// ==========================================
+
+// 1. ฟังก์ชันดาวน์โหลดไฟล์แม่แบบ
+window.downloadWordTemplate = function() {
+    const content = `
+    <html>
+    <head><meta charset='utf-8'></head>
+    <body>
+        <h1>แบบฟอร์มข้อสอบ (Template)</h1>
+        <p><b>คำแนะนำ:</b> กรุณาพิมพ์ตามรูปแบบด้านล่างเป๊ะๆ (1 ข้อ ต่อ 5 บรรทัด)</p>
+        <hr>
+        
+        <p>1. ข้อใดคือเมืองหลวงของไทย?</p>
+        <p>ก. เชียงใหม่</p>
+        <p>ข. กรุงเทพมหานคร</p>
+        <p>ค. ภูเก็ต</p>
+        <p>ง. ขอนแก่น</p>
+        <p>เฉลย: ข</p>
+        <br>
+        
+        <p>2. 1 + 1 เท่ากับเท่าไหร่?</p>
+        <p>a. 1</p>
+        <p>b. 2</p>
+        <p>c. 3</p>
+        <p>d. 4</p>
+        <p>ans: b</p>
+
+    </body>
+    </html>
+    `;
+    
+    const blob = new Blob(['\ufeff', content], {
+        type: 'application/msword'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Exam_Template.doc'; // เซฟเป็น .doc ธรรมดา (HTML format) เปิดใน Word ได้
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 2. ฟังก์ชันนำเข้า Word (ใช้ Mammoth.js)
+window.importExamFromWord = function(input) {
+    const file = input.files[0];
+    if(!file) return;
+
+    if (typeof mammoth === "undefined") {
+        alert("❌ ไม่พบ Library Mammoth.js กรุณาเช็คอินเทอร์เน็ตหรือ index.html");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const arrayBuffer = event.target.result;
+
+        mammoth.extractRawText({arrayBuffer: arrayBuffer})
+            .then(function(result) {
+                const text = result.value; // ข้อความดิบจาก Word
+                parseExamText(text); // ส่งไปแปลงเป็นข้อสอบ
+            })
+            .catch(function(err) {
+                console.error(err);
+                alert("❌ เกิดข้อผิดพลาดในการอ่านไฟล์ Word");
+            });
+    };
+    reader.readAsArrayBuffer(file);
+    
+    // Reset input เพื่อให้เลือกไฟล์เดิมซ้ำได้
+    input.value = '';
+}
+
+// 3. Logic แปลงข้อความ เป็น ข้อสอบ
+function parseExamText(text) {
+    // แยกบรรทัดและลบช่องว่างหัวท้าย
+    const lines = text.split(/\n/).map(l => l.trim()).filter(l => l);
+    
+    let currentQuestion = null;
+    let questions = [];
+    let choicesBuffer = [];
+
+    lines.forEach(line => {
+        // เช็คว่าเป็นโจทย์หรือไม่ (ขึ้นต้นด้วยตัวเลข และมีจุด หรือ วงเล็บปิด) เช่น "1." หรือ "1)"
+        if (/^\d+[\.)]\s+/.test(line)) {
+            // บันทึกข้อก่อนหน้า (ถ้ามี)
+            if (currentQuestion) {
+                finalizeQuestion(currentQuestion, choicesBuffer, questions);
+            }
+            
+            // เริ่มข้อใหม่
+            currentQuestion = {
+                text: line.replace(/^\d+[\.)]\s+/, ''), // ตัดเลขข้ออก
+                choices: []
+            };
+            choicesBuffer = [];
+        } 
+        // เช็คว่าเป็นเฉลย (ขึ้นต้นด้วย เฉลย: หรือ ans:)
+        else if (/^(เฉลย|ans|answer)[:\s]/i.test(line)) {
+            if(currentQuestion) {
+                currentQuestion.correctAnswerRaw = line.split(/[:\s]+/).pop().trim().toLowerCase();
+            }
+        }
+        // ถ้าไม่ใช่โจทย์และไม่ใช่เฉลย ให้ถือว่าเป็นช้อยส์
+        else if (currentQuestion) {
+            // ตัด ก. ข. ค. ง. หรือ a. b. c. d. ออก
+            const cleanChoice = line.replace(/^[ก-ฮa-zA-Z][\.)]\s*/, '');
+            choicesBuffer.push(cleanChoice);
+        }
+    });
+
+    // บันทึกข้อสุดท้าย
+    if (currentQuestion) {
+        finalizeQuestion(currentQuestion, choicesBuffer, questions);
+    }
+
+    // นำเข้าสู่หน้าจอ
+    if(questions.length > 0) {
+        if(confirm(`พบคำถามจำนวน ${questions.length} ข้อ ต้องการนำเข้าหรือไม่? (ข้อมูลเดิมในหน้านี้จะหายไป)`)) {
+            document.getElementById('questions-container').innerHTML = ''; // ล้างของเก่า
+            questions.forEach(q => window.addQuestionItem(q)); // เพิ่มลงหน้าจอ
+            alert("✅ นำเข้าเรียบร้อย!");
+        }
+    } else {
+        alert("⚠️ ไม่พบรูปแบบคำถามที่ถูกต้องในไฟล์\nกรุณาใช้ไฟล์แม่แบบเพื่อดูตัวอย่าง");
+    }
+}
+
+// Helper: ประกอบร่างคำถามและหาข้อถูก
+function finalizeQuestion(qObj, choicesRaw, qArray) {
+    // ต้องมีอย่างน้อย 2 ช้อยส์
+    if (choicesRaw.length < 2) return;
+
+    // หา Index ของข้อถูก
+    let correctIdx = 0; // Default ข้อ A
+    
+    if (qObj.correctAnswerRaw) {
+        // แปลง ก,ข,ค,ง หรือ a,b,c,d เป็น index 0,1,2,3
+        const map = { 'ก':0, 'a':0, '1':0, 'ข':1, 'b':1, '2':1, 'ค':2, 'c':2, '3':2, 'ง':3, 'd':3, '4':3 };
+        const key = qObj.correctAnswerRaw.charAt(0); // เอาตัวอักษรแรก
+        if (map[key] !== undefined) correctIdx = map[key];
+    }
+
+    const choices = choicesRaw.map((txt, idx) => ({
+        id: `c${idx+1}`,
+        text: txt,
+        isCorrect: (idx === correctIdx)
+    }));
+    
+    // เติมให้ครบ 4 ช้อยส์ถ้าขาด (Optional)
+    while(choices.length < 4) {
+        choices.push({ id: `c${choices.length+1}`, text: "-", isCorrect: false });
+    }
+
+    qArray.push({
+        id: `q_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
+        text: qObj.text,
+        choices: choices.slice(0, 4) // เอาแค่ 4 ข้อแรก
+    });
+}
+// ในไฟล์ js/main.js
+
+window.startExamProcess = function(examId) {
+    const exam = dataState.exams.find(e => e.id === examId);
+    if (!exam) return;
+
+    // รับค่า ID นักเรียน
+    let studentId = window.currentStudentId;
+    if (!studentId) {
+        if (globalState.currentUser && globalState.currentUser.id) {
+            studentId = globalState.currentUser.id;
+        } else {
+            const code = localStorage.getItem('current_student_code');
+            const student = dataState.students.find(s => String(s.code) === String(code));
+            if (student) studentId = student.id;
+        }
+    }
+
+    if (!studentId) {
+        alert("Error: ไม่พบข้อมูลรหัสนักเรียน (Student ID Missing)");
+        return;
+    }
+
+    // เช็คสถานะการสอบ
+    const session = dataState.examSessions?.find(s => s.examId === examId && s.studentId === studentId);
+    if (session && session.status === 'FINISHED') return alert("คุณส่งข้อสอบชุดนี้ไปแล้ว");
+    if (session && session.status === 'CHEATED') return alert("คุณถูกระงับสิทธิ์การสอบในวิชานี้");
+
+    // ถามรหัสผ่าน
+    if (exam.password && (!session || session.status !== 'TESTING')) {
+        const input = prompt(`🔒 กรุณาใส่รหัสผ่านเข้าห้องสอบ: ${exam.title}`);
+        if (input !== exam.password) return alert("❌ รหัสผ่านไม่ถูกต้อง!");
+    }
+
+    // เริ่มต้น Session
+    if (!session) {
+        const newSession = {
+            examId: exam.id,
+            studentId: studentId,
+            status: 'TESTING',
+            score: 0,
+            answers: {},
+            startTime: new Date().getTime(),
+            violations: 0
+        };
+        
+        if (!dataState.examSessions) dataState.examSessions = [];
+        dataState.examSessions.push(newSession);
+
+        // ⭐ แก้ไขจุดที่ Error: ต้องใส่ Object เข้าไปใน saveAndRefresh
+        saveAndRefresh({ 
+            action: 'updateExamSession', // หรือ action อื่นที่ backend รองรับ
+            session: newSession 
+        }); 
+    }
+
+    // พาไปหน้าสอบ
+    const dashboard = document.getElementById('main-app-container');
+    const overlay = document.getElementById('exam-room-overlay');
+    
+    if(dashboard) dashboard.classList.add('hidden');
+    if(overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+    }
+
+    // ⭐ กำหนดตัวแปร Global และส่งค่าไปให้ renderExamUI โดยตรง
+    window.currentExam = exam; 
+    
+    // เรียก renderExamUI โดยส่ง exam เข้าไปเพื่อป้องกันค่า null
+    if (typeof window.renderExamUI === 'function') {
+        window.renderExamUI(exam);
+    }
+
+    // เริ่มจับเวลา
+    if (typeof startTimer === 'function' && exam.timeLimit) {
+        startTimer(exam.timeLimit * 60); 
+    }
+    
+    // เริ่มกันโกง
+    if (typeof initAntiCheat === 'function') {
+        initAntiCheat();
+    }
+};
+
+window.approveScore = function(studentId, taskId) {
+    const input = document.getElementById(`score-input-${studentId}-${taskId}`);
+    const scoreVal = parseFloat(input.value);
+
+    // ตรวจสอบความถูกต้อง
+    const task = dataState.tasks.find(t => t.id == taskId);
+    if (isNaN(scoreVal)) {
+        alert("กรุณากรอกคะแนน");
+        return;
+    }
+    if (task && scoreVal > task.maxScore) {
+        if(!confirm(`คะแนนที่กรอก (${scoreVal}) มากกว่าคะแนนเต็ม (${task.maxScore})\nยืนยันหรือไม่?`)) return;
+    }
+
+    // อัปเดต State (ใช้ Logic เดียวกับตอนกรอกคะแนนปกติ)
+    const scoreObj = dataState.scores.find(s => s.studentId == studentId && s.taskId == taskId);
+    if (scoreObj) {
+        scoreObj.score = scoreVal; // พอใส่คะแนนแล้ว มันจะไม่เป็น null อีกต่อไป -> หลุดจากหน้ารอตรวจ
+    } else {
+        // กรณีกันพลาด (ไม่น่าเกิดเพราะต้องมี submission ก่อน)
+        dataState.scores.push({
+            studentId: studentId,
+            taskId: taskId,
+            score: scoreVal,
+            submission: 'Manual Graded'
+        });
+    }
+
+    // บันทึกและรีเฟรชหน้าจอ
+    saveToLocalStorage();
+    
+    // เรียก render หน้าตรวจงานใหม่ เพื่อให้การ์ดที่ตรวจแล้วหายไปทันที
+    renderIncomingSubmissions('incoming-work-wrapper'); 
+    
+    // แจ้งเตือนเล็กน้อย
+    showToast("บันทึกคะแนนเรียบร้อย", "green");
+};
+// ในไฟล์ js/main.js
+
+window.returnWork = async function(studentId, taskId) {
+    // 1. ถามเหตุผลที่ให้แก้
+    const { value: reason } = await Swal.fire({
+        title: 'ส่งคืนงานให้แก้ไข',
+        input: 'text',
+        inputLabel: 'ระบุเหตุผลที่ต้องแก้ไข (นักเรียนจะเห็นข้อความนี้)',
+        inputPlaceholder: 'เช่น แนบไฟล์ผิด, ทำไม่ครบถ้วน...',
+        showCancelButton: true,
+        confirmButtonText: 'ส่งคืน',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#d33',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'กรุณาระบุเหตุผลด้วยครับ นักเรียนจะได้แก้ถูกจุด';
+            }
+        }
+    });
+
+    if (reason) {
+        try {
+            // 2. อัปเดตสถานะใน dataState.submissions
+            // หา record ล่าสุดของนักเรียนคนนี้ในงานนี้
+            if (dataState.submissions) {
+                const subIndex = dataState.submissions.findIndex(s => s.studentId == studentId && s.taskId == taskId);
+                if (subIndex > -1) {
+                    dataState.submissions[subIndex].status = 'returned'; // เปลี่ยนสถานะเป็นถูกตีกลับ
+                    dataState.submissions[subIndex].teacherComment = reason; // บันทึกคอมเมนต์ครู
+                }
+            }
+
+            // 3. (Optional) เคลียร์สถานะใน scores ด้วยเพื่อให้แน่ใจ
+            const scoreEntry = dataState.scores.find(s => s.studentId == studentId && s.taskId == taskId);
+            if (scoreEntry) {
+                scoreEntry.submission = null; // ลบ submission ออกจากหน้าคะแนนเพื่อให้รู้ว่าต้องส่งใหม่
+                scoreEntry.score = null;
+            }
+
+            // 4. บันทึกและรีเฟรช
+            saveToLocalStorage();
+            
+            if (typeof saveAndRefresh === 'function') {
+                await saveAndRefresh({ 
+                    action: 'returnTask', 
+                    taskId: taskId, 
+                    studentIds: [studentId], 
+                    comment: reason 
+                });
+            }
+
+            // 5. อัปเดตหน้าจอทันที (งานจะหายไปจาก list)
+            renderIncomingSubmissions('incoming-list'); // อย่าลืมใส่ id ให้ตรงกับ html ('incoming-list')
+            
+            Swal.fire('เรียบร้อย', 'ส่งคืนงานให้นักเรียนแก้ไขแล้ว', 'success');
+
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'เกิดข้อผิดพลาดในการบันทึก', 'error');
+        }
+    }
+};
+// ในไฟล์ js/main.js (เพิ่มต่อท้าย)
+
+window.approveGroupScore = async function(memberIdsStr, taskId, leaderId) {
+    // ดึงค่าคะแนนจาก Input (ใช้ ID ของหัวหน้าในการอ้างอิง Input)
+    const input = document.getElementById(`score-input-${taskId}-${leaderId}`);
+    if (!input) return;
+
+    const scoreVal = parseFloat(input.value);
+    const task = dataState.tasks.find(t => t.id == taskId);
+
+    // Validation
+    if (isNaN(scoreVal)) {
+        Swal.fire('แจ้งเตือน', 'กรุณากรอกคะแนนก่อนกดยืนยัน', 'warning');
+        return;
+    }
+    if (task && scoreVal > task.maxScore) {
+        const confirmResult = await Swal.fire({
+            title: 'คะแนนเกิน?',
+            text: `คะแนนที่กรอก (${scoreVal}) มากกว่าคะแนนเต็ม (${task.maxScore}) ยืนยันหรือไม่?`,
+            icon: 'question',
+            showCancelButton: true
+        });
+        if (!confirmResult.isConfirmed) return;
+    }
+
+    // แปลง string 'id1,id2' กลับเป็น array
+    const memberIds = memberIdsStr.split(',');
+
+    try {
+        // วนลูปให้คะแนนทุกคนในกลุ่ม
+        memberIds.forEach(sid => {
+            // 1. อัปเดต Score
+            let scoreEntry = dataState.scores.find(s => s.studentId == sid && s.taskId == taskId);
+            if (scoreEntry) {
+                scoreEntry.score = scoreVal;
+                scoreEntry.submission = 'Group Graded'; // หรือใส่ Link งานก็ได้
+            } else {
+                dataState.scores.push({
+                    studentId: sid,
+                    taskId: taskId,
+                    score: scoreVal,
+                    submission: 'Group Graded'
+                });
+            }
+        });
+
+        // 2. บันทึก
+        saveToLocalStorage();
+
+        // 3. (Optional) ส่งขึ้น Server ถ้ามีฟังก์ชันรองรับ
+        if (typeof saveAndRefresh === 'function') {
+            await saveAndRefresh({ 
+                action: 'gradeTask', 
+                taskId: taskId, 
+                studentIds: memberIds, // ส่งไปเป็น Array ระบบหลังบ้านจะได้บันทึกทีเดียว
+                score: scoreVal 
+            });
+        }
+
+        // 4. รีเฟรชหน้าจอ (รายการกลุ่มจะหายไปเพราะทุกคนมีคะแนนแล้ว)
+        renderIncomingSubmissions('incoming-list');
+        
+        // Show Toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        Toast.fire({
+            icon: 'success',
+            title: `ให้คะแนนเรียบร้อย (${memberIds.length} คน)`
+        });
+
     } catch (error) {
-        console.error("Force refresh error:", error);
-        showToast("รีเฟรชแคชล้มเหลว", "bg-red-600");
+        console.error(error);
+        Swal.fire('Error', 'เกิดข้อผิดพลาดในการบันทึกคะแนน', 'error');
+    }
+};
+
+// แก้ไขฟังก์ชัน returnWork ให้รองรับแบบกลุ่มด้วย
+window.returnWork = async function(memberIdsStr, taskId) {
+    const { value: reason } = await Swal.fire({
+        title: 'ส่งคืนงานให้แก้ไข',
+        input: 'text',
+        inputLabel: 'ระบุเหตุผล (แจ้งเตือนทั้งกลุ่ม)',
+        inputPlaceholder: 'ระบุเหตุผล...',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'ส่งคืน'
+    });
+
+    if (reason) {
+        const memberIds = memberIdsStr.split(','); // รับเป็น ID แบบกลุ่มมา
+        
+        memberIds.forEach(sid => {
+            // Update Submissions status
+            if (dataState.submissions) {
+                // หา submission ล่าสุดของแต่ละคนในงานนี้
+                const subIndex = dataState.submissions.findIndex(s => s.studentId == sid && s.taskId == taskId);
+                if (subIndex > -1) {
+                    dataState.submissions[subIndex].status = 'returned';
+                    dataState.submissions[subIndex].teacherComment = reason;
+                }
+            }
+            // Clear Score entry to ensure it's removed from grading view but allows re-submission logic
+            const scoreEntry = dataState.scores.find(s => s.studentId == sid && s.taskId == taskId);
+            if (scoreEntry) {
+                scoreEntry.score = null;
+                scoreEntry.submission = null;
+            }
+        });
+
+        saveToLocalStorage();
+        renderIncomingSubmissions('incoming-list');
+        Swal.fire('ส่งคืนแล้ว', 'แจ้งเตือนนักเรียนทั้งกลุ่มเรียบร้อย', 'success');
+    }
+};
+
+// ในไฟล์ js/main.js (ค้นหา toggleExamStatus แล้ววางทับ)
+
+window.toggleExamStatus = async function(examId) {
+    const classSelect = document.getElementById('exam-class-select-main');
+    // ⭐ บังคับแปลงเป็น String
+    const classId = classSelect ? String(classSelect.value) : null;
+
+    if (!classId || classId === "undefined" || classId === "") {
+        Swal.fire('กรุณาเลือกห้องเรียน', 'ต้องเลือกห้องเรียนด้านล่างก่อนกดเปิดสอบ', 'warning');
+        return;
+    }
+
+    const exam = dataState.exams.find(e => e.id == examId);
+    if (!exam) return;
+
+    if (!exam.activeClasses) exam.activeClasses = [];
+
+    // ⭐ แปลง activeClasses เดิมให้เป็น String ทั้งหมดก่อนเปรียบเทียบ
+    exam.activeClasses = exam.activeClasses.map(String);
+
+    const classIndex = exam.activeClasses.indexOf(classId);
+    let newStatus = '';
+
+    if (classIndex > -1) {
+        // ปิดสอบ
+        exam.activeClasses.splice(classIndex, 1);
+        newStatus = 'closed';
+    } else {
+        // เปิดสอบ
+        exam.activeClasses.push(classId);
+        newStatus = 'active';
+    }
+
+    saveToLocalStorage();
+    
+    if (typeof saveAndRefresh === 'function') {
+        await saveAndRefresh({
+            action: 'updateExamActiveClasses',
+            examId: examId,
+            activeClasses: exam.activeClasses
+        });
+    }
+
+    if(typeof renderExamPanel === 'function') renderExamPanel();
+
+    const className = dataState.classes.find(c => String(c.id) === classId)?.name || 'ห้องเรียน';
+    showToast(`${newStatus === 'active' ? 'เปิด' : 'ปิด'}สอบ ${className} แล้ว`, newStatus === 'active' ? 'success' : 'warning');
+};
+
+
+window.enterStudentExamRoom = function(examId) {
+    const exam = dataState.exams.find(e => e.id == examId);
+    if (!exam) return Swal.fire('Error', 'ไม่พบข้อมูลข้อสอบ', 'error');
+
+    const currentStudentCode = localStorage.getItem('current_student_code');
+    if (!currentStudentCode) return Swal.fire('Error', 'กรุณาล็อกอินใหม่', 'error');
+
+    // 1. หานักเรียนให้ตรงกับห้องที่เปิดสอบ (Logic เดิมที่เคยแก้ให้)
+    const potentialStudents = dataState.students.filter(s => String(s.code) === String(currentStudentCode));
+    if (potentialStudents.length === 0) return Swal.fire('Error', 'ไม่พบข้อมูลนักเรียน', 'error');
+
+    let activeClassesStr = (exam.activeClasses || []).map(String);
+    const validStudent = potentialStudents.find(s => activeClassesStr.includes(String(s.classId)));
+
+    if (!validStudent) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'เข้าสอบไม่ได้',
+            text: 'การสอบนี้ไม่ได้เปิดสำหรับห้องเรียนของคุณ',
+            confirmButtonColor: '#d33'
+        });
+        return;
+    }
+
+    // ⭐⭐ จุดที่เพิ่มความเข้มงวด (Strict Check) ⭐⭐
+    
+    // เช็ค 1: มีคะแนนบันทึกไว้แล้วหรือยัง? (ถ้ามี = ส่งแล้วชัวร์)
+    const hasScore = dataState.scores.some(s => 
+        String(s.taskId) === String(examId) && 
+        String(s.studentId) === String(validStudent.id)
+    );
+
+    // เช็ค 2: สถานะ Session เป็น FINISHED หรือ CHEATED ไหม?
+    const session = dataState.examSessions?.find(s => 
+        String(s.examId) === String(examId) && 
+        String(s.studentId) === String(validStudent.id)
+    );
+
+    const isFinished = session && (session.status === 'FINISHED' || session.status === 'CHEATED');
+
+    // 🚫 ถ้าเข้าเงื่อนไขใดเงื่อนไขหนึ่ง ห้ามเข้าเด็ดขาด
+    if (hasScore || isFinished) {
+        Swal.fire({
+            icon: 'info',
+            title: 'คุณสอบเสร็จแล้ว',
+            text: 'ระบบได้บันทึกคะแนนของคุณเรียบร้อยแล้ว ไม่สามารถเข้าสอบซ้ำได้',
+            confirmButtonText: 'ตกลง'
+        });
+        return; 
+    }
+
+    // ✅ ผ่านทุกด่าน -> อนุญาตให้เข้า
+    window.currentStudentId = validStudent.id; 
+    
+    if (typeof window.startExamProcess === 'function') {
+        window.startExamProcess(examId);
+    } else {
+        alert("System Error: startExamProcess missing");
+    }
+};
+// ในไฟล์ js/main.js
+
+window.confirmLaunchConfig = async function() {
+    const examId = document.getElementById('launch-exam-id').value;
+    const exam = dataState.exams.find(e => e.id === examId);
+    if (!exam) return;
+
+    // 1. รวบรวมข้อมูลห้องที่เลือก
+    const checkboxes = document.querySelectorAll('.launch-class-cb:checked');
+    const selectedClasses = Array.from(checkboxes).map(cb => String(cb.value));
+
+    // 2. รวบรวม Config
+    const newConfig = {
+        timeLimit: parseInt(document.getElementById('launch-duration').value) || 60,
+        password: document.getElementById('launch-password').value.trim(),
+        allowSwitch: parseInt(document.getElementById('launch-allow-switch').value) || 2,
+        shuffleQuestions: document.getElementById('launch-shuffle-q').checked,
+        shuffleChoices: document.getElementById('launch-shuffle-c').checked,
+        activeClasses: selectedClasses // อัปเดตห้องที่เปิดสอบตรงนี้
+    };
+
+    // 3. อัปเดต Local State
+    Object.assign(exam, newConfig);
+    saveToLocalStorage();
+
+    // 4. ส่งไป Server
+    // เราส่งไปอัปเดตทั้งก้อน เพื่อให้มั่นใจว่า Config ใหม่ถูกนำไปใช้พร้อมกับการเปิดสอบ
+    if (typeof saveAndRefresh === 'function') {
+        showLoading("กำลังบันทึกและเปิดสอบ...");
+        try {
+            await saveAndRefresh({
+                action: 'updateExamFullConfig', // ชื่อ action ใหม่เพื่อให้รู้ว่าอัปเดตหมด
+                examId: examId,
+                ...newConfig
+            });
+            
+            document.getElementById('exam-launch-modal').classList.add('hidden');
+            if(typeof renderExamPanel === 'function') renderExamPanel();
+            
+            const count = selectedClasses.length;
+            const msg = count > 0 ? `เปิดสอบสำหรับ ${count} ห้องเรียบร้อย` : `ปิดการสอบทั้งหมดแล้ว`;
+            showToast(msg, count > 0 ? "success" : "warning");
+
+        } catch (err) {
+            console.error(err);
+            alert("เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+        } finally {
+            hideLoading();
+        }
+    }
+};
+// ในไฟล์ js/main.js
+
+window.forceSubmitExam = async function(examId, studentId) {
+    if(!confirm("⚠️ ยืนยันการบังคับส่งข้อสอบของนักเรียนคนนี้?\n(ระบบจะตัดคะแนนเท่าที่ทำได้ทันที)")) return;
+
+    // หา Session
+    const session = dataState.examSessions?.find(s => s.examId == examId && s.studentId == studentId);
+    
+    if(!session) {
+        alert("ไม่พบข้อมูลการสอบ (นักเรียนอาจจะยังไม่ได้เริ่ม)");
+        return;
+    }
+
+    // อัปเดตสถานะเป็น FINISHED
+    session.status = 'FINISHED';
+    session.endTime = new Date().getTime();
+    
+    // บันทึก (คะแนนอาจจะได้ 0 หรือเท่าที่ Sync มาล่าสุด)
+    // หมายเหตุ: หากระบบ Client ไม่ได้ส่งคำตอบมาเป็นระยะ คะแนนอาจจะไม่ครบถ้วน
+    // แต่ Function นี้เน้นตัดจบการสอบ
+    
+    if (typeof saveAndRefresh === 'function') {
+        await saveAndRefresh({
+            action: 'updateExamSession',
+            session: session
+        });
+    }
+    
+    // รีเฟรชหน้าจอ Monitor
+    if(typeof window.refreshMonitor === 'function') {
+        window.refreshMonitor();
+    }
+    
+    alert("บังคับส่งเรียบร้อย");
+};
+// ในไฟล์ js/main.js เพิ่มต่อท้าย
+
+// 1. เปิด Modal เพิ่มข้อมูล
+window.openAddMaterialModal = function() {
+    // เคลียร์ค่าเก่า
+    document.getElementById('mat-input-title').value = '';
+    document.getElementById('mat-input-link').value = '';
+    document.getElementById('mat-input-img').value = '';
+    
+    // แสดง Modal
+    document.getElementById('material-modal').classList.remove('hidden');
+    document.getElementById('mat-input-title').focus();
+};
+
+// 2. บันทึกข้อมูล
+window.saveMaterial = function() {
+    console.log("🚀 Starting saveMaterial...");
+
+    // 1. ดึงค่าจากฟอร์ม
+    const titleEl = document.getElementById('mat-input-title');
+    const linkEl = document.getElementById('mat-input-link');
+    const subEl = document.getElementById('mat-input-subject');
+    const imgEl = document.getElementById('mat-input-img');
+    const typeEl = document.getElementById('mat-input-type');
+
+    // ใช้ || "" เพื่อกันค่าเป็น undefined ตั้งแต่ต้นทาง
+    const title = titleEl ? titleEl.value.trim() : "";
+    const link = linkEl ? linkEl.value.trim() : "";
+    const subId = (subEl && subEl.value) ? subEl.value : "general"; 
+    const img = (imgEl && imgEl.value) ? imgEl.value.trim() : ""; 
+    const type = (typeEl && typeEl.value) ? typeEl.value : "newtab"; 
+
+    // 2. ตรวจสอบข้อมูลจำเป็น
+    if(!title || !link) {
+        alert("กรุณากรอกชื่อและลิงก์ให้ครบถ้วน");
+        return;
+    }
+
+    // -----------------------------------------------------------------------
+    // 🧹 DEEP CLEAN PROCESS (กระบวนการล้างข้อมูลแบบละเอียด)
+    // -----------------------------------------------------------------------
+    
+    // สร้าง Array ใหม่รอไว้เลย (ตัดขาดจาก Reference เดิมที่อาจพัง)
+    let cleanList = [];
+
+    // ถ้ามีข้อมูลเดิม ให้วนลูปดึงเฉพาะตัวดีๆ มาเก็บ
+    if (dataState.materials) {
+        // แปลงเป็น Array ก่อนเสมอ (เผื่อเป็น Object)
+        let rawList = Array.isArray(dataState.materials) ? dataState.materials : Object.values(dataState.materials);
+        
+        rawList.forEach((item, index) => {
+            // เงื่อนไข: ต้องเป็น Object + มี ID + มี Title (ถ้าไม่มี ID ให้ข้าม หรือสร้างใหม่ถ้าจำเป็น)
+            if (item && typeof item === 'object') {
+                if (item.id && item.title) {
+                    // Clone ข้อมูลมาใส่ Array ใหม่ (ป้องกัน Reference เดิม)
+                    cleanList.push({
+                        id: String(item.id), // บังคับเป็น String
+                        subjectId: item.subjectId || "general",
+                        title: item.title || "Untitled",
+                        link: item.link || "#",
+                        image: item.image || "",
+                        type: item.type || "newtab"
+                    });
+                }
+            }
+        });
+    }
+
+    // 3. เตรียมข้อมูลใหม่ (รับประกันว่ามีครบทุก field)
+    const newId = Date.now().toString(); 
+    const newMat = {
+        id: newId,
+        subjectId: subId, 
+        title: title,
+        link: link,
+        image: img, 
+        type: type 
+    };
+
+    // เพิ่มข้อมูลใหม่เข้าไปในรายการที่คลีนแล้ว
+    cleanList.push(newMat);
+
+    // 4. เอาข้อมูลที่คลีนแล้ว กลับไปใส่ใน dataState
+    dataState.materials = cleanList;
+
+    console.log("✅ Data Cleaned. Total Items:", cleanList.length);
+    console.log("New Item:", newMat);
+
+    // -----------------------------------------------------------------------
+
+    // 5. บันทึก
+    try {
+        // บันทึกลง LocalStorage
+        saveToLocalStorage();
+        
+        // ส่ง Action ไปยัง Firebase (ตอนนี้ dataState.materials สะอาดแล้ว 100%)
+        // เราส่ง dataState ทั้งก้อนผ่านการอ้างอิงภายใน function saveAndRefresh
+        saveAndRefresh({ action: 'addMaterial', data: newMat }); 
+        
+        // ปิด Modal
+        const modal = document.getElementById('material-modal');
+        if(modal) modal.classList.add('hidden');
+        
+        // เคลียร์ค่าในฟอร์ม
+        if(titleEl) titleEl.value = "";
+        if(linkEl) linkEl.value = "";
+        if(imgEl) imgEl.value = "";
+        
+        refreshUI();
+        showToast("เพิ่มเนื้อหาเรียบร้อย", "success");
+        
+    } catch (e) {
+        console.error("❌ Save failed:", e);
+        alert("เกิดข้อผิดพลาด: " + e.message);
+    }
+};
+
+// 3. ลบข้อมูล
+window.deleteMaterial = function(id) {
+    if(!confirm("ต้องการลบเนื้อหานี้ใช่หรือไม่?")) return;
+
+    dataState.materials = dataState.materials.filter(m => m.id != id);
+    
+    saveToLocalStorage();
+    saveAndRefresh({ action: 'deleteMaterial', id: id });
+    
+    refreshUI();
+    showToast("ลบเรียบร้อย", "bg-red-600");
+};// 1. ฟังก์ชันโหลดข้อมูล Materials จาก Sheet (เรียกตอนเปิดเว็บ)
+window.loadMaterialsFromSheet = async function() {
+    try {
+        console.log("🔄 Loading materials from Sheet...");
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getMaterials' })
+        });
+        const json = await response.json();
+        
+        if (json.result === 'success') {
+            dataState.materials = json.data; // อัปเดตเข้า State กลาง
+            console.log("✅ Materials loaded:", dataState.materials.length);
+            
+            // สั่ง render หน้าจอใหม่ (ถ้าเปิดหน้า Admin Material อยู่)
+            if(document.getElementById('admin-panel-material')) {
+                 // Import ฟังก์ชัน renderAdminMaterials จาก ui-render.js มาใช้
+                 // หรือถ้า import * as UI มาแล้วก็เรียก UI.renderAdminMaterials()
+                 // ในที่นี้สมมติว่ามีการ import { renderAdminMaterials } ...
+                 import('./ui-render.js').then(module => {
+                     module.renderAdminMaterials();
+                 });
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load materials:", e);
+    }
+};
+
+// 2. แก้ไขฟังก์ชันบันทึก (Save)
+window.saveMaterial = async function() {
+    const titleEl = document.getElementById('mat-input-title');
+    const linkEl = document.getElementById('mat-input-link');
+    const subEl = document.getElementById('mat-input-subject');
+    const imgEl = document.getElementById('mat-input-img');
+    const typeEl = document.getElementById('mat-input-type');
+
+    const title = titleEl.value.trim();
+    const link = linkEl.value.trim();
+    
+    if(!title || !link) { alert("กรุณากรอกข้อมูลให้ครบ"); return; }
+
+    showLoading("กำลังบันทึกลง Google Sheet..."); // แสดง Loading
+
+    const newMat = {
+        id: Date.now().toString(),
+        subjectId: subEl.value || "general",
+        title: title,
+        link: link,
+        image: imgEl.value.trim(),
+        type: typeEl.value || "newtab"
+    };
+
+    try {
+        // ยิงไป Google Script
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'addMaterial', data: newMat })
+        });
+
+        // อัปเดตหน้าจอทันที (ไม่ต้องรอโหลดใหม่เพื่อให้ลื่นไหล)
+        if(!dataState.materials) dataState.materials = [];
+        dataState.materials.push(newMat);
+        
+        // ปิด Modal และเคลียร์ค่า
+        document.getElementById('material-modal').classList.add('hidden');
+        titleEl.value = ""; linkEl.value = ""; imgEl.value = "";
+        
+        // รีเฟรชหน้าจอ
+        import('./ui-render.js').then(module => module.renderAdminMaterials());
+        
+        showToast("บันทึกเรียบร้อย", "success");
+
+    } catch (e) {
+        alert("Error: " + e.message);
     } finally {
         hideLoading();
     }
-}
+};
 
-// Loading functions
-function showLoading(text = "กำลังประมวลผล...") {
-    const overlay = document.getElementById('loading-overlay');
-    const textEl = document.getElementById('loading-text');
-    
-    if (overlay) overlay.classList.remove('hidden');
-    if (textEl) textEl.textContent = text;
-}
+// 3. แก้ไขฟังก์ชันลบ (Delete)
+window.deleteMaterial = async function(id) {
+    if(!confirm("ต้องการลบใช่หรือไม่?")) return;
 
-function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) overlay.classList.add('hidden');
-}
+    showLoading("กำลังลบ...");
 
-// Thai date utility
-function getThaiDateISO() {
-    const now = new Date();
-    const timezoneOffset = 7 * 60; // Thailand is UTC+7
-    const thaiTime = new Date(now.getTime() + timezoneOffset * 60000);
-    return thaiTime.toISOString().split('T')[0];
-}
-
-// Default functions (fallback if not defined elsewhere)
-if (typeof refreshUI === 'undefined') {
-    function refreshUI() {
-        console.log("refreshUI called (default implementation)");
-        // This should be overridden by ui.js
-    }
-}
-
-if (typeof renderScoreButtons === 'undefined') {
-    function renderScoreButtons() {
-        console.log("renderScoreButtons called (default implementation)");
-        const container = document.getElementById('score-buttons-container');
-        if (!container) return;
-        
-        const scores = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        container.innerHTML = '';
-        
-        scores.forEach(score => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'py-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-white text-sm font-bold hover:from-blue-500 hover:to-blue-700 transition-all shadow-md';
-            button.textContent = score;
-            button.onclick = () => {
-                const input = document.getElementById('scan-score-input');
-                if (input) input.value = score;
-            };
-            container.appendChild(button);
+    try {
+        // ยิงไป Google Script
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteMaterial', id: id })
         });
-    }
-}
 
-if (typeof initEventListeners === 'undefined') {
-    function initEventListeners() {
-        console.log("initEventListeners called (default implementation)");
+        // ลบออกจาก State ทันที
+        dataState.materials = dataState.materials.filter(m => m.id != id);
         
-        // Admin login form
-        const adminForm = document.getElementById('admin-login-form');
-        if (adminForm) {
-            adminForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('admin-username')?.value;
-                const password = document.getElementById('admin-password')?.value;
-                
-                if (username === 'admin' && password === '1234') {
-                    localStorage.setItem('wany_admin_session', 'true');
-                    showAdminPanel();
-                    showToast("เข้าสู่ระบบสำเร็จ", "bg-green-600");
-                } else {
-                    showToast("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", "bg-red-600");
-                }
-            });
-        }
+        // รีเฟรชหน้าจอ
+        import('./ui-render.js').then(module => module.renderAdminMaterials());
         
-        // Student login button
-        const studentLoginBtn = document.querySelector('button[onclick="handleStudentLogin()"]');
-        if (studentLoginBtn) {
-            studentLoginBtn.addEventListener('click', function() {
-                if (typeof handleStudentLogin === 'function') {
-                    handleStudentLogin();
-                } else {
-                    showToast("ระบบกำลังโหลด กรุณารอสักครู่", "bg-yellow-600");
-                }
-            });
-        }
+        showToast("ลบเรียบร้อย", "success");
+
+    } catch (e) {
+        alert("Error: " + e.message);
+    } finally {
+        hideLoading();
     }
-}
+};
