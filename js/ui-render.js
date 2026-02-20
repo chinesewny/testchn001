@@ -26,7 +26,7 @@ function refreshDropdowns() {
     setOpts('sch-class', dataState.classes); 
     setOpts('report-subject', dataState.subjects); 
     setOpts('exam-class-select', dataState.classes);
-    
+    setOpts('import-student-class', dataState.classes);
     // Dropdowns สำหรับฟอร์มสร้างงานแบบแยกประเภท 3.1 และ 3.2
     setOpts('task-subject-accum', dataState.subjects); 
     setOpts('task-subject-exam', dataState.subjects);  
@@ -378,13 +378,12 @@ export function renderAttRoster() {
     setStat('stat-late', late);
 }
 
-// ในไฟล์ js/ui-render.js
-
 export function renderGradeReport() {
     const container = document.getElementById('admin-panel-report');
-    if (!container) return; // หรือชื่อ ID ที่คุณครูใช้สำหรับหน้ารายงาน
+    if (!container) return; 
     container.classList.remove('hidden');
 
+    // สร้างโครงสร้างหน้าจอ และปรับปุ่มดาวน์โหลด/พิมพ์
     container.innerHTML = `
     <div class="flex flex-col h-full gap-4">
         <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
@@ -393,11 +392,23 @@ export function renderGradeReport() {
                 <p class="text-xs text-white/50">สรุปคะแนนรวม ตัดเกรด และส่งออกข้อมูล</p>
             </div>
             <div class="flex gap-2">
-                <select id="report-class-select" class="glass-input rounded-xl px-4 py-2 text-sm" onchange="window.renderGradeTable()">
+                <div class="bg-black/40 p-1 rounded-xl flex items-center gap-1">
+                    <label class="text-white text-sm px-2 cursor-pointer hover:text-blue-300 transition-colors">
+                        <input type="radio" name="reportType" value="summary" checked onchange="window.renderGradeTable()"> สรุป
+                    </label>
+                    <label class="text-white text-sm px-2 cursor-pointer hover:text-blue-300 transition-colors">
+                        <input type="radio" name="reportType" value="detail" onchange="window.renderGradeTable()"> ละเอียด
+                    </label>
+                </div>
+                
+                <select id="report-class-select" class="glass-input rounded-xl px-4 py-2 text-sm cursor-pointer" onchange="window.renderGradeTable()">
                     <option value="">-- เลือกห้องเรียน --</option>
                 </select>
-                <button onclick="window.downloadGradeReport()" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold shadow-lg flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> ดาวน์โหลด Excel/CSV
+                <button onclick="window.exportGradeCSV()" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105">
+                    <i class="fa-solid fa-file-excel"></i> ดาวน์โหลด CSV
+                </button>
+                <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105">
+                    <i class="fa-solid fa-print"></i> พิมพ์
                 </button>
             </div>
         </div>
@@ -405,24 +416,15 @@ export function renderGradeReport() {
         <div id="report-table-container" class="flex-1 bg-black/20 rounded-2xl border border-white/10 overflow-hidden hidden flex flex-col">
             <div class="overflow-auto custom-scrollbar flex-1">
                 <table class="w-full text-sm text-left text-white/80" id="grade-report-table">
-                    <thead class="text-xs text-white/50 uppercase bg-black/40 sticky top-0 backdrop-blur-md z-20">
-                        <tr>
-                            <th class="px-4 py-3 text-center w-16">เลขที่</th>
-                            <th class="px-4 py-3">ชื่อ-นามสกุล</th>
-                            <th class="px-4 py-3 text-center">คะแนนเก็บ</th>
-                            <th class="px-4 py-3 text-center">กลางภาค</th>
-                            <th class="px-4 py-3 text-center">ปลายภาค</th>
-                            <th class="px-4 py-3 text-center font-bold text-white">รวม</th>
-                            <th class="px-4 py-3 text-center font-bold text-yellow-400">เกรด</th>
-                        </tr>
-                    </thead>
+                    <thead id="report-table-header" class="text-xs text-white/50 uppercase bg-black/40 sticky top-0 backdrop-blur-md z-20">
+                        </thead>
                     <tbody id="report-table-body" class="divide-y divide-white/5"></tbody>
                 </table>
             </div>
         </div>
     </div>`;
 
-    // Populate Dropdown
+    // ใส่ข้อมูล Dropdown ห้องเรียน
     const sel = document.getElementById('report-class-select');
     dataState.classes.forEach(c => {
         const opt = document.createElement('option');
@@ -432,43 +434,154 @@ export function renderGradeReport() {
     });
 }
 
-// ฟังก์ชันวาดตารางเกรด (แยกออกมาเพื่อให้เรียกใช้ได้ง่าย)
+// ฟังก์ชันวาดตารางเกรดแบบแยกบท
+// ฟังก์ชันวาดตารางเกรด (รองรับทั้งแบบสรุปแยกบท และแบบละเอียดทุกชิ้นงาน)
 window.renderGradeTable = function() {
     const classId = document.getElementById('report-class-select').value;
+    const tableContainer = document.getElementById('report-table-container');
+    const thead = document.getElementById('report-table-header');
+    const tbody = document.getElementById('report-table-body');
+
     if(!classId) {
-        document.getElementById('report-table-container').classList.add('hidden');
+        tableContainer.classList.add('hidden');
         return;
     }
-    document.getElementById('report-table-container').classList.remove('hidden');
+    tableContainer.classList.remove('hidden');
 
+    const currentClass = dataState.classes.find(c => c.id == classId);
+    const subj = dataState.subjects.find(s => s.id == currentClass.subjectId);
     const students = dataState.students.filter(s => s.classId == classId).sort((a,b) => Number(a.no) - Number(b.no));
     const tasks = dataState.tasks.filter(t => t.classId == classId);
+    
+    // ดึงค่าโหมดการแสดงผล (summary หรือ detail)
+    const reportType = document.querySelector('input[name="reportType"]:checked')?.value || 'summary';
 
-    const tbody = document.getElementById('report-table-body');
+    thead.innerHTML = '';
     tbody.innerHTML = '';
 
-    students.forEach(s => {
-        // ใช้ calculateScores ตัวล่าสุดที่มีการตัดคะแนนเกินและคำนวณคะแนนช่วย
-        const scores = calculateScores(s.id, classId, tasks); 
-        const grade = calGrade(scores.total);
+    if(reportType === 'summary') {
+        // ==========================================
+        // 📊 โหมด: สรุป (Summary) - แยกตามบท
+        // ==========================================
+        const config = (subj && subj.scoreConfig && subj.scoreConfig.length > 0) ? subj.scoreConfig : Array(5).fill(10);
+        const chapterNames = subj && subj.chapterNames ? subj.chapterNames : [];
+        let totalAccumMax = config.reduce((a, b) => a + Number(b), 0);
 
-        // สีของเกรด
-        let gradeColor = 'text-white';
-        if(grade === '0') gradeColor = 'text-red-500 font-bold';
-        if(grade === '4') gradeColor = 'text-yellow-400 font-bold';
+        let trHead = document.createElement('tr');
+        let headHTML = `
+            <th class="px-4 py-3 text-center w-16">เลขที่</th>
+            <th class="px-4 py-3 text-left">รหัส</th>
+            <th class="px-4 py-3 text-left">ชื่อ-นามสกุล</th>`;
+        
+        config.forEach((m, i) => {
+            const chName = chapterNames[i] ? chapterNames[i] : `บทที่ ${i+1}`;
+            headHTML += `<th class="px-2 py-3 text-center text-blue-300 min-w-[60px]" title="${chName}">
+                <div class="truncate max-w-[80px] mx-auto">${chName}</div>
+                <span class="text-[10px] text-white/50">(${m})</span>
+            </th>`;
+        });
 
-        tbody.innerHTML += `
-            <tr class="hover:bg-white/5 transition-colors">
+        headHTML += `
+            <th class="px-4 py-3 text-center text-green-300 bg-green-900/40 border-l border-white/10">รวมเก็บ<br><span class="text-[10px] text-white/50">(${totalAccumMax})</span></th>
+            <th class="px-4 py-3 text-center text-yellow-300 border-l border-white/10">กลางภาค</th>
+            <th class="px-4 py-3 text-center text-purple-300">ปลายภาค</th>
+            <th class="px-4 py-3 text-center font-bold text-white border-l border-white/10">รวม</th>
+            <th class="px-4 py-3 text-center font-bold text-yellow-400">เกรด</th>`;
+        trHead.innerHTML = headHTML;
+        thead.appendChild(trHead);
+
+        students.forEach(s => {
+            const scores = calculateScores(s.id, classId, tasks);
+            let tr = document.createElement('tr');
+            tr.className = "hover:bg-white/5 transition-colors border-b border-white/5";
+            
+            let rowHTML = `
                 <td class="px-4 py-2 text-center font-mono text-white/50">${s.no}</td>
-                <td class="px-4 py-2">${s.name}</td>
-                <td class="px-4 py-2 text-center text-orange-300">${scores.accumTotal.toFixed(0)}</td>
-                <td class="px-4 py-2 text-center text-blue-300">${scores.midterm.toFixed(0)}</td>
-                <td class="px-4 py-2 text-center text-purple-300">${scores.final.toFixed(0)}</td>
-                <td class="px-4 py-2 text-center font-bold text-white">${scores.total.toFixed(0)}</td>
-                <td class="px-4 py-2 text-center font-bold ${gradeColor}">${grade}</td>
-            </tr>
-        `;
-    });
+                <td class="px-4 py-2 text-white/50">${s.code}</td>
+                <td class="px-4 py-2">${s.name}</td>`;
+            
+            config.forEach((_, i) => {
+                const sc = (scores.chapScores && scores.chapScores[i]) ? scores.chapScores[i] : 0;
+                rowHTML += `<td class="px-2 py-2 text-center text-white/80">${Math.round(sc)}</td>`;
+            });
+
+            const grade = calGrade(scores.total || 0);
+            let gradeColor = 'text-white';
+            if(grade === '0') gradeColor = 'text-red-500 font-bold';
+            if(grade === '4') gradeColor = 'text-yellow-400 font-bold';
+
+            rowHTML += `
+                <td class="px-4 py-2 text-center font-bold text-green-300 bg-green-900/20 border-l border-white/5">${Math.round(scores.accumTotal || 0)}</td>
+                <td class="px-4 py-2 text-center text-white/80 border-l border-white/5">${scores.midterm || 0}</td>
+                <td class="px-4 py-2 text-center text-white/80">${scores.final || 0}</td>
+                <td class="px-4 py-2 text-center font-bold text-white border-l border-white/5">${Math.round(scores.total || 0)}</td>
+                <td class="px-4 py-2 text-center font-bold ${gradeColor}">${grade}</td>`;
+            tr.innerHTML = rowHTML;
+            tbody.appendChild(tr);
+        });
+
+    } else {
+        // ==========================================
+        // 📝 โหมด: ละเอียด (Detail) - แสดงชิ้นงานทั้งหมด
+        // ==========================================
+        const accumTasks = tasks.filter(t => t.category === 'accum').sort((a,b) => a.id - b.id);
+        
+        let trHead = document.createElement('tr');
+        let headHTML = `
+            <th class="px-4 py-3 text-center w-16">เลขที่</th>
+            <th class="px-4 py-3 text-left">รหัส</th>
+            <th class="px-4 py-3 text-left">ชื่อ-นามสกุล</th>`;
+            
+        // วนลูปสร้างหัวตารางตามชิ้นงานที่มี
+        accumTasks.forEach(t => {
+            headHTML += `<th class="px-2 py-3 text-center text-blue-300 min-w-[60px]" title="${t.name}">
+                <div class="truncate max-w-[80px] mx-auto">${t.name}</div>
+                <span class="text-[10px] text-white/50">(${t.maxScore})</span>
+            </th>`;
+        });
+
+        headHTML += `
+            <th class="px-4 py-3 text-center text-green-300 bg-green-900/40 border-l border-white/10">รวมเก็บ</th>
+            <th class="px-4 py-3 text-center text-yellow-300 border-l border-white/10">กลางภาค</th>
+            <th class="px-4 py-3 text-center text-purple-300">ปลายภาค</th>
+            <th class="px-4 py-3 text-center font-bold text-white border-l border-white/10">รวม</th>
+            <th class="px-4 py-3 text-center font-bold text-yellow-400">เกรด</th>`;
+        trHead.innerHTML = headHTML;
+        thead.appendChild(trHead);
+
+        // วนลูปใส่นักเรียน
+        students.forEach(s => {
+            const scores = calculateScores(s.id, classId, tasks);
+            let tr = document.createElement('tr');
+            tr.className = "hover:bg-white/5 transition-colors border-b border-white/5";
+            
+            let rowHTML = `
+                <td class="px-4 py-2 text-center font-mono text-white/50">${s.no}</td>
+                <td class="px-4 py-2 text-white/50">${s.code}</td>
+                <td class="px-4 py-2">${s.name}</td>`;
+                
+            // ดึงคะแนนรายชิ้นงาน
+            accumTasks.forEach(t => {
+                const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
+                // ถ้ายังไม่ให้คะแนนจะขึ้นขีด (-)
+                rowHTML += `<td class="px-2 py-2 text-center text-white/80">${sc ? sc.score : '-'}</td>`;
+            });
+
+            const grade = calGrade(scores.total || 0);
+            let gradeColor = 'text-white';
+            if(grade === '0') gradeColor = 'text-red-500 font-bold';
+            if(grade === '4') gradeColor = 'text-yellow-400 font-bold';
+
+            rowHTML += `
+                <td class="px-4 py-2 text-center font-bold text-green-300 bg-green-900/20 border-l border-white/5">${Math.round(scores.accumTotal || 0)}</td>
+                <td class="px-4 py-2 text-center text-white/80 border-l border-white/5">${scores.midterm || 0}</td>
+                <td class="px-4 py-2 text-center text-white/80">${scores.final || 0}</td>
+                <td class="px-4 py-2 text-center font-bold text-white border-l border-white/5">${Math.round(scores.total || 0)}</td>
+                <td class="px-4 py-2 text-center font-bold ${gradeColor}">${grade}</td>`;
+            tr.innerHTML = rowHTML;
+            tbody.appendChild(tr);
+        });
+    }
 };
 // --- 6. Exam System (New) ---
 // ในไฟล์ js/ui-render.js
@@ -2102,6 +2215,34 @@ export function openStudentTaskModal(taskId, studentId) {
     document.getElementById('st-modal-desc').textContent = `คะแนนเต็ม: ${task.maxScore}`;
     document.getElementById('st-modal-date').textContent = task.dueDate ? formatThaiDate(task.dueDate) : 'ไม่มีกำหนด';
     
+    // 🟢 ส่วนที่เพิ่ม: แสดงรายละเอียดและรูปภาพของงาน (แทรกหลังข้อมูลหลัก)
+    let extraInfoHtml = '';
+    if (task.description) {
+        extraInfoHtml += `
+            <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/40 mt-3 mb-2 shadow-inner">
+                <p class="text-sm text-blue-100 whitespace-pre-line"><i class="fa-solid fa-circle-info mr-1 text-blue-300"></i> ${task.description}</p>
+            </div>`;
+    }
+    if (task.image) {
+        extraInfoHtml += `
+            <div class="mt-2 mb-4 text-center">
+                <img src="${task.image}" class="max-w-full h-auto max-h-48 mx-auto rounded-xl border border-white/20 shadow-lg object-contain bg-black/50 p-1">
+            </div>`;
+    }
+    
+    // หา Element หรือสร้างใหม่เพื่อใส่รายละเอียดงาน
+    let extraContainer = document.getElementById('st-modal-extra-info');
+    if (!extraContainer) {
+        // ถ้ายังไม่มีคอนเทนเนอร์นี้ ให้สร้างและแทรกต่อจาก st-modal-desc
+        const targetEl = document.getElementById('st-modal-desc');
+        extraContainer = document.createElement('div');
+        extraContainer.id = 'st-modal-extra-info';
+        // แทรกเข้าไปหลัง targetEl
+        targetEl.parentNode.insertBefore(extraContainer, targetEl.nextSibling);
+    }
+    extraContainer.innerHTML = extraInfoHtml;
+    // -------------------------------------------------------------
+
     // Hidden Input
     document.getElementById('st-modal-task-id').value = taskId;
     document.getElementById('st-modal-student-id').value = studentId;

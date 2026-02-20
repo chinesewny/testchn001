@@ -70,10 +70,15 @@
             
         </p>
     </div>
+    <button onclick="window.openChangePasswordModal()" class="mt-6 bg-gray-800 hover:bg-gray-700 border border-white/20 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+            <i class="fa-solid fa-key text-yellow-400"></i> เปลี่ยนข้อมูลเข้าสู่ระบบ (Admin)
+        </button>
 </div>
+
              
                 <button onclick="handleLogout(true)" class="bg-white/10 hover:bg-red-500/80 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-white/10"><i class="fa-solid fa-power-off mr-2"></i>ออก</button>
             </div>
+            
 
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <button onclick="switchAdminSubTab('basic')" id="menu-basic" class="menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg"><i class="fa-solid fa-folder-open block text-xl mb-1"></i> ข้อมูล</button> 
@@ -120,7 +125,53 @@
                      <div id="subject-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
                  </div>
                </div>
-               
+               <div class="bg-white/5 p-5 rounded-2xl border border-white/10 mt-6">
+            <h4 class="text-white font-bold mb-3 text-lg"><i class="fa-solid fa-cogs text-gray-400"></i> ตั้งค่าระบบพื้นฐานการศึกษา</h4>
+            <p class="text-xs text-white/50 mb-4">กำหนดปีการศึกษาและภาคเรียนที่กำลังใช้งาน</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs text-white/70 ml-1">ปีการศึกษา</label>
+                    <input type="text" id="setting-academic-year" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="เช่น 2567">
+                </div>
+                <div>
+                    <label class="text-xs text-white/70 ml-1">ภาคเรียน</label>
+                    <select id="setting-semester" class="glass-input w-full p-3 rounded-xl mt-1 text-sm">
+                        <option value="1">ภาคเรียนที่ 1</option>
+                        <option value="2">ภาคเรียนที่ 2</option>
+                        <option value="3">ภาคเรียนฤดูร้อน</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="window.saveSystemSettings()" class="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                <i class="fa-solid fa-save"></i> บันทึกการตั้งค่า
+            </button>
+        </div>
+
+        <div class="bg-white/5 p-5 rounded-2xl border border-white/10 mt-6">
+            <h4 class="text-white font-bold mb-3 text-lg"><i class="fa-solid fa-users text-green-400"></i> จัดการรายชื่อนักเรียนผ่านไฟล์ (CSV)</h4>
+            <p class="text-xs text-white/50 mb-4">ดาวน์โหลดแม่แบบเพื่อเพิ่มเด็กใหม่ หรืออัปเดตรายชื่อเดิม แล้วอัปโหลดกลับเข้าสู่ระบบ</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs text-white/70 ml-1">เลือกห้องเรียนเป้าหมาย</label>
+                    <select id="import-student-class" class="glass-input w-full p-3 rounded-xl mt-1 text-sm">
+                        <option value="">-- เลือกห้องเรียน --</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button onclick="window.downloadStudentCSVTemplate()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg w-full transition-transform hover:scale-105 flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-download"></i> โหลดไฟล์แม่แบบ/ข้อมูลเดิม
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 p-4 border border-dashed border-white/20 rounded-xl bg-black/20">
+                <label class="text-xs text-white/70 ml-1">อัปโหลดไฟล์ CSV เพื่อนำเข้า / อัปเดต</label>
+                <input type="file" id="import-student-file" accept=".csv" class="w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20 mt-2 cursor-pointer transition-colors">
+            </div>
+            <button onclick="window.processStudentCSVImport()" class="mt-4 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i> ประมวลผลและบันทึกรายชื่อ
+            </button>
+        </div>
                <div class="flex flex-col gap-6 mt-6">
     <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden h-fit shadow-lg">
          <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
@@ -156,6 +207,23 @@
                      <input id="task-max-accum" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-xs text-center" value="10" required>
                  </div>
              </div>
+             <div class="mt-4 bg-black/20 p-3 rounded-xl border border-white/5">
+            <div class="mb-3">
+                <label class="text-xs text-white/70 ml-1"><i class="fa-solid fa-align-left text-blue-400"></i> รายละเอียดงาน (คำสั่ง/อธิบายเพิ่มเติม)</label>
+                <textarea id="task-desc-accum" rows="3" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="อธิบายรายละเอียดงานให้นักเรียนทราบ..."></textarea>
+            </div>
+            <div>
+                <label class="text-xs text-white/70 ml-1"><i class="fa-solid fa-image text-green-400"></i> รูปภาพประกอบ (ถ้ามี - ขนาดไม่เกิน 1MB)</label>
+                <input type="file" id="task-image-accum" accept="image/*" class="w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20 mt-1 cursor-pointer transition-colors" onchange="window.previewTaskImageAccum(this)">
+                
+                <div id="task-image-preview-accum-container" class="hidden mt-3 relative inline-block">
+                    <img id="task-image-preview-accum" src="" class="max-h-40 rounded-lg border border-white/20 shadow-lg">
+                    <button type="button" onclick="window.removeTaskImageAccum()" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg hover:bg-red-500 transition-transform hover:scale-110">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
              <button type="submit" class="w-full btn-yellow py-3 rounded-lg text-sm font-bold shadow-lg">บันทึกงานเก็บคะแนน</button>
          </form>
     </div>
@@ -998,6 +1066,39 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<div id="admin-password-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+        <div class="bg-gradient-to-r from-yellow-600 to-yellow-800 p-4 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-shield"></i> เปลี่ยนข้อมูลเข้าสู่ระบบ
+            </h3>
+            <button onclick="window.closeChangePasswordModal()" class="text-white/70 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <p class="text-xs text-white/50 mb-4">ตั้งค่า Username และ Password สำหรับเข้าสู่โหมดผู้ดูแลระบบ</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-white/70 ml-1">ชื่อผู้ใช้ (Username) ใหม่</label>
+                    <input type="text" id="setting-admin-user" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="เช่น admin">
+                </div>
+                <div>
+                    <label class="text-xs text-white/70 ml-1">รหัสผ่าน (Password) ใหม่</label>
+                    <input type="text" id="setting-admin-pass" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="รหัสผ่านใหม่">
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end gap-3">
+                <button onclick="window.closeChangePasswordModal()" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all">
+                    ยกเลิก
+                </button>
+                <button onclick="window.saveAdminCredentials()" class="px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
  </body>
 </html>
 
