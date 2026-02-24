@@ -4,6 +4,7 @@ let syncTimeout;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { FIREBASE_CONFIG, GOOGLE_SCRIPT_URL } from "./config.js";
 import { dataState, updateDataState, saveToLocalStorage, globalState, updateLocalState } from "./state.js";
 import { updateSyncUI, showToast, showLoading, hideLoading } from "./utils.js";
@@ -11,10 +12,11 @@ import { refreshUI } from "./ui-render.js";
 
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
+// ✅ 2. เพิ่มบรรทัดนี้ลงไปครับ
+const auth = getAuth(app); 
 
 // 🟢 หมวดหมู่ปกติ (ตัด exams ออก เพราะเราจะใช้ระบบหั่นไฟล์ให้มันพิเศษ)
 const DB_KEYS = ["tasks", "scores", "students", "subjects", "classes", "attendance", "materials", "submissions", "returns", "schedules", "examSessions"];
-
 // 🟢 ตั้งค่าจำนวนการหั่นไฟล์สำหรับ Exams
 const EXAM_CHUNKS = 10; 
 let examsDataArray = new Array(EXAM_CHUNKS).fill([]); // อาเรย์สำหรับพักข้อมูลที่หั่นแล้ว
@@ -171,7 +173,35 @@ export async function restoreFromGoogleSheet() {
         hideLoading();
     }
 }
+// ✅ 3. วางฟังก์ชันนี้ไว้ล่างสุดของไฟล์เลยครับ
+export async function autoLoginStudent(studentCode) {
+    // แปลงรหัสนักเรียนเป็น อีเมล และ รหัสผ่าน อัตโนมัติ
+    const fakeEmail = `${studentCode}@student.wny.app`; // wny.app มาจากชื่อโดเมนสมมติ
+    const fakePassword = `wny${studentCode}pass`; // รหัสผ่านตั้งต้นให้ผ่านเกณฑ์ 6 ตัวอักษร
 
+    try {
+        // 1. ลองล็อกอินเข้าสู่ระบบก่อน
+        const userCredential = await signInWithEmailAndPassword(auth, fakeEmail, fakePassword);
+        console.log("เข้าสู่ระบบ Firebase สำเร็จ UID:", userCredential.user.uid);
+        return true;
+    } catch (error) {
+        // 2. ถ้า error แปลว่านักเรียนคนนี้ยังไม่เคยล็อกอิน (ยังไม่มีบัญชี) 
+        // โค้ดจะทำการ "สมัครสมาชิก" ให้โดยอัตโนมัติ
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-login-credentials') {
+            try {
+                const newUser = await createUserWithEmailAndPassword(auth, fakeEmail, fakePassword);
+                console.log("สร้างบัญชีนักเรียนใหม่สำเร็จ UID:", newUser.user.uid);
+                return true;
+            } catch (createError) {
+                console.error("สร้างบัญชีไม่สำเร็จ:", createError);
+                return false;
+            }
+        }
+        console.error("Login Error:", error);
+        return false;
+    }
+}
+window.autoLoginStudent = autoLoginStudent;
 // ==========================================
 // 🔄 คิวจัดการ Google Sheet (ปิดการใช้งาน Auto-sync)
 // ==========================================

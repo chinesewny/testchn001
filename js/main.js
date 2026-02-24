@@ -212,16 +212,22 @@ window.checkAutoLogin = function() {
 window.handleStudentLogin = async function() {
     // 1. รับค่าและล้างช่องว่างที่มองไม่เห็นทั้งหมด
     let rawInput = document.getElementById('student-login-id').value;
-    if (!rawInput || !rawInput.trim()) return alert("กรุณากรอกรหัสนักเรียน");
+    if (!rawInput || !rawInput.trim()) {
+        alert("กรุณากรอกรหัสนักเรียน");
+        return; // หยุดการทำงานทันที
+    }
 
     // ตัดช่องว่างทุกชนิดและแปลงเป็นพิมพ์เล็ก
     const inputId = String(rawInput).replace(/\s+/g, '').toLowerCase();
 
-    // 2. ระบบรอโหลดฐานข้อมูลสูงสุด 4 วินาที (แก้ปัญหาเน็ตช้า)
-    if (!dataState.students || dataState.students.length === 0) {
+    // 2. ระบบรอโหลดฐานข้อมูลสูงสุด 4 วินาที (ป้องกัน Error ข้อมูลยังไม่มา)
+    // เช็คให้ชัวร์ว่า dataState และ students มีอยู่จริง
+    if (!window.dataState || !dataState.students || dataState.students.length === 0) {
         if(typeof showLoading === 'function') showLoading("กำลังดึงข้อมูลรายชื่อ...");
         let attempts = 0;
-        while (dataState.students.length === 0 && attempts < 40) {
+        
+        // แก้ไข: ป้องกัน TypeError โดยเช็คความพร้อมของ object ก่อนเช็ค .length
+        while ((!window.dataState || !dataState.students || dataState.students.length === 0) && attempts < 40) {
             await new Promise(r => setTimeout(r, 100));
             attempts++;
         }
@@ -229,28 +235,51 @@ window.handleStudentLogin = async function() {
     
     if(typeof hideLoading === 'function') hideLoading();
 
+    // **จุดที่เพิ่มเข้ามา:** ป้องกันการพัง ถ้าครบ 4 วินาทีแล้วข้อมูลยังไม่มาจริงๆ ให้หยุดการทำงาน
+    if (!window.dataState || !dataState.students || dataState.students.length === 0) {
+        alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้\nโปรดตรวจสอบอินเทอร์เน็ต รีเฟรชหน้าเว็บ หรือแจ้งคุณครูครับ");
+        return; 
+    }
+
     // 3. ค้นหารายชื่อแบบยืดหยุ่น (ล้างช่องว่างในฐานข้อมูลก่อนเทียบ)
     const student = dataState.students.find(s => {
-        if (!s.code) return false;
-        const dbCode = String(s.code).replace(/\s+/g, '').toLowerCase();
-        const dbId = String(s.id).replace(/\s+/g, '').toLowerCase();
-        return dbCode === inputId || dbId === inputId;
+        // เช็คให้ชัวร์ว่ามี s.code หรือ s.id ป้องกันค่า undefined ไปแปลงเป็น String("undefined")
+        const dbCode = s.code ? String(s.code).replace(/\s+/g, '').toLowerCase() : "";
+        const dbId = s.id ? String(s.id).replace(/\s+/g, '').toLowerCase() : "";
+        return (dbCode === inputId && dbCode !== "") || (dbId === inputId && dbId !== "");
     });
 
-    // 4. แสดงผล
     if (student) {
-        localStorage.setItem('current_student_code', student.code);
-        document.getElementById('student-login-wrapper').classList.add('hidden');
-        document.getElementById('student-dashboard').classList.remove('hidden');
-        
-        if (typeof renderStudentDashboard === 'function') {
-            renderStudentDashboard(student.code);
+            // ======== ลบของเดิมทิ้ง แล้ววางโค้ดใหม่ชุดนี้ลงไปแทน ========
+            if(typeof showLoading === 'function') showLoading('กำลังเข้าสู่ระบบและสร้างเซสชันความปลอดภัย...');
+            
+            // 1. เรียกใช้ระบบล็อกอินซ่อนรูปที่เราเพิ่งสร้างใน firebase-service.js
+            let loginSuccess = false;
+            if(typeof window.autoLoginStudent === 'function') {
+                loginSuccess = await window.autoLoginStudent(student.code);
+            }
+
+            if(typeof hideLoading === 'function') hideLoading();
+
+            // 2. เช็คว่า Firebase อนุญาตให้ผ่านไหม
+            if (loginSuccess) {
+                // ถ้าผ่าน ค่อยให้เข้า Dashboard 
+                localStorage.setItem('current_student_code', student.code);
+                document.getElementById('student-login-wrapper').classList.add('hidden');
+                document.getElementById('student-dashboard').classList.remove('hidden');
+                
+                if (typeof renderStudentDashboard === 'function') {
+                    renderStudentDashboard(student.code); 
+                }
+                if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`, 'success');
+            } else {
+                // ถ้าไม่ผ่าน ให้แจ้งเตือน
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ความปลอดภัย โปรดลองใหม่อีกครั้ง");
+            }
+            // ========================================================
+        } else {
+            alert("ไม่พบรหัสนักเรียนนี้ในระบบ");
         }
-        if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`);
-    } else {
-        alert(`ไม่พบรายชื่อในระบบ!\n\nรหัสที่คุณพิมพ์คือ: "${inputId}"\n(โปรดตรวจสอบความถูกต้องอีกครั้ง หรือแจ้งคุณครูผู้สอน)`);
-        if (typeof showToast === 'function') showToast("ไม่พบรายชื่อนี้ในระบบ", "bg-red-600 border-red-400");
-    }
 };
 
 // --- 2. Email & Config Functions ---
