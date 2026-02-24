@@ -690,7 +690,19 @@
             <div class="glass-ios p-10 rounded-3xl w-full max-w-sm flex flex-col items-center relative">
                 <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-24 h-24 object-contain mb-6 drop-shadow-lg">
                 <h2 class="text-2xl font-bold text-white mb-6">นักเรียน</h2>
-                <input id="student-login-id" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-center text-white text-lg" placeholder="รหัสนักเรียน">
+                <div class="space-y-4">
+    <div>
+        <div class="mt-4">
+    <label class="text-xs text-white/70 ml-1">เลขประจำตัวนักเรียน</label>
+    <input type="text" id="student-login-id" class="glass-input w-full p-4 rounded-2xl mt-1 text-center text-xl font-bold" placeholder="กรอกเลขประจำตัว">
+</div>
+
+<div class="mt-4">
+    <label class="text-xs text-white/70 ml-1">รหัสผ่าน (Password)</label>
+    <input type="password" id="student-login-password" class="glass-input w-full p-4 rounded-2xl mt-1 text-center text-xl font-bold" placeholder="">
+    <p class="text-[10px] text-yellow-300 mt-1 ml-1">* เข้าใช้งานครั้งแรกใช้รหัส: 123456</p>
+</div>
+</div>
                 <button onclick="handleStudentLogin()" class="w-full py-3 rounded-xl btn-blue font-bold shadow-lg mt-4 text-lg">เข้าใช้งาน</button>
             </div>
         </div>

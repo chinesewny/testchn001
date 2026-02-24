@@ -901,253 +901,115 @@ function updateInboxBadge() {
 
 // --- 3. Render Functions (Student Dashboard) ---
 export function renderStudentDashboard(studentCode) {
-    // 1. ตรวจสอบข้อมูลเบื้องต้น
-    const studentRecords = dataState.students.filter(s => String(s.code) === String(studentCode));
-    if (studentRecords.length === 0) return;
+    const mainWrapper = document.getElementById('student-dashboard');
+    if (!mainWrapper) return;
     
-    const mainProfile = studentRecords[0];
+    // เปิดหน้าจอเสมอ
+    mainWrapper.classList.remove('hidden');
 
-    // Header Profile
-    const nameEl = document.getElementById('std-dash-name'); if(nameEl) nameEl.textContent = mainProfile.name;
-    const classEl = document.getElementById('std-dash-class'); 
-    if(classEl) classEl.textContent = [...new Set(studentRecords.map(s => dataState.classes.find(c => c.id == s.classId)?.name))].filter(Boolean).join(', ');
-
-    const container = document.getElementById('std-subjects-container'); 
-    if(!container) return;
-    container.innerHTML = '';
-    
-    // 2. วนลูปรายวิชาของนักเรียน
-    studentRecords.forEach(s => {
-        const currentClass = dataState.classes.find(c => c.id == s.classId);
-        if (!currentClass) return;
-        const subj = dataState.subjects.find(sub => sub.id == currentClass.subjectId);
-        if (!subj) return;
-
-        const tasks = dataState.tasks.filter(t => t.classId == s.classId);
+    try {
+        // 1. ดึงข้อมูลนักเรียนอย่างปลอดภัย (ใส่ || [] เพื่อกันตัวแปรพัง)
+        const studentsList = dataState.students || [];
+        const studentRecords = studentsList.filter(s => String(s.code) === String(studentCode));
         
-        // --- ส่วนคำนวณคะแนน ---
-        let total = 0, midterm = 0, final = 0, accumTotal = 0;
-        if(typeof calculateScores === 'function') {
-            const scores = calculateScores(s.id, s.classId, tasks); 
-            total = scores.total; midterm = scores.midterm; final = scores.final; accumTotal = scores.accumTotal;
-        }
-        
-        const grade = (typeof calGrade === 'function') ? calGrade(total) : '-';
-        const isMidtermFail = midterm < 13;
-        const midtermColor = isMidtermFail ? 'bg-red-600 animate-pulse text-white' : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white';
-        const midtermLabel = isMidtermFail ? 'ไม่ผ่าน (Fail)' : 'กลางภาค';
-
-        // --- ⭐ 3. ส่วนแสดงผลข้อสอบ (Exam Section) ⭐ ---
-        const allExams = dataState.exams || [];
-        const subjectExams = dataState.exams.filter(ex => ex.subjectId == subj.id);
-
-        let examSectionHtml = '';
-        
-        if (subjectExams.length > 0) {
-            examSectionHtml = `
-            <div class="mb-6 animate-fade-in">
-                <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-laptop-code"></i> การสอบออนไลน์ (Online Exams)
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    ${subjectExams.map(ex => {
-                        const session = dataState.examSessions?.find(ss => ss.examId == ex.id && ss.studentId == s.id);
-                        const scoreRec = dataState.scores.find(sc => sc.taskId == ex.id && sc.studentId == s.id);
-                        
-                        let btnHtml = '';
-                        let statusText = '';
-                        
-                        let isActiveForThisClass = false;
-                        if (ex.activeClasses && Array.isArray(ex.activeClasses)) {
-                             isActiveForThisClass = ex.activeClasses.some(id => String(id) === String(s.classId));
-                        }
-                        
-                        if (scoreRec || (session && session.status === 'FINISHED')) {
-                            const score = scoreRec ? scoreRec.score : (session ? session.score : 0);
-                            statusText = `<span class="text-green-400 text-xs"><i class="fa-solid fa-check-circle"></i> ส่งแล้ว</span>`;
-                            btnHtml = `
-                                <div class="bg-green-900/20 border border-green-500/30 rounded-lg py-2 px-4 flex justify-between items-center">
-                                    <span class="text-green-400 text-sm font-bold">คะแนนที่ได้</span>
-                                    <span class="text-xl font-bold text-white">${score} <span class="text-xs font-normal text-white/50">คะแนน</span></span>
-                                </div>`;
-                        } else if (session && session.status === 'CHEATED') {
-                            statusText = `<span class="text-red-400 text-xs"><i class="fa-solid fa-ban"></i> ทุจริต</span>`;
-                            btnHtml = `<div class="bg-red-900/20 border border-red-500/30 rounded-lg py-2 px-4 text-center text-red-400 text-sm">ถูกระงับการสอบ</div>`;
-                        } else if (session && (session.status === 'TESTING' || session.status === 'WARNING')) {
-                             statusText = `<span class="text-blue-400 text-xs animate-pulse"><i class="fa-solid fa-spinner fa-spin"></i> กำลังสอบ</span>`;
-                             btnHtml = `
-                                <button onclick="window.enterStudentExamRoom('${ex.id}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all flex justify-center items-center gap-2">
-                                    <i class="fa-solid fa-play"></i> เข้าห้องสอบต่อ
-                                </button>`;
-                        } else {
-                            if (isActiveForThisClass) {
-                                statusText = `<span class="text-red-400 text-xs animate-pulse font-bold">● กำลังเปิดสอบ</span>`;
-                                btnHtml = `
-                                    <button onclick="window.enterStudentExamRoom('${ex.id}')" class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:scale-[1.02] text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 animate-pulse">
-                                        <i class="fa-solid fa-door-open"></i> เข้าห้องสอบ
-                                    </button>`;
-                            } else {
-                                statusText = `<span class="text-gray-500 text-xs"><i class="fa-solid fa-lock"></i> ยังไม่เปิดสอบ</span>`;
-                                btnHtml = `
-                                    <button disabled class="w-full bg-gray-700/30 text-gray-500 font-bold py-3 px-4 rounded-xl cursor-not-allowed flex justify-center items-center gap-2 border border-gray-600/30">
-                                        <i class="fa-solid fa-lock"></i> รอเปิดสอบ
-                                    </button>`;
-                            }
-                        }
-
-                        return `
-                        <div class="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-yellow-500/30 transition-all">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <div class="font-bold text-white text-md">${ex.title}</div>
-                                    <div class="text-xs text-white/40 mt-1">
-                                        <i class="fa-regular fa-clock mr-1"></i>${ex.timeLimit || 60} นาที • ${ex.questions ? ex.questions.length : 0} ข้อ
-                                    </div>
-                                </div>
-                                ${statusText}
-                            </div>
-                            ${btnHtml}
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>`;
+        if (studentRecords.length === 0) {
+            document.getElementById('std-subjects-container').innerHTML = `<div class="p-5 text-center bg-red-900/50 text-white rounded-xl mt-4">ไม่พบรายชื่อนักเรียนรหัส ${studentCode} ในฐานข้อมูล</div>`;
+            return;
         }
 
-        // --- ⭐ 4. (เพิ่มใหม่) ส่วนแสดงเนื้อหาบทเรียน (Materials) ⭐ ---
-        // กรองเอาเฉพาะวิชานี้ หรือที่เป็น General
-        const subjectMaterials = (dataState.materials || []).filter(m => 
-            String(m.subjectId) === String(subj.id) || m.subjectId === 'general' || !m.subjectId
-        );
+        const student = studentRecords[0];
 
-        let materialSectionHtml = '';
-        if (subjectMaterials.length > 0) {
-            materialSectionHtml = `
-            <div class="mb-6 animate-fade-in">
-                <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-book-open text-blue-400"></i> บทเรียนและสื่อการสอน
-                </h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    ${subjectMaterials.map(m => {
-                        // Action คลิก
-                        const isEmbed = m.type === 'embed';
-                        const clickAction = isEmbed ? `window.openMaterialViewer('${m.link}', '${m.title}')` : `window.open('${m.link}', '_blank')`;
-                        
-                        // Image Handling
-                        let imgContent = `<div class="w-full h-full flex items-center justify-center text-white/20 text-3xl bg-gradient-to-br from-slate-700 to-slate-800"><i class="fa-solid fa-book"></i></div>`;
-                        if(m.image) {
-                            imgContent = `<img src="${m.image}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'">`;
-                        }
+        // ✅ 2. อัปเดตชื่อทันที (การันตีว่าชื่อต้องโชว์)
+        const nameEl = document.getElementById('std-dash-name');
+        if (nameEl) nameEl.textContent = student.name;
 
-                        return `
-                        <div onclick="${clickAction}" class="group relative bg-white/5 border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:border-blue-400/50 transition-all h-[140px] flex flex-col">
-                            <div class="h-20 w-full overflow-hidden relative">
-                                ${imgContent}
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                                <div class="absolute top-1 right-1">
-                                    ${isEmbed ? '<i class="fa-solid fa-desktop text-[10px] text-white/70 bg-black/50 px-1 rounded"></i>' : '<i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-white/70 bg-black/50 px-1 rounded"></i>'}
-                                </div>
-                            </div>
-                            <div class="flex-1 p-2 flex flex-col justify-center bg-black/30">
-                                <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight group-hover:text-blue-300 transition-colors">${m.title}</h4>
-                            </div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            </div>`;
+        // ✅ 3. อัปเดตห้องเรียนอย่างปลอดภัย
+        const classesList = dataState.classes || [];
+        const classEl = document.getElementById('std-dash-class');
+        if (classEl) {
+            const classNames = studentRecords.map(s => {
+                const c = classesList.find(cls => String(cls.id) === String(s.classId));
+                return c ? c.name : null;
+            }).filter(Boolean);
+            classEl.textContent = classNames.length > 0 ? [...new Set(classNames)].join(', ') : 'ยังไม่มีกลุ่มเรียน';
         }
 
-        // --- 5. สร้าง Card HTML หลัก ---
-        const card = document.createElement('div');
-        card.className = "mb-8 animate-fade-in";
-        
-        card.innerHTML = `
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-xl">🎮</div>
-            <h2 class="text-xl font-bold text-white">${subj.name} <span class="text-sm text-white/50 font-normal">(${currentClass.name})</span></h2>
-        </div>
+        // 4. เตรียมพื้นที่กล่องรายวิชา
+        const container = document.getElementById('std-subjects-container');
+        if (!container) return;
+        container.innerHTML = ''; 
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-            <div class="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg transform hover:scale-105 transition-transform">
-                <div class="text-xs text-white/70 uppercase font-bold mb-1">คะแนนเก็บ</div>
-                <div class="text-3xl font-bold text-white drop-shadow-md">${accumTotal.toFixed(0)}</div>
-                <div class="text-[10px] text-white/50">Accumulative</div>
-            </div>
+        let cardCount = 0;
+        const subjectsList = dataState.subjects || [];
+        const tasksList = dataState.tasks || [];
 
-            <div class="${midtermColor} rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg transform hover:scale-105 transition-transform border border-white/10">
-                <div class="text-xs text-white/70 uppercase font-bold mb-1">${midtermLabel}</div>
-                <div class="text-3xl font-bold text-white drop-shadow-md">${midterm.toFixed(0)}</div>
-                <div class="text-[10px] text-white/50">Midterm (Max 20)</div>
-            </div>
-
-            <div class="bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg transform hover:scale-105 transition-transform">
-                <div class="text-xs text-white/70 uppercase font-bold mb-1">ปลายภาค</div>
-                <div class="text-3xl font-bold text-white drop-shadow-md">${final.toFixed(0)}</div>
-                <div class="text-[10px] text-white/50">Final (Max 30)</div>
-            </div>
-
-            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg transform hover:scale-105 transition-transform">
-                <div class="text-xs text-white/70 uppercase font-bold mb-1">คะแนนรวม</div>
-                <div class="text-3xl font-bold text-white drop-shadow-md">${total.toFixed(0)}</div>
-                <div class="text-[10px] text-white/50">Total Score</div>
-            </div>
-
-            <div class="col-span-2 md:col-span-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg transform hover:scale-105 transition-transform relative overflow-hidden">
-                <div class="absolute inset-0 bg-white/10 bg-[radial-gradient(circle,rgba(255,255,255,0.4)_0%,transparent_60%)]"></div>
-                <div class="text-xs text-black/60 uppercase font-bold mb-1 relative z-10">เกรดเฉลี่ย</div>
-                <div class="text-4xl font-extrabold text-white drop-shadow-md relative z-10">${grade}</div>
-                <div class="text-[10px] text-black/40 relative z-10">GPA</div>
-            </div>
-        </div>
-        
-        ${examSectionHtml}
-
-        ${materialSectionHtml}
-
-        <div class="bg-black/20 rounded-xl p-4 border border-white/5">
-            <h3 class="text-sm font-bold text-white/70 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-list-ul"></i> รายละเอียดงาน
-                <span class="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-white/40 font-normal">คลิกที่งานเพื่อดูรายละเอียด/ส่งงาน</span>
-            </h3>
+        // 5. วนลูปวาดกล่องวิชา
+        studentRecords.forEach(s => {
+            const currentClass = classesList.find(c => String(c.id) === String(s.classId));
+            if (!currentClass) return;
             
-            <div class="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                 ${tasks.filter(t => t.category === 'accum').map(t => {
-                     const sc = dataState.scores.find(x => x.studentId == s.id && x.taskId == t.id);
-                     let statusHtml = '';
-                     let rowClass = 'border-l-4 border-transparent';
+            const subj = subjectsList.find(sub => String(sub.id) === String(currentClass.subjectId));
+            if (!subj) return;
 
-                     if (sc && sc.score !== null && sc.score !== undefined) {
-                         statusHtml = `<div class="text-right"><div class="text-green-400 font-bold text-sm">${sc.score} <span class="text-[10px] text-white/40">/${t.maxScore}</span></div><div class="text-[9px] text-green-500/70"><i class="fa-solid fa-check-circle"></i> ตรวจแล้ว</div></div>`;
-                         rowClass = 'border-l-4 border-green-500/50 bg-green-900/10';
-                     } else if (sc && sc.submission) {
-                         statusHtml = `<div class="text-right"><div class="text-blue-400 text-xs font-bold"><i class="fa-regular fa-clock"></i> รอตรวจ</div><div class="text-[9px] text-white/30">ส่งแล้ว</div></div>`;
-                         rowClass = 'border-l-4 border-blue-500/50 bg-blue-900/10';
-                     } else {
-                         statusHtml = `<div class="text-right"><div class="text-red-400 text-xs font-bold">ยังไม่ส่ง</div><div class="text-[9px] text-white/30">แตะเพื่อส่งงาน</div></div>`;
-                         rowClass = 'border-l-4 border-red-500/30 hover:border-red-500/80';
-                     }
-                     let chapDisplay = '';
-                     if(Array.isArray(t.chapter)) chapDisplay = t.chapter.join(',');
-                     else if(t.chapter) chapDisplay = String(t.chapter);
-                     const chapBadge = chapDisplay ? `<span class="ml-2 text-[9px] bg-white/10 px-1.5 py-0.5 rounded text-white/50">Ch.${chapDisplay}</span>` : '';
+            cardCount++;
 
-                     return `
-                     <div onclick="window.openStudentTaskModal('${t.id}', '${s.id}')" class="flex justify-between items-center p-3 rounded-lg border-b border-white/5 cursor-pointer hover:bg-white/10 transition-all group ${rowClass}">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/30 group-hover:text-white group-hover:bg-blue-600 transition-all"><i class="fa-solid fa-file-pen"></i></div>
-                            <div><div class="text-sm text-white/90 font-bold group-hover:text-blue-300 transition-colors flex items-center">${t.name}${chapBadge}</div><div class="text-[10px] text-white/40">${t.dueDate ? `<i class="fa-regular fa-calendar mr-1"></i>${formatThaiDate(t.dueDate)}` : 'ไม่มีกำหนดส่ง'}</div></div>
-                        </div>
-                        ${statusHtml}
-                     </div>`;
-                 }).join('')}
-                 ${tasks.filter(t => t.category === 'accum').length === 0 ? '<div class="text-center text-white/30 py-4 text-xs">ไม่มีงานที่มอบหมาย</div>' : ''}
-            </div>
-        </div>
-        `;
-        container.appendChild(card);
-    });
+            // คำนวณคะแนน
+            const tasks = tasksList.filter(t => String(t.classId) === String(s.classId));
+            let total = 0, midterm = 0, final = 0, accumTotal = 0;
+            if(typeof calculateScores === 'function') {
+                const scores = calculateScores(s.id, s.classId, tasks); 
+                total = scores.total; midterm = scores.midterm; final = scores.final; accumTotal = scores.accumTotal;
+            }
+            const grade = (typeof calGrade === 'function') ? calGrade(total) : '-';
+
+            const card = document.createElement('div');
+            card.className = "glass-ios p-6 rounded-3xl mb-4 border border-white/10 shadow-lg animate-fade-in";
+            card.innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl shadow-md">📖</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white">${subj.name}</h2>
+                        <p class="text-xs text-blue-300">กลุ่มเรียน: ${currentClass.name}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-5 gap-2">
+                    <div class="bg-white/5 p-2 rounded-xl text-center"><div class="text-[10px] text-white/50">เก็บ</div><div class="font-bold text-white">${accumTotal.toFixed(0)}</div></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-center"><div class="text-[10px] text-white/50">กลาง</div><div class="font-bold text-white">${midterm.toFixed(0)}</div></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-center"><div class="text-[10px] text-white/50">ปลาย</div><div class="font-bold text-white">${final.toFixed(0)}</div></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-center border border-blue-500/30"><div class="text-[10px] text-blue-300">รวม</div><div class="font-bold text-white">${total.toFixed(0)}</div></div>
+                    <div class="bg-yellow-500 p-2 rounded-xl text-center text-black"><div class="text-[10px] font-bold">เกรด</div><div class="font-bold text-xl">${grade}</div></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        if (cardCount === 0) {
+            container.innerHTML = `<div class="p-8 text-center text-white/60 bg-white/5 rounded-3xl border border-white/10 mt-4">ไม่มีข้อมูลวิชาเรียน<br><span class="text-xs text-white/40">ระบบอาจกำลังโหลดข้อมูล หรือ คุณครูยังไม่ได้เพิ่มคุณเข้าชั้นเรียน</span></div>`;
+        }
+
+    } catch (error) {
+        // 🚨 ถ้าระบบพังกลางคัน มันจะโชว์กล่องแดงๆ แจ้งเตือนตรงนี้ทันทีครับ
+        console.error("Crash Error:", error);
+        document.getElementById('std-subjects-container').innerHTML = `
+            <div class="p-6 bg-red-900/40 border border-red-500 rounded-2xl mt-4 text-white">
+                <b><i class="fa-solid fa-triangle-exclamation"></i> ระบบวาดหน้าจอขัดข้อง</b><br>
+                <span class="text-xs text-white/60">${error.message}</span>
+            </div>`;
+    }
 }
-
+// ตัวอย่างฟังก์ชันสำหรับเรียกใช้เมื่อเด็กกดปุ่ม "เปลี่ยนรหัสผ่าน"
+window.handleChangePassword = async function() {
+    const newPass = prompt("ระบุรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร):");
+    if (newPass && newPass.length >= 6) {
+        showLoading('กำลังบันทึกรหัสใหม่...');
+        const success = await window.changeStudentPassword(newPass);
+        hideLoading();
+        if (success) alert("เปลี่ยนรหัสผ่านสำเร็จ ครั้งหน้าโปรดใช้รหัสใหม่นี้");
+        else alert("เกิดข้อผิดพลาด โปรดลองใหม่อีกครั้ง");
+    } else if (newPass) {
+        alert("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+    }
+};
 // --- 4. Main Refresh Function ---
 
 

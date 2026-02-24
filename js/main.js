@@ -212,6 +212,7 @@ window.checkAutoLogin = function() {
 window.handleStudentLogin = async function() {
     // 1. รับค่าและล้างช่องว่างที่มองไม่เห็นทั้งหมด
     let rawInput = document.getElementById('student-login-id').value;
+    let passwordInput = document.getElementById('student-login-password').value;
     if (!rawInput || !rawInput.trim()) {
         alert("กรุณากรอกรหัสนักเรียน");
         return; // หยุดการทำงานทันที
@@ -220,26 +221,7 @@ window.handleStudentLogin = async function() {
     // ตัดช่องว่างทุกชนิดและแปลงเป็นพิมพ์เล็ก
     const inputId = String(rawInput).replace(/\s+/g, '').toLowerCase();
 
-    // 2. ระบบรอโหลดฐานข้อมูลสูงสุด 4 วินาที (ป้องกัน Error ข้อมูลยังไม่มา)
-    // เช็คให้ชัวร์ว่า dataState และ students มีอยู่จริง
-    if (!window.dataState || !dataState.students || dataState.students.length === 0) {
-        if(typeof showLoading === 'function') showLoading("กำลังดึงข้อมูลรายชื่อ...");
-        let attempts = 0;
-        
-        // แก้ไข: ป้องกัน TypeError โดยเช็คความพร้อมของ object ก่อนเช็ค .length
-        while ((!window.dataState || !dataState.students || dataState.students.length === 0) && attempts < 40) {
-            await new Promise(r => setTimeout(r, 100));
-            attempts++;
-        }
-    }
     
-    if(typeof hideLoading === 'function') hideLoading();
-
-    // **จุดที่เพิ่มเข้ามา:** ป้องกันการพัง ถ้าครบ 4 วินาทีแล้วข้อมูลยังไม่มาจริงๆ ให้หยุดการทำงาน
-    if (!window.dataState || !dataState.students || dataState.students.length === 0) {
-        alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้\nโปรดตรวจสอบอินเทอร์เน็ต รีเฟรชหน้าเว็บ หรือแจ้งคุณครูครับ");
-        return; 
-    }
 
     // 3. ค้นหารายชื่อแบบยืดหยุ่น (ล้างช่องว่างในฐานข้อมูลก่อนเทียบ)
     const student = dataState.students.find(s => {
@@ -255,31 +237,36 @@ window.handleStudentLogin = async function() {
             
             // 1. เรียกใช้ระบบล็อกอินซ่อนรูปที่เราเพิ่งสร้างใน firebase-service.js
             let loginSuccess = false;
-            if(typeof window.autoLoginStudent === 'function') {
-                loginSuccess = await window.autoLoginStudent(student.code);
+            if(typeof window.studentLogin === 'function') {
+                loginSuccess = await window.studentLogin(student.code, passwordInput);
             }
 
             if(typeof hideLoading === 'function') hideLoading();
+if (loginSuccess) {
+            localStorage.setItem('current_student_code', student.code);
+            
+            // 1. ซ่อนหน้าล็อกอิน เปิดหน้า Dashboard ทันที
+            const loginWrap = document.getElementById('student-login-wrapper');
+            const dashWrap = document.getElementById('student-dashboard');
+            if (loginWrap) loginWrap.classList.add('hidden');
+            if (dashWrap) dashWrap.classList.remove('hidden');
 
-            // 2. เช็คว่า Firebase อนุญาตให้ผ่านไหม
-            if (loginSuccess) {
-                // ถ้าผ่าน ค่อยให้เข้า Dashboard 
-                localStorage.setItem('current_student_code', student.code);
-                document.getElementById('student-login-wrapper').classList.add('hidden');
-                document.getElementById('student-dashboard').classList.remove('hidden');
-                
+            // 2. แจ้งเตือนต้อนรับ
+            if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`, 'success');
+
+            // 3. หน่วงเวลา 1 วินาที ให้ข้อมูลวิ่งมาครบก่อน แล้วค่อยวาดวิชา (แก้ปัญหาจอขาว)
+            setTimeout(() => {
                 if (typeof renderStudentDashboard === 'function') {
-                    renderStudentDashboard(student.code); 
+                    renderStudentDashboard(student.code);
+                } else if (typeof window.renderStudentDashboard === 'function') {
+                    window.renderStudentDashboard(student.code);
                 }
-                if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`, 'success');
-            } else {
-                // ถ้าไม่ผ่าน ให้แจ้งเตือน
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ความปลอดภัย โปรดลองใหม่อีกครั้ง");
-            }
-            // ========================================================
+            }, 1000);
+            
         } else {
-            alert("ไม่พบรหัสนักเรียนนี้ในระบบ");
+            alert("รหัสผ่านไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการเข้าสู่ระบบ");
         }
+    }
 };
 
 // --- 2. Email & Config Functions ---
