@@ -1,4 +1,4 @@
-import { dataState, globalState } from "./state.js";
+import { dataState, globalState, saveStudentSession, clearStudentSession } from "./state.js";
 import { calculateScores, calGrade, formatThaiDate, getThaiDateISO, showToast, showLoading, hideLoading } from "./utils.js";
 window.renderStudentDashboard = renderStudentDashboard;
 // --- 1. Helper Functions (Dropdowns & Checkboxes) ---
@@ -35,6 +35,7 @@ function refreshDropdowns() {
     setOpts('card-class-select', dataState.classes);
     setOpts('import-class-select', dataState.classes);
     setOpts('import-subject-select', dataState.subjects);
+    setOpts('exam-subject', dataState.subjects);
 }
 
 // --- ฟังก์ชันสำหรับโครงสร้างใหม่ (3.1 และ 3.2) ---
@@ -2565,9 +2566,8 @@ window.closeExamModal = function() {
 }
 
 // ฟังก์ชันเพิ่มข้อคำถาม (ต้องมีด้วย ไม่งั้นกดเพิ่มข้อไม่ได้)
-
-
-window.addQuestionItem = function(data = null) {
+// วางโค้ดนี้ใน ui-render.js
+export function addQuestionItem(data = null) {
     const container = document.getElementById('questions-container');
     if(!container) return;
 
@@ -2578,7 +2578,7 @@ window.addQuestionItem = function(data = null) {
     const imgSrc = data && data.image ? data.image : '';
     const imgDisplayClass = imgSrc ? 'block' : 'hidden';
 
-    // กำหนดตัวเลือกเริ่มต้น (ถ้าไม่มีข้อมูลเก่า ให้สร้าง 4 ข้อเปล่าๆ, ถ้ามีให้ใช้ของเดิม)
+    // กำหนดตัวเลือกเริ่มต้น
     let initialChoices = data ? data.choices : [
         { text: '', isCorrect: true },
         { text: '', isCorrect: false },
@@ -2587,12 +2587,30 @@ window.addQuestionItem = function(data = null) {
     ];
 
     const html = `
-    <div class="question-item bg-white/5 border border-white/10 rounded-xl p-4 relative animate-fade-in mb-4 group" id="box-${qId}">
-        <button type="button" onclick="this.closest('.question-item').remove(); updateQCount();" class="absolute top-2 right-2 text-white/20 hover:text-red-400 transition-colors z-10">
-            <i class="fa-solid fa-trash"></i>
-        </button>
+    <div class="question-item bg-white/5 border border-white/10 rounded-xl p-4 relative animate-fade-in mb-4" id="box-${qId}">
+        
+        <div class="absolute top-2 right-2 flex flex-wrap justify-end gap-1 z-10 w-[85%] md:w-auto">
+            
+            <button type="button" onclick="addPassageDivider(null, this.closest('.question-item'), 'before')" class="text-purple-100 bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] md:text-[11px] transition-colors shadow-md flex items-center gap-1 border border-purple-400" title="แทรกบทอ่าน ก่อนข้อนี้">
+                <i class="fa-solid fa-arrow-up"></i> บทอ่าน
+            </button>
+            <button type="button" onclick="addPassageDivider(null, this.closest('.question-item'), 'after')" class="text-purple-100 bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] md:text-[11px] transition-colors shadow-md flex items-center gap-1 border border-purple-400" title="แทรกบทอ่าน หลังข้อนี้">
+                <i class="fa-solid fa-arrow-down"></i> บทอ่าน
+            </button>
 
-        <div class="mb-3">
+            <button type="button" onclick="addSectionDivider('', this.closest('.question-item'), 'before')" class="text-blue-100 bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-[10px] md:text-[11px] transition-colors shadow-md flex items-center gap-1 border border-blue-400 ml-1" title="แทรกส่วนแบ่งตอน ก่อนข้อนี้">
+                <i class="fa-solid fa-arrow-up"></i> ตอน
+            </button>
+            <button type="button" onclick="addSectionDivider('', this.closest('.question-item'), 'after')" class="text-blue-100 bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-[10px] md:text-[11px] transition-colors shadow-md flex items-center gap-1 border border-blue-400" title="แทรกส่วนแบ่งตอน หลังข้อนี้">
+                <i class="fa-solid fa-arrow-down"></i> ตอน
+            </button>
+            
+            <button type="button" onclick="this.closest('.question-item').remove(); if(typeof window.updateQCount === 'function') window.updateQCount();" class="text-red-100 bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-[10px] md:text-[11px] transition-colors shadow-md border border-red-400 ml-1" title="ลบข้อนี้">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="mb-3 mt-6"> 
             <div class="flex justify-between items-end mb-1">
                 <label class="text-xs text-yellow-400 block">โจทย์ข้อที่ <span class="q-num">${qIndex}</span></label>
                 
@@ -2630,7 +2648,7 @@ window.addQuestionItem = function(data = null) {
     `;
     
     container.insertAdjacentHTML('beforeend', html);
-    window.updateQCount();
+    if(typeof window.updateQCount === 'function') window.updateQCount();
 }
 
 window.updateQCount = function() {
@@ -2903,9 +2921,9 @@ export function openExamEditor(examId = null) {
     document.getElementById('exam-form').reset();
     document.getElementById('questions-container').innerHTML = '';
     document.getElementById('q-count-badge').textContent = '0';
-    document.getElementById('exam-id').value = ''; // เคลียร์ ID เพื่อให้รู้ว่าเป็นโหมดสร้างใหม่
+    document.getElementById('exam-id').value = ''; 
 
-    // 2. ถ้ามี examId ส่งมา แปลว่าเป็นการ "แก้ไข" (Edit Mode)
+    // 2. ถ้าเป็นการ "แก้ไข" (Edit Mode)
     if (examId) {
         const exam = dataState.exams.find(e => e.id === examId);
         if (exam) {
@@ -2918,13 +2936,35 @@ export function openExamEditor(examId = null) {
             document.getElementById('exam-shuffle-q').checked = !!exam.shuffleQuestions;
             document.getElementById('exam-shuffle-c').checked = !!exam.shuffleChoices;
 
-            // โหลดคำถามเดิมกลับมา
+            // 🟢 โหลดคำถามเดิมกลับมา (ปรับปรุงใหม่ให้วาดตอน/บทอ่านด้วย)
             if (exam.questions && exam.questions.length > 0) {
-                exam.questions.forEach(q => addQuestionItem(q));
+                let lastSection = "";
+                
+                exam.questions.forEach(q => {
+                    // 2.1 วาดกล่อง "ตอน" (Section) ถ้ามีและไม่ซ้ำกับข้อที่แล้ว
+                    if (q.section && q.section.trim() !== "" && q.section !== lastSection) {
+                        if(typeof window.addSectionDivider === 'function') {
+                            // ใช้ null เพื่อบังคับให้แปะลงกล่อง container หลัก
+                            window.addSectionDivider(q.section, null, 'append');
+                        }
+                        lastSection = q.section;
+                    }
+                    
+                    // 2.2 วาดกล่อง "บทอ่าน" (Passage) ถ้ามี
+                    if (q.passage) {
+                        if(typeof window.addPassageDivider === 'function') {
+                            // ใช้ null เพื่อบังคับให้แปะลงกล่อง container หลัก
+                            window.addPassageDivider(q.passage, null, 'append'); 
+                        }
+                    }
+
+                    // 2.3 วาดกล่องข้อสอบตามปกติ
+                    addQuestionItem(q);
+                });
             }
         }
     } else {
-        // ถ้าเป็นการสร้างใหม่ ให้เพิ่มข้อเปล่าๆ รอไว้ 1 ข้อ
+        // สร้างใหม่
         addQuestionItem();
     }
 
@@ -2940,63 +2980,35 @@ export function closeExamModal() {
     }
 }
 
-// ฟังก์ชันเพิ่มกล่องคำถาม (ใช้ทั้งตอนสร้างใหม่ และตอนโหลดของเดิม)
-export function addQuestionItem(data = null) {
+// 🟢 เพิ่มพารามิเตอร์ position เพื่อเลือกว่าจะแทรก 'before' (บน) หรือ 'after' (ล่าง)
+window.addSectionDivider = function(title = "", referenceElement = null, position = 'after') {
     const container = document.getElementById('questions-container');
-    const idx = container.children.length; // ใช้ลำดับเป็น Index
-    const qNum = idx + 1;
+    if(!container) return;
 
-    // ค่าเริ่มต้น (กรณีสร้างใหม่)
-    const text = data ? data.text : '';
-    const imgInfo = (data && data.image) ? `<div class="mb-2"><img src="${data.image}" class="h-20 rounded border border-white/20"></div>` : '';
+    const div = document.createElement('div');
+    div.className = 'section-item bg-blue-900/30 border-l-4 border-blue-500 rounded-r-xl p-5 mb-4 relative group shadow-lg animate-fade-in';
     
-    // สร้าง Choice (ถ้ามีข้อมูลเก่าก็ใช้ ถ้าไม่มีก็สร้างเปล่า 4 ข้อ)
-    let choicesHtml = '';
-    const choicesData = data ? data.choices : [
-        {id:'c1', text:'', isCorrect:true}, 
-        {id:'c2', text:'', isCorrect:false}, 
-        {id:'c3', text:'', isCorrect:false}, 
-        {id:'c4', text:'', isCorrect:false}
-    ];
-
-    choicesData.forEach((c, cIdx) => {
-        choicesHtml += `
-            <div class="flex items-center gap-2 mb-2">
-                <input type="radio" name="correct-${idx}" ${c.isCorrect ? 'checked' : ''} class="accent-green-500 w-4 h-4 cursor-pointer" title="เลือกเป็นข้อถูก">
-                <input type="text" class="c-text w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-sm" value="${c.text}" placeholder="ตัวเลือกที่ ${cIdx+1}">
-            </div>
-        `;
-    });
-
-    const html = `
-    <div class="question-item bg-black/20 border border-white/5 p-4 rounded-xl relative animate-fade-in" id="q-box-${idx}">
-        <div class="flex justify-between items-start mb-2">
-            <span class="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded">ข้อที่ ${qNum}</span>
-            <button type="button" onclick="this.closest('.question-item').remove(); updateQCount();" class="text-white/30 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
+    div.innerHTML = `
+        <button type="button" onclick="this.closest('.section-item').remove()" class="absolute top-2 right-2 text-white/20 hover:text-red-400 transition-colors z-10" title="ลบตอนนี้">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+        <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">ส่วนแบ่งตอน</span>
         </div>
-        
-        <div class="mb-3">
-            <textarea class="q-text w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none" rows="2" placeholder="พิมพ์คำถาม...">${text}</textarea>
-        </div>
-
-        <div class="mb-3" id="preview-${idx}">
-            ${imgInfo}
-            <label class="cursor-pointer text-xs text-blue-300 hover:text-blue-200 flex items-center gap-1">
-                <i class="fa-regular fa-image"></i> เพิ่ม/เปลี่ยนรูป
-                <input type="file" accept="image/*" class="hidden" onchange="window.previewQuestionImage(this, '${idx}')">
-            </label>
-            <img class="q-image-data hidden" src="${data ? (data.image || '') : ''}"> 
-        </div>
-
-        <div class="pl-4 border-l-2 border-white/10">
-            ${choicesHtml}
-        </div>
-    </div>`;
-
-    container.insertAdjacentHTML('beforeend', html);
-    updateQCount();
-}
-
+        <input type="text" class="section-title w-full bg-transparent text-blue-100 text-lg font-bold outline-none border-b border-white/20 focus:border-blue-400 pb-1" placeholder="พิมพ์ชื่อตอนที่นี่ (เช่น ตอนที่ 1: การอ่านจับใจความ)" value="${title}">
+    `;
+    
+    if (referenceElement) {
+        // 🟢 ตรวจสอบตำแหน่ง ถ้าเป็น 'before' ให้แทรกด้านบนกล่องคำถาม
+        if (position === 'before') {
+            referenceElement.insertAdjacentElement('beforebegin', div);
+        } else {
+            referenceElement.insertAdjacentElement('afterend', div);
+        }
+    } else {
+        container.appendChild(div);
+    }
+};
 // Helper: อัปเดตตัวเลขจำนวนข้อ
 function updateQCount() {
     const count = document.querySelectorAll('.question-item').length;
@@ -3385,4 +3397,58 @@ function updateVisualAttendance(studentId, status) {
     
     // 📊 อัปเดตตัวเลขสรุปยอด (ถ้ามี) ทันทีด้วย
     updateAttendanceStats(); 
+// 🟢 เพิ่มพารามิเตอร์ referenceElement และ position
+}export function addPassageDivider(data = null, referenceElement = null, position = 'after') {
+    const container = document.getElementById('questions-container');
+    if(!container) return;
+
+    const pId = data && data.id ? data.id : `p_${Date.now()}`;
+    const pText = data && data.text ? data.text : '';
+    const imgSrc = data && data.image ? data.image : '';
+    const imgDisplayClass = imgSrc ? 'block' : 'hidden';
+
+    const div = document.createElement('div');
+    div.className = 'passage-item bg-purple-900/30 border-l-4 border-purple-500 rounded-r-xl p-5 mb-4 relative group shadow-lg animate-fade-in';
+    
+    div.innerHTML = `
+        <button type="button" onclick="this.closest('.passage-item').remove()" class="absolute top-2 right-2 text-white/20 hover:text-red-400 transition-colors z-10" title="ลบข้อมูลชุดนี้">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+        <div class="flex items-center gap-2 mb-3 justify-between pr-6">
+            <span class="bg-purple-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-book-open"></i> บทอ่าน / ข้อมูลใช้ร่วมกัน</span>
+            <label class="cursor-pointer text-[10px] text-purple-300 hover:text-white flex items-center gap-1 bg-purple-900/50 px-2 py-1 rounded transition-colors border border-purple-500/30">
+                <i class="fa-regular fa-image"></i> แทรกรูปภาพอ้างอิง
+                <input type="file" accept="image/*" class="hidden" onchange="previewQuestionImage(this, '${pId}')">
+            </label>
+        </div>
+        <textarea class="p-text w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white text-sm focus:border-purple-400 focus:outline-none mb-2" rows="3" placeholder="พิมพ์บทอ่าน เนื้อเรื่อง หรือข้อมูลอ้างอิงที่นี่...">${pText}</textarea>
+        
+        <div id="preview-${pId}" class="mt-2 relative w-fit ${imgDisplayClass}">
+            <img src="${imgSrc}" class="q-image-data max-h-40 rounded border border-white/20">
+            <button type="button" onclick="removeQuestionImage('${pId}')" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:scale-110 shadow-lg">✕</button>
+        </div>
+        <p class="text-[11px] text-purple-300 mt-2"><i class="fa-solid fa-circle-info"></i> คำถามที่อยู่ด้านล่างกล่องนี้ จะถูกมัดรวมกันอัตโนมัติ</p>
+    `;
+    
+    // 🟢 ตรวจสอบตำแหน่งการแทรก
+    if (referenceElement) {
+        if (position === 'before') {
+            referenceElement.insertAdjacentElement('beforebegin', div);
+        } else {
+            referenceElement.insertAdjacentElement('afterend', div);
+        }
+    } else {
+        container.appendChild(div);
+    }
 }
+window.addPassageDivider = addPassageDivider;
+// บังคับดึงรายชื่อวิชามาใส่กล่องทันทีที่เปิดหน้าต่าง
+    const subjSelect = document.getElementById('exam-subject');
+    if (subjSelect && dataState && dataState.subjects) {
+        const currentValue = subjSelect.value; // จำค่าเดิมไว้เผื่อเป็นการแก้ไขข้อสอบเก่า
+        subjSelect.innerHTML = '<option value="">-- เลือกวิชา --</option>';
+        dataState.subjects.forEach(s => {
+            const selected = (s.id === currentValue) ? 'selected' : '';
+            subjSelect.innerHTML += `<option value="${s.id}" ${selected}>${s.name}</option>`;
+        });
+    }

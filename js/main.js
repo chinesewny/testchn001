@@ -1,5 +1,6 @@
 import { syncData, saveAndRefresh, backupToGoogleSheet, restoreFromGoogleSheet } from './firebase-service.js';
 import { dataState, globalState, loadFromLocalStorage, updateLocalState, saveToLocalStorage } from "./state.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { GOOGLE_SCRIPT_URL } from "./config.js"; // <--- วางตรงนี้ถ้ายังไม่มี
 import { 
     refreshUI, 
@@ -22,7 +23,13 @@ import {
     addQuestionItem,
     openEditColumnModal, renderScoreManagerTable, editChapterConfig,renderExamManagerPage,renderMainExamHub
 } from "./ui-render.js";
-import { getThaiDateISO, formatThaiDate, calGrade, showToast, showLoading, hideLoading, calculateScores } from "./utils.js";
+import { previewTasksBySubject } from "./ui-render.js"; // Import เข้ามา
+
+window.previewTasksBySubject = previewTasksBySubject; // ผูกกับ Window
+// --- ส่วน Lucky Draw ---
+import { setLuckyMode, startLuckyDraw, clearLuckyHistory } from "./ui-render.js";
+import { openEditChapterModal } from "./ui-render.js"; // อย่าลืม import
+import { getThaiDateISO, formatThaiDate, calGrade, showToast, showLoading, hideLoading, calculateScores, compressImage } from "./utils.js";
 import { PERIODS } from "./config.js";
 window.deleteTask = function(taskId) {
     if(!confirm("⚠️ คำเตือน: คุณต้องการลบงานชิ้นนี้ใช่หรือไม่?\n\n- คะแนนทั้งหมดในงานนี้จะหายไป\n- การกระทำนี้ไม่สามารถย้อนกลับได้")) {
@@ -90,24 +97,14 @@ window.updateScoreDirect = function(studentId, taskId, val, maxScore) {
     // ตรวจสอบค่าคะแนน
     if (val !== '' && Number(val) > Number(maxScore)) {
         alert(`คะแนนเกินค่าเต็ม (${maxScore})`);
-        // คืนค่าเดิม (โดยการโหลดตารางใหม่)
-        renderScoreManagerPanel();
+        renderScoreManagerPanel(); // คืนค่าเดิม
         return;
     }
 
-    // อัปเดตข้อมูลในตัวแปร (Local State)
-    updateLocalState({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
+    // 🟢 ส่งข้อมูลให้บันทึกลง Firestore ทันที (ไม่ต้องใช้ setTimeout ครอบแล้ว)
+    saveAndRefresh({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
     
-    // บันทึกลง LocalStorage ทันที กันข้อมูลหาย
-    saveToLocalStorage();
-    
-    // เทคนิค Debounce: รอให้หยุดพิมพ์แป๊บนึงค่อยส่งไป Server (ลดภาระการยิงข้อมูลรัวๆ)
-    if(window.saveTimeout) clearTimeout(window.saveTimeout);
-    window.saveTimeout = setTimeout(() => {
-        // ส่งข้อมูลไปบันทึกที่ Firebase/Sheet แบบเงียบๆ (ไม่ต้องหมุนติ้วๆ)
-        saveAndRefresh({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
-        console.log("Auto saved score: " + val);
-    }, 1000); // รอ 1 วินาทีหลังจากหยุดพิมพ์ค่อยบันทึก
+    console.log("Instant saved score: " + val);
 };
 // --- Global Functions (Exposed to Window) ---
 window.renderStudentDashboard = renderStudentDashboard;
@@ -192,7 +189,26 @@ window.handleLogout = function(force=false) {
         setTimeout(() => location.reload(), 500);
     } 
 };
+// ตัวอย่างการทำ Auto-Login เมื่อเปิดหน้าเว็บ
+window.checkAutoLogin = function() {
+    const savedCode = localStorage.getItem('current_student_code');
+    if (savedCode && dataState.students && dataState.students.length > 0) {
+        const student = dataState.students.find(s => String(s.code) === String(savedCode));
+        if (student) {
+            // ซ่อนหน้าล็อคอิน แสดง Dashboard
+            const loginWrapper = document.getElementById('student-login-wrapper');
+            const dashboard = document.getElementById('student-dashboard');
+            if(loginWrapper) loginWrapper.classList.add('hidden');
+            if(dashboard) dashboard.classList.remove('hidden');
+            
+            if (typeof renderStudentDashboard === 'function') {
+                renderStudentDashboard(student.code); // ดึงข้อมูลมาแสดง
+            }
+        }
+    }
+};
 
+// อย่าลืมเรียกใช้ checkAutoLogin() หลังจากที่โหลดข้อมูลนักเรียนเสร็จแล้วนะครับ
 window.handleStudentLogin = async function() {
     // 1. รับค่าและล้างช่องว่างที่มองไม่เห็นทั้งหมด
     let rawInput = document.getElementById('student-login-id').value;
@@ -873,20 +889,39 @@ function initEventListeners() {
             const u = document.getElementById('admin-username').value;
             const p = document.getElementById('admin-password').value; 
             
-            // 🟢 ดึงข้อมูล Username/Password จาก Firebase (อยู่ใน dataState)
-            // หากใน Firebase ยังไม่ได้ตั้งค่า จะใช้ admin / 1234 เป็นรหัสสำรอง
-            const dbUser = dataState.adminUsername || 'admin';
-            const dbPass = dataState.adminPassword || '1234';
-            
-            if (u === dbUser && p === dbPass) { 
-                localStorage.setItem('wany_admin_session', 'admin_firebase_token'); 
-                window.switchMainTab('admin');
-                document.getElementById('admin-login-wrapper').classList.add('hidden'); 
-                document.getElementById('admin-content-wrapper').classList.remove('hidden'); 
+            try {
+                // 🟢 เรียกใช้ Firestore
+                const db = getFirestore();
                 
-                if(typeof refreshUI === 'function') refreshUI();
-            } else {
-                alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); 
+                // 🟢 ชี้เป้าไปที่ไฟล์ config ที่เราแยกเอาไว้
+                const configRef = doc(db, "school_data", "wany_data_config");
+                const docSnap = await getDoc(configRef);
+                
+                // ตั้งค่ารหัสผ่านสำรองเผื่อหาไฟล์ไม่เจอ
+                let dbUser = 'admin';
+                let dbPass = '1234';
+
+                // ถ้ามีไฟล์ config อยู่ ให้ดึงข้อมูลมาใช้
+                if (docSnap.exists()) {
+                    const configData = docSnap.data();
+                    dbUser = configData.adminUsername || 'admin';
+                    dbPass = configData.adminPassword || '1234';
+                }
+
+                // 🟢 ตรวจสอบรหัสผ่าน
+                if (u === dbUser && p === dbPass) { 
+                    localStorage.setItem('wany_admin_session', 'admin_firebase_token'); 
+                    window.switchMainTab('admin');
+                    document.getElementById('admin-login-wrapper').classList.add('hidden'); 
+                    document.getElementById('admin-content-wrapper').classList.remove('hidden'); 
+                    
+                    if(typeof refreshUI === 'function') refreshUI();
+                } else {
+                    alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); 
+                }
+            } catch (error) {
+                console.error("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์:", error);
+                alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่");
             }
         };
     }
@@ -1194,7 +1229,6 @@ window.addEventListener('DOMContentLoaded', () => {
 // ฟังก์ชันบันทึกการแก้ไขจาก Modal
 // ในไฟล์ js/main.js
 
-import { openEditChapterModal } from "./ui-render.js"; // อย่าลืม import
 
 window.openEditChapterModal = openEditChapterModal; // ผูก window
 
@@ -1485,12 +1519,6 @@ window.downloadGradeReport = function() {
 };
 // ในไฟล์ js/main.js (ท้ายไฟล์)
 
-import { previewTasksBySubject } from "./ui-render.js"; // Import เข้ามา
-
-window.previewTasksBySubject = previewTasksBySubject; // ผูกกับ Window
-// --- ส่วน Lucky Draw ---
-import { setLuckyMode, startLuckyDraw, clearLuckyHistory } from "./ui-render.js";
-
 // ผูกฟังก์ชันเข้ากับ Window เพื่อให้ HTML เรียก onclick="..." ได้
 window.setLuckyMode = setLuckyMode;
 window.startLuckyDraw = startLuckyDraw;
@@ -1658,7 +1686,6 @@ window.processCSVImport = function() {
 // --- ส่วนจัดการข้อสอบ (Exam Logic) ---
 
 window.saveExamData = function() {
-    // 1. ดึงข้อมูลจาก Form
     const id = document.getElementById('exam-id').value || `exam_${Date.now()}`;
     const title = document.getElementById('exam-title').value;
     const subjectId = document.getElementById('exam-subject').value;
@@ -1668,72 +1695,104 @@ window.saveExamData = function() {
     const shuffleQ = document.getElementById('exam-shuffle-q').checked;
     const shuffleC = document.getElementById('exam-shuffle-c').checked;
 
+    const category = document.getElementById('exam-category') ? document.getElementById('exam-category').value : 'none';
+    const chapterCbs = document.querySelectorAll('.exam-chapter-cb:checked');
+    const chapter = Array.from(chapterCbs).map(cb => String(cb.value));
+
     if(!title || !subjectId) {
         alert("กรุณากรอกชื่อข้อสอบและเลือกวิชา");
         return;
     }
 
-    // 2. ดึงข้อมูลคำถาม (Loop ผ่าน element)
     const questions = [];
-    const qElements = document.querySelectorAll('.question-item');
+    const container = document.getElementById('questions-container');
+    const items = container.children; 
     
-    qElements.forEach((el, index) => {
-        const text = el.querySelector('.q-text').value;
-        const choicesRaw = el.querySelectorAll('.c-text');
-        const correctRadio = el.querySelectorAll('input[type="radio"]');
-        
-        // ✨ เพิ่มส่วนดึงรูปภาพ
-        const imgEl = el.querySelector('.q-image-data');
-        const image = (imgEl && imgEl.src && !imgEl.src.endsWith('undefined')) ? imgEl.src : null;
-        // ------------------
+    let currentSection = ""; 
+    let currentPassage = null; 
 
-        const choices = [];
-        choicesRaw.forEach((cInput, cIndex) => {
-            choices.push({
-                id: `c${cIndex+1}`,
-                text: cInput.value,
-                isCorrect: correctRadio[cIndex].checked
+    // ไล่อ่านข้อมูลจากบนลงล่าง
+    for (let i = 0; i < items.length; i++) {
+        const el = items[i];
+
+        // 1. ถ้าเจอกล่องแบ่งตอน
+        if (el.classList.contains('section-item')) {
+            currentSection = el.querySelector('.section-title').value.trim();
+            currentPassage = null; // ล้างค่าบทอ่านเมื่อขึ้นตอนใหม่
+        } 
+        // 2. ถ้าเจอกล่องบทอ่าน
+        else if (el.classList.contains('passage-item')) {
+            const pText = el.querySelector('.p-text').value;
+            const imgEl = el.querySelector('.q-image-data');
+            const pImage = (imgEl && imgEl.src && imgEl.src.startsWith('data:image')) ? imgEl.src : null;
+            
+            currentPassage = {
+                id: `p_${Date.now()}_${i}`,
+                text: pText,
+                image: pImage
+            };
+        }
+        // 3. ถ้าเจอกล่องคำถาม
+        else if (el.classList.contains('question-item')) {
+            const text = el.querySelector('.q-text').value;
+            const imgEl = el.querySelector('.q-image-data');
+            const image = (imgEl && imgEl.src && imgEl.src.startsWith('data:image')) ? imgEl.src : null;
+
+            const choicesRaw = el.querySelectorAll('.c-text');
+            const correctRadio = el.querySelectorAll('input[type="radio"]');
+            const choices = [];
+            choicesRaw.forEach((cInput, cIndex) => {
+                choices.push({
+                    id: `c${cIndex+1}`,
+                    text: cInput.value,
+                    isCorrect: correctRadio[cIndex].checked
+                });
             });
-        });
 
-        questions.push({
-            id: `q${index+1}`,
-            text: text,
-            image: image, // ✨ บันทึกลง Object
-            choices: choices
-        });
-    });
+            // นำข้อมูลทั้งหมดแพ็ครวมกัน
+            questions.push({
+                id: `q${questions.length+1}`, 
+                section: currentSection, 
+                passage: currentPassage, 
+                text: text,
+                image: image,
+                choices: choices
+            });
+
+            // 🔴 สำคัญมาก: ล้างค่าบทอ่านทิ้งทันที! เพื่อไม่ให้มันไปเกาะติดกับข้อสอบข้อถัดไป
+            currentPassage = null; 
+        }
+    }
 
     if(questions.length === 0) {
         alert("กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ");
         return;
     }
 
-    // 3. สร้าง Object ข้อสอบ
     const newExam = {
         id, title, subjectId, timeLimit, allowSwitch, password,
         shuffleQuestions: shuffleQ,
         shuffleChoices: shuffleC,
         questions,
+        category: category,  
+        chapter: chapter,    
         updatedAt: new Date().toISOString()
     };
 
-    // 4. บันทึกลง State
+    if (!dataState.exams) dataState.exams = [];
+
     const existingIdx = dataState.exams.findIndex(e => e.id === id);
     if(existingIdx > -1) {
-        dataState.exams[existingIdx] = newExam; // Update
+        dataState.exams[existingIdx] = newExam; 
     } else {
-        dataState.exams.push(newExam); // Insert New
+        dataState.exams.push(newExam); 
     }
 
-    // 5. บันทึกลง Storage/Firebase
-    saveAndRefresh({ action: 'update_exam_data' }); 
-    
-    closeExamModal();
-    showToast("บันทึกชุดข้อสอบเรียบร้อย!", "success");
-    
-    // รีเฟรชหน้าจอถ้ากำลังเปิดหน้า Exam Manager อยู่
-    if(typeof renderExamManagerPage === 'function') renderExamManagerPage();
+    if(typeof saveAndRefresh === 'function') saveAndRefresh({ action: 'update_exam_data' }); 
+    if(typeof closeExamModal === 'function') closeExamModal();
+    if(typeof showToast === 'function') showToast("บันทึกชุดข้อสอบเรียบร้อย!", "success");
+    if(typeof renderExamPanel === 'function') renderExamPanel();
+    if(typeof renderMainExamHub === 'function') renderMainExamHub();
 }
 // ในไฟล์ js/main.js
 
@@ -1820,56 +1879,107 @@ function startTimer(durationSeconds) {
 // ในไฟล์ js/main.js
 
 window.renderExamUI = function(examData) {
-    // 1. เช็คค่า: ถ้ามีส่งมาให้ใช้ที่ส่งมา ถ้าไม่มีให้ไปหาจาก Global
     const exam = examData || window.currentExam;
-
-    if (!exam) {
-        console.error("renderExamUI: Exam data is missing!");
-        return;
-    }
-
-    // อัปเดต Global เพื่อความชัวร์
+    if (!exam) return;
     window.currentExam = exam;
 
-    // 2. Render Navigator (ปุ่มเลขข้อด้านซ้าย)
-    const navGrid = document.getElementById('exam-nav-grid');
-    if (navGrid && exam.questions) {
-        navGrid.innerHTML = exam.questions.map((q, idx) => `
-            <button onclick="scrollToQuestion('q-${idx}')" id="nav-btn-${q.id}" class="w-10 h-10 rounded bg-white/10 text-white/70 text-sm hover:bg-yellow-500 hover:text-black transition-colors border border-white/5">
-                ${idx + 1}
-            </button>
-        `).join('');
-    }
-
-    // 3. Render Questions (โจทย์ทั้งหมด)
     const displayArea = document.getElementById('question-display-area');
+    const navGrid = document.getElementById('exam-nav-grid');
+    
     if (displayArea && exam.questions) {
-        // สุ่มข้อถ้าตั้งค่าไว้
-        let questionsToShow = [...exam.questions];
-        if (exam.shuffleQuestions) {
-            questionsToShow.sort(() => Math.random() - 0.5);
+        // 🟢 1. จัดกลุ่มและสุ่มลำดับ (โดยรักษาหมวดหมู่และบทอ่านไว้ด้วยกัน)
+        let orderedQuestions = [];
+        const sectionGroups = {};
+        
+        exam.questions.forEach(q => {
+            const sec = q.section || 'ทั่วไป';
+            if(!sectionGroups[sec]) sectionGroups[sec] = [];
+            sectionGroups[sec].push(q);
+        });
+
+        for (let sec in sectionGroups) {
+            let sectionQuestions = sectionGroups[sec];
+            const passageGroups = {};
+            
+            sectionQuestions.forEach(q => {
+                const pid = q.passage ? q.passage.id : `standalone_${q.id}`;
+                if(!passageGroups[pid]) passageGroups[pid] = { passage: q.passage, questions: [] };
+                passageGroups[pid].questions.push(q);
+            });
+
+            let groupKeys = Object.keys(passageGroups);
+            if (exam.shuffleQuestions) groupKeys.sort(() => Math.random() - 0.5); // สุ่มกลุ่มบทอ่าน
+
+            let sectionFirstRender = true;
+            groupKeys.forEach(key => {
+                const group = passageGroups[key];
+                let qs = group.questions;
+                
+                if (exam.shuffleQuestions) qs.sort(() => Math.random() - 0.5); // สุ่มคำถามภายในบทอ่าน
+                
+                if (qs.length > 0) {
+                    if (sectionFirstRender) { qs[0]._renderSection = sec; sectionFirstRender = false; }
+                    qs[0]._renderPassage = group.passage; // แปะบทอ่านไว้ที่ข้อแรกของกลุ่มเพื่อใช้วาด UI
+                }
+                orderedQuestions = orderedQuestions.concat(qs);
+            });
         }
 
+        // 🟢 2. Render Navigator (ปุ่มตัวเลข) ตามลำดับที่จัดเรียงแล้ว
+        if (navGrid) {
+            navGrid.innerHTML = orderedQuestions.map((q, idx) => `
+                <button onclick="scrollToQuestion('q-${idx}')" id="nav-btn-${q.id}" class="w-10 h-10 rounded bg-white/10 text-white/70 text-sm hover:bg-yellow-500 hover:text-black transition-colors border border-white/5">
+                    ${idx + 1}
+                </button>
+            `).join('');
+        }
+
+        // 🟢 3. Render คำถามและบทอ่าน
         displayArea.innerHTML = `
-            <div class="max-w-3xl w-full space-y-8 pb-20">
-                ${questionsToShow.map((q, idx) => {
-                    // สุ่มช้อยส์
+            <div class="max-w-3xl w-full space-y-6 pb-20">
+                ${orderedQuestions.map((q, idx) => {
+                    let prependHtml = '';
+                    
+                    // ถ้านี่คือข้อแรกของตอน ให้วาดป้าย Section
+                    if (q._renderSection && q._renderSection !== 'ทั่วไป' && q._renderSection !== '') {
+                        prependHtml += `
+                            <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-300 font-bold p-4 rounded-xl mt-10 mb-2 text-center text-lg shadow-lg">
+                                <i class="fa-solid fa-folder-open mr-2"></i> ${q._renderSection}
+                            </div>
+                        `;
+                    }
+
+                    // ถ้านี่คือข้อแรกของกลุ่มบทอ่าน ให้วาดกล่องบทอ่าน
+                    const p = q._renderPassage;
+                    if (p && (p.text || p.image)) {
+                        prependHtml += `
+                            <div class="bg-purple-900/30 border border-purple-500/30 p-6 rounded-2xl mb-2 shadow-lg mt-6">
+                                <div class="flex items-center gap-2 mb-4 border-b border-purple-500/30 pb-3">
+                                    <span class="bg-purple-500 text-white font-bold px-3 py-1.5 rounded-full text-xs"><i class="fa-solid fa-book-open"></i> ข้อมูลสำหรับตอบคำถาม</span>
+                                </div>
+                                ${(p.image && p.image.startsWith('data:image')) ? `<img src="${p.image}" class="max-w-full md:max-w-lg rounded-lg mb-4 border border-white/20 mx-auto">` : ''}
+                                ${p.text ? `<p class="text-purple-100 text-md leading-relaxed whitespace-pre-line">${p.text}</p>` : ''}
+                            </div>
+                        `;
+                    }
+
                     let choices = [...q.choices];
                     if (exam.shuffleChoices) choices.sort(() => Math.random() - 0.5);
 
                     return `
-                    <div id="q-${idx}" class="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                    ${prependHtml}
+                    <div id="q-${idx}" class="bg-white/5 border border-white/10 p-6 rounded-2xl relative mb-4">
                         <div class="flex gap-3 mb-4">
-                            <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded h-fit text-sm">ข้อ ${idx+1}</span>
+                            <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded h-fit text-sm shrink-0">ข้อ ${idx+1}</span>
                             <div class="w-full">
-                                ${q.image ? `<img src="${q.image}" class="max-w-full md:max-w-md rounded-lg mb-4 border border-white/20">` : ''}
+                                ${(q.image && q.image.startsWith('data:image')) ? `<img src="${q.image}" class="max-w-full md:max-w-md rounded-lg mb-4 border border-white/20">` : ''}
                                 <p class="text-white text-lg leading-relaxed whitespace-pre-line">${q.text}</p>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 gap-3 pl-2 md:pl-10">
                             ${choices.map(c => `
                                 <label class="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:bg-white/10 cursor-pointer transition-all group">
-                                    <div class="relative flex items-center">
+                                    <div class="relative flex items-center shrink-0">
                                         <input type="radio" name="ans-${q.id}" value="${c.id}" onchange="selectAnswer('${q.id}', '${c.id}')" class="peer w-5 h-5 appearance-none border-2 border-white/30 rounded-full checked:border-green-500 checked:bg-green-500 transition-all">
                                         <i class="fa-solid fa-check text-white text-[10px] absolute top-1 left-1 opacity-0 peer-checked:opacity-100"></i>
                                     </div>
@@ -2198,14 +2308,18 @@ window.removeQuestionImage = function(qId) {
 // ==========================================
 
 // 1. ฟังก์ชันดาวน์โหลดไฟล์แม่แบบ
+// ฟังก์ชันดาวน์โหลดไฟล์แม่แบบ Word
 window.downloadWordTemplate = function() {
     const content = `
     <html>
     <head><meta charset='utf-8'></head>
     <body>
         <h1>แบบฟอร์มข้อสอบ (Template)</h1>
-        <p><b>คำแนะนำ:</b> กรุณาพิมพ์ตามรูปแบบด้านล่างเป๊ะๆ (1 ข้อ ต่อ 5 บรรทัด)</p>
+        <p><b>คำแนะนำ:</b> สามารถพิมพ์คำว่า <b>ตอนที่...</b> หรือ <b>Part...</b> เพื่อแบ่งหมวดหมู่ข้อสอบได้ (พิมพ์ตามรูปแบบด้านล่างเป๊ะๆ)</p>
         <hr>
+        <br>
+
+        <h3>ตอนที่ 1: การอ่านและทำความเข้าใจ</h3>
         
         <p>1. ข้อใดคือเมืองหลวงของไทย?</p>
         <p>ก. เชียงใหม่</p>
@@ -2215,6 +2329,8 @@ window.downloadWordTemplate = function() {
         <p>เฉลย: ข</p>
         <br>
         
+        <h3>Part 2: Grammar and Vocabulary</h3>
+
         <p>2. 1 + 1 เท่ากับเท่าไหร่?</p>
         <p>a. 1</p>
         <p>b. 2</p>
@@ -2233,7 +2349,7 @@ window.downloadWordTemplate = function() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Exam_Template.doc'; // เซฟเป็น .doc ธรรมดา (HTML format) เปิดใน Word ได้
+    link.download = 'Exam_Template.doc';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2268,59 +2384,99 @@ window.importExamFromWord = function(input) {
     // Reset input เพื่อให้เลือกไฟล์เดิมซ้ำได้
     input.value = '';
 }
-
 // 3. Logic แปลงข้อความ เป็น ข้อสอบ
 function parseExamText(text) {
-    // แยกบรรทัดและลบช่องว่างหัวท้าย
     const lines = text.split(/\n/).map(l => l.trim()).filter(l => l);
     
     let currentQuestion = null;
     let questions = [];
     let choicesBuffer = [];
+    let currentSection = ""; 
+    let currentPassageText = ""; // 🟢 ตัวแปรใหม่สำหรับคอยจับข้อความบทอ่าน
 
     lines.forEach(line => {
-        // เช็คว่าเป็นโจทย์หรือไม่ (ขึ้นต้นด้วยตัวเลข และมีจุด หรือ วงเล็บปิด) เช่น "1." หรือ "1)"
-        if (/^\d+[\.)]\s+/.test(line)) {
-            // บันทึกข้อก่อนหน้า (ถ้ามี)
-            if (currentQuestion) {
-                finalizeQuestion(currentQuestion, choicesBuffer, questions);
-            }
+        // 1) ดักจับชื่อตอน 
+        if (/^(ตอนที่|part|section)\s*.+/i.test(line)) {
+            currentSection = line; 
+            currentPassageText = ""; 
+        }
+        // 🟢 2) ดักจับ "บทอ่าน" หรือ "ข้อมูล"
+        else if (/^(บทอ่าน|ข้อมูล|เนื้อเรื่อง|passage)[:\s]/i.test(line)) {
+            currentPassageText = line.replace(/^(บทอ่าน|ข้อมูล|เนื้อเรื่อง|passage)[:\s]*/i, '');
+        }
+        // 3) ตรวจสอบโจทย์
+        else if (/^\d+[\.)]\s+/.test(line)) {
+            if (currentQuestion) finalizeQuestion(currentQuestion, choicesBuffer, questions);
             
-            // เริ่มข้อใหม่
             currentQuestion = {
-                text: line.replace(/^\d+[\.)]\s+/, ''), // ตัดเลขข้ออก
+                text: line.replace(/^\d+[\.)]\s+/, ''),
+                section: currentSection, 
+                passage: currentPassageText, // 🟢 นำบทอ่านมาผูกติดกับโจทย์ข้อแรกที่เจอ
                 choices: []
             };
             choicesBuffer = [];
+            currentPassageText = ""; // ล้างค่าทิ้งเพื่อไม่ให้กล่องบทอ่านไปซ้ำกับข้อถัดไป
         } 
-        // เช็คว่าเป็นเฉลย (ขึ้นต้นด้วย เฉลย: หรือ ans:)
-        else if (/^(เฉลย|ans|answer)[:\s]/i.test(line)) {
+        // 4) ตรวจสอบเฉลย
+        else if (/^(เฉลย|ans|answer|答|答案)[:\s]/i.test(line)) {
             if(currentQuestion) {
                 currentQuestion.correctAnswerRaw = line.split(/[:\s]+/).pop().trim().toLowerCase();
             }
         }
-        // ถ้าไม่ใช่โจทย์และไม่ใช่เฉลย ให้ถือว่าเป็นช้อยส์
-        else if (currentQuestion) {
-            // ตัด ก. ข. ค. ง. หรือ a. b. c. d. ออก
-            const cleanChoice = line.replace(/^[ก-ฮa-zA-Z][\.)]\s*/, '');
-            choicesBuffer.push(cleanChoice);
+        // 5) ตรวจสอบตัวเลือก
+        else if (/^[ก-ฮa-zA-Z][\.)]\s+/.test(line)) {
+            if (currentQuestion) {
+                const cleanChoice = line.replace(/^[ก-ฮa-zA-Z][\.)]\s*/, '');
+                choicesBuffer.push(cleanChoice);
+            }
+        }
+        // 6) จัดการข้อความหลายบรรทัด
+        else {
+            if (currentPassageText !== "") {
+                // 🟢 ถ้ากำลังพิมพ์บทอ่านค้างอยู่ ให้เอาบรรทัดนี้ไปต่อท้ายกล่องบทอ่าน
+                currentPassageText += '\n' + line;
+            } else if (currentQuestion) {
+                if (choicesBuffer.length === 0) {
+                    currentQuestion.text += '\n' + line;
+                } else {
+                    // ⚠️ ของเดิมบทอ่านจะหลุดมาเข้าตรงนี้ ทำให้ไปต่อท้ายตัวเลือก ง.
+                    choicesBuffer[choicesBuffer.length - 1] += ' ' + line;
+                }
+            }
         }
     });
 
-    // บันทึกข้อสุดท้าย
     if (currentQuestion) {
         finalizeQuestion(currentQuestion, choicesBuffer, questions);
     }
 
-    // นำเข้าสู่หน้าจอ
+    // นำเข้าสู่หน้าจอ 
     if(questions.length > 0) {
         if(confirm(`พบคำถามจำนวน ${questions.length} ข้อ ต้องการนำเข้าหรือไม่? (ข้อมูลเดิมในหน้านี้จะหายไป)`)) {
-            document.getElementById('questions-container').innerHTML = ''; // ล้างของเก่า
-            questions.forEach(q => window.addQuestionItem(q)); // เพิ่มลงหน้าจอ
+            document.getElementById('questions-container').innerHTML = ''; 
+            
+            let lastRenderedSection = ""; 
+            
+            questions.forEach(q => {
+                // 1. วาดกล่องตอนสีน้ำเงิน
+                if (q.section && q.section !== lastRenderedSection) {
+                    window.addSectionDivider(q.section); 
+                    lastRenderedSection = q.section;     
+                }
+                
+                // 🟢 2. วาดกล่องบทอ่านสีม่วง (ถ้าระบุไว้ใน Word)
+                if (q.passage && q.passage.trim() !== "") {
+                    window.addPassageDivider({ text: q.passage });
+                }
+                
+                // 3. วาดกล่องคำถาม
+                window.addQuestionItem(q); 
+            });
+            
             alert("✅ นำเข้าเรียบร้อย!");
         }
     } else {
-        alert("⚠️ ไม่พบรูปแบบคำถามที่ถูกต้องในไฟล์\nกรุณาใช้ไฟล์แม่แบบเพื่อดูตัวอย่าง");
+        alert("⚠️ ไม่พบรูปแบบคำถามที่ถูกต้องในไฟล์\nกรุณาใช้ไฟล์แม่แบบเพื่อตรวจสอบการเว้นวรรคและรูปแบบ");
     }
 }
 
@@ -2357,7 +2513,6 @@ function finalizeQuestion(qObj, choicesRaw, qArray) {
     });
 }
 // ในไฟล์ js/main.js
-
 window.startExamProcess = function(examId) {
     const exam = dataState.exams.find(e => e.id === examId);
     if (!exam) return;
@@ -2407,7 +2562,7 @@ window.startExamProcess = function(examId) {
 
         // ⭐ แก้ไขจุดที่ Error: ต้องใส่ Object เข้าไปใน saveAndRefresh
         saveAndRefresh({ 
-            action: 'updateExamSession', // หรือ action อื่นที่ backend รองรับ
+            action: 'updateExamSession', 
             session: newSession 
         }); 
     }
@@ -2424,6 +2579,18 @@ window.startExamProcess = function(examId) {
 
     // ⭐ กำหนดตัวแปร Global และส่งค่าไปให้ renderExamUI โดยตรง
     window.currentExam = exam; 
+
+    // ==========================================
+    // 🟢 เพิ่มโค้ด Auto-Resume บันทึกสถานะนักเรียนตรงนี้
+    // ==========================================
+    const studentInfo = dataState.students.find(s => s.id === studentId);
+    const classId = studentInfo ? studentInfo.classId : null;
+    
+    if (typeof saveStudentSession === 'function') {
+        // บันทึกความจำลงเครื่องว่าเด็กคนนี้กำลังสอบวิชานี้อยู่
+        saveStudentSession(studentId, classId, exam.id);
+    }
+    // ==========================================
     
     // เรียก renderExamUI โดยส่ง exam เข้าไปเพื่อป้องกันค่า null
     if (typeof window.renderExamUI === 'function') {
@@ -2999,9 +3166,6 @@ window.loadMaterialsFromSheet = async function() {
             
             // สั่ง render หน้าจอใหม่ (ถ้าเปิดหน้า Admin Material อยู่)
             if(document.getElementById('admin-panel-material')) {
-                 // Import ฟังก์ชัน renderAdminMaterials จาก ui-render.js มาใช้
-                 // หรือถ้า import * as UI มาแล้วก็เรียก UI.renderAdminMaterials()
-                 // ในที่นี้สมมติว่ามีการ import { renderAdminMaterials } ...
                  import('./ui-render.js').then(module => {
                      module.renderAdminMaterials();
                  });
@@ -3298,4 +3462,35 @@ window.processStudentCSVImport = async function() {
         if(typeof refreshUI === 'function') refreshUI();
     };
     reader.readAsText(file);
+};
+// ฟังก์ชันคัดลอกชื่อตอนไปใส่ข้อด้านล่างทั้งหมดอัตโนมัติ
+window.applySectionToBelow = function(btn) {
+    // 1. หา container ของข้อคำถามนี้
+    const currentItem = btn.closest('.question-item');
+    if (!currentItem) return;
+
+    // 2. ดึงค่าชื่อตอนที่พิมพ์ไว้
+    const sectionValue = currentItem.querySelector('.q-section').value;
+    
+    // 3. วนลูปหาข้อสอบทุกข้อที่อยู่ "ถัดจาก" ข้อนี้ เพื่อนำชื่อตอนไปวางให้
+    let nextItem = currentItem.nextElementSibling;
+    let count = 0;
+
+    while (nextItem) {
+        if (nextItem.classList.contains('question-item')) {
+            const sectionInput = nextItem.querySelector('.q-section');
+            if (sectionInput) {
+                sectionInput.value = sectionValue;
+                count++;
+            }
+        }
+        nextItem = nextItem.nextElementSibling;
+    }
+    
+    // 4. แจ้งเตือนผลลัพธ์
+    if (typeof showToast === 'function') {
+        showToast(`นำชื่อตอนไปใช้กับ ${count} ข้อด้านล่างเรียบร้อยแล้ว`, 'success');
+    } else {
+        alert(`นำชื่อตอนไปใช้กับ ${count} ข้อด้านล่างเรียบร้อยแล้ว`);
+    }
 };
