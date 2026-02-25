@@ -31,81 +31,6 @@ import { setLuckyMode, startLuckyDraw, clearLuckyHistory } from "./ui-render.js"
 import { openEditChapterModal } from "./ui-render.js"; // อย่าลืม import
 import { getThaiDateISO, formatThaiDate, calGrade, showToast, showLoading, hideLoading, calculateScores, compressImage } from "./utils.js";
 import { PERIODS } from "./config.js";
-window.deleteTask = function(taskId) {
-    if(!confirm("⚠️ คำเตือน: คุณต้องการลบงานชิ้นนี้ใช่หรือไม่?\n\n- คะแนนทั้งหมดในงานนี้จะหายไป\n- การกระทำนี้ไม่สามารถย้อนกลับได้")) {
-        return;
-    }
-    window.loadMaterialsFromSheet();
-// ในไฟล์ js/main.js
-
-// 3. ฟังก์ชันแก้ไขชื่องาน (Edit Task Name)
-window.updateTaskName = function(taskId, newName) {
-    const task = dataState.tasks.find(t => String(t.id) === String(taskId));
-    if (!task) return;
-
-    const oldName = task.name;
-    const name = newName.trim();
-
-    // ถ้าชื่อว่าง หรือ เป็นชื่อเดิม ไม่ต้องทำอะไร
-    if (!name) {
-        showToast("ชื่อห้ามว่าง!", "bg-red-600");
-        renderScoreManagerPanel(); // รีโหลดเพื่อคืนค่าเดิม
-        return;
-    }
-    if (name === oldName) return;
-
-    // 1. อัปเดตในเครื่องทันที
-    task.name = name;
-    saveToLocalStorage();
-
-    // 2. ส่งไปบันทึกที่ Server (Google Sheet/Firebase)
-    // ส่ง action: 'editTask' (ต้องไปดักจับใน Apps Script เพิ่มเติมถ้าต้องการให้แก้ใน Sheet ด้วย)
-    // หรือถ้าใช้ระบบ overwrite dataState อยู่แล้ว มันจะอัปเดตให้อัตโนมัติเมื่อ Sync
-    saveAndRefresh({ action: 'editTask', id: taskId, name: name });
-
-    console.log(`Renamed task ${taskId} to ${name}`);
-    showToast("เปลี่ยนชื่อเรียบร้อย");
-};
-    showLoading("กำลังลบข้อมูล...");
-    // ลบ Task ออกจากรายการ
-    dataState.tasks = dataState.tasks.filter(t => String(t.id) !== String(taskId));
-    
-    // ลบ คะแนน (Scores) ที่ผูกกับ Task นี้ทิ้งไป
-    dataState.scores = dataState.scores.filter(s => String(s.taskId) !== String(taskId));
-
-    // ลบ ประวัติการส่งงาน
-    dataState.submissions = dataState.submissions.filter(s => String(s.taskId) !== String(taskId));
-    if(dataState.returns) {
-        dataState.returns = dataState.returns.filter(r => String(r.taskId) !== String(taskId));
-    }
-
-    // บันทึกลงเครื่องทันที
-    saveToLocalStorage(); 
-    
-    // ส่งคำสั่งไป Sync (บอก Server ว่าลบงานนี้)
-    saveAndRefresh({ action: 'deleteTask', taskId: taskId }); 
-    
-    // รีเฟรชเฉพาะตารางจัดการคะแนนเพื่อความลื่นไหล
-    renderScoreManagerPanel();
-    
-    hideLoading();
-    showToast("ลบงานเรียบร้อยแล้ว", "bg-red-600");
-};
-
-// 2. ฟังก์ชันอัปเดตคะแนนทันทีเมื่อพิมพ์เสร็จ (Direct Update)
-window.updateScoreDirect = function(studentId, taskId, val, maxScore) {
-    // ตรวจสอบค่าคะแนน
-    if (val !== '' && Number(val) > Number(maxScore)) {
-        alert(`คะแนนเกินค่าเต็ม (${maxScore})`);
-        renderScoreManagerPanel(); // คืนค่าเดิม
-        return;
-    }
-
-    // 🟢 ส่งข้อมูลให้บันทึกลง Firestore ทันที (ไม่ต้องใช้ setTimeout ครอบแล้ว)
-    saveAndRefresh({ action: 'addScore', studentId: studentId, taskId: taskId, score: val });
-    
-    console.log("Instant saved score: " + val);
-};
 // --- Global Functions (Exposed to Window) ---
 window.renderStudentDashboard = renderStudentDashboard;
 window.saveAndRefresh = saveAndRefresh;
@@ -127,13 +52,17 @@ window.switchMainTab = function(t) {
     const btnA = document.getElementById('tab-btn-admin');
     const btnS = document.getElementById('tab-btn-student');
 
+    // 🎨 เปลี่ยนคลาสสลับโหมดเป็นสไตล์กระดาษ
+    const activeClass = "px-6 py-2 rounded-sm text-sm font-bold bg-white text-[#1A1A2E] shadow-sm transition-all";
+    const inactiveClass = "px-6 py-2 rounded-sm text-sm font-bold text-gray-500 hover:text-[#1A1A2E] hover:bg-white transition-all";
+
     if(btnA && btnS) {
         if(t === 'admin'){ 
-            btnA.className="px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all"; 
-            btnS.className="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"; 
+            btnA.className = activeClass; 
+            btnS.className = inactiveClass; 
         } else { 
-            btnS.className="px-6 py-2 rounded-full text-sm font-bold bg-white text-blue-900 shadow-lg transition-all"; 
-            btnA.className="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"; 
+            btnS.className = activeClass; 
+            btnA.className = inactiveClass; 
         }
     }
 };
@@ -150,7 +79,6 @@ window.switchAdminSubTab = function(t) {
     // 2. หา Panel ที่จะแสดง
     let panelId = `admin-panel-${t}`;
     
-    // กรณีพิเศษ: map ชื่อ tab เข้ากับ id ของ div
     if(t === 'scores') {
         panelId = document.getElementById('admin-panel-scores') ? 'admin-panel-scores' : 'admin-panel-management';
     }
@@ -158,23 +86,30 @@ window.switchAdminSubTab = function(t) {
     const target = document.getElementById(panelId);
     if(target) target.classList.remove('hidden');
 
-    // 3. ปรับสีปุ่มเมนู (Active State)
+    // 3. 🎨 ปรับสีปุ่มเมนู (Active State) ให้เป็นสไตล์ Neo-Oriental
     document.querySelectorAll('.menu-btn').forEach(b => { 
-        b.className = "menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"; 
+        // คืนค่าปุ่มอื่นๆ เป็นปุ่มกระดาษสีขาว ตัวหนังสือสีเทา
+        b.className = "menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"; 
     }); 
+    
     const activeBtn = document.getElementById(`menu-${t}`); 
-    if(activeBtn) activeBtn.className = "menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg text-white"; 
+    if(activeBtn) {
+        // เปลี่ยนปุ่มที่กดให้เป็นสีดำหมึก ตัวหนังสือสีขาว
+        activeBtn.className = "menu-btn bg-[#1A1A2E] text-white rounded-sm py-4 font-bold shadow-md transition-all border border-[#1A1A2E]"; 
+    }
     
     // 4. เรียกฟังก์ชันแสดงผลตามแท็บที่เลือก
     if(t === 'exam') {
-        // ✨ แก้ไขตรงนี้: เรียกหน้า Hub รวม (แทนที่จะเรียกหน้าใดหน้าหนึ่ง) ✨
         if(typeof renderMainExamHub === 'function') {
             renderMainExamHub(); 
         } else {
-            console.error("หาฟังก์ชัน renderMainExamHub ไม่เจอ กรุณาเช็คการ import ในไฟล์ main.js");
+            console.error("หาฟังก์ชัน renderMainExamHub ไม่เจอ");
         }
     } else if (t === 'scores' || t === 'management') {
         window.renderScoreManagerPanel(); 
+    } else if (t === 'homework') { // 🟢 เพิ่มเงื่อนไขนี้เข้าไป
+        if(typeof renderIncomingSubmissions === 'function') renderIncomingSubmissions('incoming-list');
+        if(typeof renderHomeworkHistory === 'function') renderHomeworkHistory(); // สั่งเรนเดอร์ประวัติ
     } else {
         refreshUI(); 
     }
@@ -212,60 +147,44 @@ window.checkAutoLogin = function() {
 window.handleStudentLogin = async function() {
     // 1. รับค่าและล้างช่องว่างที่มองไม่เห็นทั้งหมด
     let rawInput = document.getElementById('student-login-id').value;
-    let passwordInput = document.getElementById('student-login-password').value;
-    if (!rawInput || !rawInput.trim()) {
-        alert("กรุณากรอกรหัสนักเรียน");
-        return; // หยุดการทำงานทันที
-    }
+    if (!rawInput || !rawInput.trim()) return alert("กรุณากรอกรหัสนักเรียน");
 
     // ตัดช่องว่างทุกชนิดและแปลงเป็นพิมพ์เล็ก
     const inputId = String(rawInput).replace(/\s+/g, '').toLowerCase();
 
+    // 2. ระบบรอโหลดฐานข้อมูลสูงสุด 4 วินาที (แก้ปัญหาเน็ตช้า)
+    if (!dataState.students || dataState.students.length === 0) {
+        if(typeof showLoading === 'function') showLoading("กำลังดึงข้อมูลรายชื่อ...");
+        let attempts = 0;
+        while (dataState.students.length === 0 && attempts < 40) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+    }
     
+    if(typeof hideLoading === 'function') hideLoading();
 
     // 3. ค้นหารายชื่อแบบยืดหยุ่น (ล้างช่องว่างในฐานข้อมูลก่อนเทียบ)
     const student = dataState.students.find(s => {
-        // เช็คให้ชัวร์ว่ามี s.code หรือ s.id ป้องกันค่า undefined ไปแปลงเป็น String("undefined")
-        const dbCode = s.code ? String(s.code).replace(/\s+/g, '').toLowerCase() : "";
-        const dbId = s.id ? String(s.id).replace(/\s+/g, '').toLowerCase() : "";
-        return (dbCode === inputId && dbCode !== "") || (dbId === inputId && dbId !== "");
+        if (!s.code) return false;
+        const dbCode = String(s.code).replace(/\s+/g, '').toLowerCase();
+        const dbId = String(s.id).replace(/\s+/g, '').toLowerCase();
+        return dbCode === inputId || dbId === inputId;
     });
 
+    // 4. แสดงผล
     if (student) {
-            // ======== ลบของเดิมทิ้ง แล้ววางโค้ดใหม่ชุดนี้ลงไปแทน ========
-            if(typeof showLoading === 'function') showLoading('กำลังเข้าสู่ระบบและสร้างเซสชันความปลอดภัย...');
-            
-            // 1. เรียกใช้ระบบล็อกอินซ่อนรูปที่เราเพิ่งสร้างใน firebase-service.js
-            let loginSuccess = false;
-            if(typeof window.studentLogin === 'function') {
-                loginSuccess = await window.studentLogin(student.code, passwordInput);
-            }
-
-            if(typeof hideLoading === 'function') hideLoading();
-if (loginSuccess) {
-            localStorage.setItem('current_student_code', student.code);
-            
-            // 1. ซ่อนหน้าล็อกอิน เปิดหน้า Dashboard ทันที
-            const loginWrap = document.getElementById('student-login-wrapper');
-            const dashWrap = document.getElementById('student-dashboard');
-            if (loginWrap) loginWrap.classList.add('hidden');
-            if (dashWrap) dashWrap.classList.remove('hidden');
-
-            // 2. แจ้งเตือนต้อนรับ
-            if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`, 'success');
-
-            // 3. หน่วงเวลา 1 วินาที ให้ข้อมูลวิ่งมาครบก่อน แล้วค่อยวาดวิชา (แก้ปัญหาจอขาว)
-            setTimeout(() => {
-                if (typeof renderStudentDashboard === 'function') {
-                    renderStudentDashboard(student.code);
-                } else if (typeof window.renderStudentDashboard === 'function') {
-                    window.renderStudentDashboard(student.code);
-                }
-            }, 1000);
-            
-        } else {
-            alert("รหัสผ่านไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+        localStorage.setItem('current_student_code', student.code);
+        document.getElementById('student-login-wrapper').classList.add('hidden');
+        document.getElementById('student-dashboard').classList.remove('hidden');
+        
+        if (typeof renderStudentDashboard === 'function') {
+            renderStudentDashboard(student.code);
         }
+        if (typeof showToast === 'function') showToast(`ยินดีต้อนรับ ${student.name}`);
+    } else {
+        alert(`ไม่พบรายชื่อในระบบ!\n\nรหัสที่คุณพิมพ์คือ: "${inputId}"\n(โปรดตรวจสอบความถูกต้องอีกครั้ง หรือแจ้งคุณครูผู้สอน)`);
+        if (typeof showToast === 'function') showToast("ไม่พบรายชื่อนี้ในระบบ", "bg-red-600 border-red-400");
     }
 };
 
@@ -324,7 +243,63 @@ window.saveSubjectConfig = function() {
     document.getElementById('subject-config-modal').classList.add('hidden');
     showToast("บันทึกโครงสร้างคะแนนแล้ว");
 };
+// 1. ฟังก์ชันลบงาน
+window.deleteTask = function(taskId) {
+    if(!confirm("⚠️ คำเตือน: คุณต้องการลบงานชิ้นนี้ใช่หรือไม่?\n\n- คะแนนทั้งหมดในงานนี้จะหายไป\n- การกระทำนี้ไม่สามารถย้อนกลับได้")) {
+        return;
+    }
+    
+    showLoading("กำลังลบข้อมูล...");
+    
+    // ลบ Task ออกจากรายการ
+    dataState.tasks = dataState.tasks.filter(t => String(t.id) !== String(taskId));
+    // ลบ คะแนน (Scores) ที่ผูกกับ Task นี้ทิ้งไป
+    dataState.scores = dataState.scores.filter(s => String(s.taskId) !== String(taskId));
+    // ลบ ประวัติการส่งงาน
+    dataState.submissions = dataState.submissions.filter(s => String(s.taskId) !== String(taskId));
+    if(dataState.returns) {
+        dataState.returns = dataState.returns.filter(r => String(r.taskId) !== String(taskId));
+    }
 
+    // บันทึกลงเครื่องทันที
+    saveToLocalStorage(); 
+    // ส่งคำสั่งไป Sync (บอก Server ว่าลบงานนี้)
+    saveAndRefresh({ action: 'deleteTask', taskId: taskId }); 
+    // รีเฟรชเฉพาะตารางจัดการคะแนนเพื่อความลื่นไหล
+    renderScoreManagerPanel();
+    
+    hideLoading();
+    showToast("ลบงานเรียบร้อยแล้ว", "bg-red-600");
+};
+
+// ===============================================
+// ✅ ย้ายฟังก์ชันนี้ออกมาไว้ "ข้างนอก" ฟังก์ชันลบงาน
+// 3. ฟังก์ชันแก้ไขชื่องาน (Edit Task Name)
+window.updateTaskName = function(taskId, newName) {
+    const task = dataState.tasks.find(t => String(t.id) === String(taskId));
+    if (!task) return;
+
+    const oldName = task.name;
+    const name = newName.trim();
+
+    // ถ้าชื่อว่าง หรือ เป็นชื่อเดิม ไม่ต้องทำอะไร
+    if (!name) {
+        showToast("ชื่อห้ามว่าง!", "bg-red-600");
+        renderScoreManagerPanel(); // รีโหลดเพื่อคืนค่าเดิม
+        return;
+    }
+    if (name === oldName) return;
+
+    // 1. อัปเดตในเครื่องทันที
+    task.name = name;
+    saveToLocalStorage();
+
+    // 2. ส่งไปบันทึกที่ Server
+    saveAndRefresh({ action: 'editTask', id: taskId, name: name });
+
+    console.log(`Renamed task ${taskId} to ${name}`);
+    showToast("เปลี่ยนชื่อเรียบร้อย");
+};
 // --- 3. Score & Attendance Functions ---
 window.setScoreMode = function(m) { 
     globalState.scoreMode = m; 
@@ -372,8 +347,8 @@ window.searchIndividual = function(keyword) {
         container.classList.remove('hidden');
         results.forEach(s => {
             const div = document.createElement('div');
-            div.className = "p-3 hover:bg-white/10 cursor-pointer text-white border-b border-white/5 last:border-0";
-            div.innerHTML = `<div class="font-bold text-sm">${s.name}</div><div class="text-xs text-white/50">${s.code}</div>`;
+            div.className = "p-3 hover:bg-white/10 cursor-pointer text-[#1A1A2E] border-b border-white/5 last:border-0";
+            div.innerHTML = `<div class="font-bold text-sm">${s.name}</div><div class="text-xs text-[#1A1A2E]/50">${s.code}</div>`;
             div.onclick = () => { 
                 document.getElementById('individual-result-container').classList.remove('hidden');
                 document.getElementById('ind-name').textContent = s.name;
@@ -421,13 +396,18 @@ window.searchIndividual = function(keyword) {
                 if (missingTasks.length > 0) {
                     missingTasks.forEach(t => {
                         const el = document.createElement('div');
-                        el.className = "bg-white/5 p-2 rounded border-l-2 border-red-400 flex items-center justify-between";
-                        el.innerHTML = `<span class="text-xs text-white/80 truncate">${t.name}</span><span class="text-xs text-red-400">ยังไม่ส่ง</span>`;
+                        el.className = "bg-[#F5F0E8] p-2 rounded border-l-2 border-red-400 flex items-center justify-between";
+                        el.innerHTML = `<span class="text-xs text-[#1A1A2E]/80 truncate">${t.name}</span><span class="text-xs text-red-400">ยังไม่ส่ง</span>`;
                         missingListDiv.appendChild(el);
                     });
                 } else {
                     missingListDiv.innerHTML = `<div class="text-center py-2 text-green-400 text-xs"><i class="fa-solid fa-check-circle mr-1"></i>ส่งงานครบแล้ว</div>`;
                 }
+                // 🟢 🟢 🟢 เพิ่ม 3 บรรทัดนี้ เพื่อเรียก Timeline มาแสดง
+                if(typeof window.generateTimelineHTML === 'function') {
+                    document.getElementById('ind-timeline-container').innerHTML = window.generateTimelineHTML(s.id);
+                }
+
                 container.classList.add('hidden'); 
                 document.getElementById('individual-search').value = '';
             };
@@ -466,8 +446,8 @@ window.openSubmitModal = function(taskId, studentId, taskName, isEdit = false) {
         const container = document.getElementById('friend-selector-container');
         friends.forEach(f => {
             const div = document.createElement('div');
-            div.className = "friend-item flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer";
-            div.innerHTML = `<input type="checkbox" value="${f.id}" class="friend-checkbox accent-blue-500"><span class="text-xs text-white/80">${f.name}</span>`;
+            div.className = "friend-item flex items-center gap-2 p-2 hover:bg-[#F5F0E8] rounded cursor-pointer";
+            div.innerHTML = `<input type="checkbox" value="${f.id}" class="friend-checkbox accent-blue-500"><span class="text-xs text-[#1A1A2E]/80">${f.name}</span>`;
             container.appendChild(div);
         });
     }
@@ -510,12 +490,12 @@ window.setExamTab = function(type) {
     // Safety Check: เผื่อหาปุ่มไม่เจอ
     if (btnMid && btnFinal) {
         if(type === 'midterm') {
-            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-lg transition-all";
-            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-[#1A1A2E] shadow-lg transition-all";
+            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold text-[#1A1A2E]/50 hover:text-[#1A1A2E] transition-all";
         } else {
             // โหมด Final
-            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow-lg transition-all";
-            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+            btnFinal.className = "px-6 py-2 rounded-lg text-sm font-bold bg-[#C53D43] text-[#1A1A2E] shadow-lg transition-all";
+            btnMid.className = "px-6 py-2 rounded-lg text-sm font-bold text-[#1A1A2E]/50 hover:text-[#1A1A2E] transition-all";
         }
     }
 
@@ -627,9 +607,9 @@ window.printOfficialReport = function() {
     // 4. ฟังก์ชันสำหรับล้างสี (ทำให้เป็นขาว-ดำ)
     const cleanColors = (html) => {
         return html
-            // ลบสีตัวอักษรทั้งหมด (text-white, text-red-400, ฯลฯ)
+            // ลบสีตัวอักษรทั้งหมด (text-[#1A1A2E], text-red-400, ฯลฯ)
             .replace(/text-[a-z]+-[0-9]+(\/[0-9]+)?/g, '') 
-            .replace(/text-white(\/[0-9]+)?/g, '')
+            .replace(/text-[#1A1A2E](\/[0-9]+)?/g, '')
             .replace(/text-[a-z]+-[0-9]+/g, '')
             // ลบพื้นหลังสี (bg-white/10 ฯลฯ)
             .replace(/bg-[a-z]+(\/[0-9]+)?/g, '')
@@ -866,8 +846,8 @@ function initEventListeners() {
                document.getElementById('csv-file-name').className = "text-xs text-center text-green-400 font-bold mb-2";
                const btn = document.getElementById('btn-process-csv');
                if(btn) {
-                   btn.classList.remove('pointer-events-none', 'bg-white/10', 'text-white/50');
-                   btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-500');
+                   btn.classList.remove('pointer-events-none', 'bg-white/10', 'text-[#1A1A2E]/50');
+                   btn.classList.add('bg-green-600', 'text-[#1A1A2E]', 'hover:bg-green-500');
                }
            }
        });
@@ -1198,7 +1178,7 @@ window.addEventListener('DOMContentLoaded', () => {
         [5,6,7,8,9,10].forEach(i => { 
             const b = document.createElement('button'); 
             b.textContent=i; 
-            b.className="btn-score py-2 rounded-lg border border-white/20 bg-white/5 text-white hover:bg-white/10"; 
+            b.className="btn-score py-2 rounded-lg border border-white/20 bg-[#F5F0E8] text-[#1A1A2E] hover:bg-white/10"; 
             b.onclick=()=>window.setScoreMode(i); 
             c.appendChild(b); 
         }); 
@@ -1247,11 +1227,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 window.openEditChapterModal = openEditChapterModal; // ผูก window
-
-// ในไฟล์ js/main.js
-
-// ในไฟล์ js/main.js
-
 window.saveColumnEdit = function() {
     const mode = document.getElementById('edit-mode').value;
     const name = document.getElementById('edit-col-name').value;
@@ -1276,7 +1251,6 @@ window.saveColumnEdit = function() {
         let newNames = [...(subject.chapterNames || [])];
         let newTypes = [...(subject.chapterTypes || [])];
 
-        // เติม Array ให้เต็มถ้า Index เกิน
         for(let k=0; k<=index; k++) {
             if(newConfig[k] === undefined) newConfig[k] = 10;
             if(newNames[k] === undefined) newNames[k] = "";
@@ -1285,7 +1259,7 @@ window.saveColumnEdit = function() {
 
         newConfig[index] = parseFloat(max);
         newNames[index] = name;
-        newTypes[index] = category; // ในโหมดนี้ category คือ type (normal/special)
+        newTypes[index] = category;
 
         window.saveAndRefresh({
             action: 'updateSubjectDetails',
@@ -1295,7 +1269,6 @@ window.saveColumnEdit = function() {
             chapterTypes: newTypes
         });
 
-        // Update Local State
         subject.scoreConfig = newConfig;
         subject.chapterNames = newNames;
         subject.chapterTypes = newTypes;
@@ -1304,41 +1277,34 @@ window.saveColumnEdit = function() {
         window.renderScoreManagerTable();
     } 
     
-  // ---------------------------------------------------------
+    // ---------------------------------------------------------
     // 2. 🟢 โหมดแก้ไขงานคะแนนเก็บ (Task Accum) - ย้ายบท/เลือกหลายบท
     // ---------------------------------------------------------
     else if (mode === 'task_accum') {
         const taskId = document.getElementById('edit-col-id').value;
-        
-        // 1. ดึงค่าจาก Checkbox
         const checkboxes = document.querySelectorAll('.chapter-selector:checked');
         const newChapters = Array.from(checkboxes).map(cb => cb.value); 
 
-        // 🔍 ค้นหางานที่จะแก้
         const task = dataState.tasks.find(t => String(t.id) === String(taskId));
         
        if (task) {
-            // 2. ⭐ แก้ไขข้อมูลใน State ให้เสร็จ "ก่อน" บันทึก
             task.name = name;
             task.maxScore = Number(max); 
             task.chapter = newChapters;  
 
-            console.log("กำลังบันทึกงาน:", task); 
+            // ✅ บันทึกลง Firebase พร้อมระบุ Action
+            window.saveAndRefresh({ action: 'keepAlive' }); 
 
-            // 3. 💾 สั่งบันทึกลง Firebase
-            window.saveAndRefresh(); 
+            // ✅ ปิดหน้าต่าง Modal ทันทีหลังกดบันทึก
+            document.getElementById('edit-column-modal').classList.add('hidden');
 
-            // -----------------------------------------------------
-            // 🔴 จุดแก้ไข: คอมเมนต์บรรทัดนี้ทิ้งครับ (เพื่อไม่ให้หน้าต่างปิด)
-            // document.getElementById('edit-column-modal').classList.add('hidden');
-            // -----------------------------------------------------
-
-            // 🟢 เพิ่ม: แสดงข้อความแจ้งเตือนเพื่อให้รู้ว่าบันทึกแล้ว
-            // (ถ้าคุณมีฟังก์ชัน showToast ใช้ showToast จะสวยกว่าครับ)
-            alert("บันทึกข้อมูลเรียบร้อย! (แก้ไขต่อได้เลย)"); 
+            // ✅ แจ้งเตือนความสำเร็จ
+            if (typeof showToast === 'function') {
+                showToast("บันทึกข้อมูลเรียบร้อย");
+            } else {
+                alert("บันทึกข้อมูลเรียบร้อย");
+            }
             
-            // 4. รีเฟรชตารางพื้นหลัง (เพื่อให้คะแนนรวมข้างหลังอัปเดต)
-            // หน้าต่าง Modal จะยังลอยอยู่เหนือตาราง
             setTimeout(() => {
                 window.renderScoreManagerTable();
             }, 100);
@@ -1356,15 +1322,13 @@ window.saveColumnEdit = function() {
         const task = dataState.tasks.find(t => String(t.id) === String(taskId));
         
         if (task) {
-            // 1. แก้ไข State ก่อน
             task.name = name;
             task.maxScore = Number(max);
             task.category = category;
 
-            // 2. บันทึก
-            window.saveAndRefresh(); 
+            window.saveAndRefresh({ action: 'keepAlive' }); 
 
-            // 3. รีเฟรชหน้าจอ
+            // ✅ ปิดหน้าต่าง Modal ทันทีหลังกดบันทึก
             document.getElementById('edit-column-modal').classList.add('hidden');
             window.renderExamTable();
         }
@@ -1634,41 +1598,23 @@ window.processCSVImport = function() {
         let successCount = 0;
         let errorCount = 0;
 
-        // เริ่มวนลูปบรรทัดที่ 2 (ข้าม Header)
         for(let i=1; i<rows.length; i++) {
             const row = rows[i].trim();
             if(!row) continue;
-
-            // แยกคอลัมน์ด้วย comma (รองรับกรณีชื่อมี quote)
-            // วิธีง่ายๆ: split(',') แต่อาจมีปัญหากับชื่อที่มี ,
-            // เพื่อความง่าย เราจะใช้ regex หรือ split ธรรมดาโดยสมมติว่าไม่มี , ในข้อมูลอื่น
-            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex แยก comma นอก quote
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
             
             if(cols.length < 4) continue;
 
-            // คอลัมน์: [0]=No, [1]=StudentCode, [2]=Name, [3]=Score
             const studentCode = cols[1].trim();
-            let scoreVal = cols[3].trim().replace(/"/g, ''); // ลบ quote ออกถ้ามี
+            let scoreVal = cols[3].trim().replace(/"/g, ''); 
 
-            if(scoreVal === "" || isNaN(scoreVal)) continue; // ข้ามถ้าไม่มีคะแนน
+            if(scoreVal === "" || isNaN(scoreVal)) continue; 
 
             const score = parseFloat(scoreVal);
-            
-            // ตรวจสอบคะแนนเกิน
-            if(score > maxScore) {
-                console.warn(`คะแนนเกิน: รหัส ${studentCode} ได้ ${score}/${maxScore}`);
-                // จะข้าม หรือจะปัดให้เท่ากับ Max ก็ได้ (ที่นี่ขอปัดเท่า Max)
-                // score = maxScore; 
-            }
-
-            // หา ID นักเรียนจากรหัส
             const student = dataState.students.find(s => String(s.code) === String(studentCode));
             
             if(student) {
-                // บันทึกคะแนน (เรียกใช้ฟังก์ชันที่มีอยู่แล้ว)
-                // เราต้องจำลองการบันทึกโดยตรง
                 let scoreObj = dataState.scores.find(s => s.studentId == student.id && s.taskId == taskId);
-                
                 if(scoreObj) {
                     scoreObj.score = score;
                 } else {
@@ -1681,19 +1627,18 @@ window.processCSVImport = function() {
                 successCount++;
             } else {
                 errorCount++;
-                console.warn(`ไม่พบนักเรียนรหัส: ${studentCode}`);
             }
         }
 
-        // บันทึกลง LocalStorage/Server
-        saveData(); 
+        // ✅ แก้ไขจุดที่ Error: ใช้ฟังก์ชันบันทึกที่ถูกต้อง
+        if (typeof saveToLocalStorage === 'function') saveToLocalStorage();
+        if (typeof saveAndRefresh === 'function') {
+            saveAndRefresh({ action: 'keepAlive' }); 
+        }
         
         alert(`นำเข้าเรียบร้อย!\n✅ สำเร็จ: ${successCount} คน\n❌ ไม่พบรหัส/ผิดพลาด: ${errorCount} คน`);
         
-        // รีเฟรชหน้าจอ (ถ้าเปิดตารางคะแนนอยู่)
-        if(window.renderScoreManagerTable) window.renderScoreManagerTable();
-        
-        // ล้างไฟล์
+        if(window.renderScoreManagerTable) window.renderScoreManagerTable(classId);
         fileInput.value = '';
     };
 
@@ -1944,7 +1889,7 @@ window.renderExamUI = function(examData) {
         // 🟢 2. Render Navigator (ปุ่มตัวเลข) ตามลำดับที่จัดเรียงแล้ว
         if (navGrid) {
             navGrid.innerHTML = orderedQuestions.map((q, idx) => `
-                <button onclick="scrollToQuestion('q-${idx}')" id="nav-btn-${q.id}" class="w-10 h-10 rounded bg-white/10 text-white/70 text-sm hover:bg-yellow-500 hover:text-black transition-colors border border-white/5">
+                <button onclick="scrollToQuestion('q-${idx}')" id="nav-btn-${q.id}" class="w-10 h-10 rounded bg-white/10 text-[#1A1A2E]/70 text-sm hover:bg-yellow-500 hover:text-black transition-colors border border-white/5">
                     ${idx + 1}
                 </button>
             `).join('');
@@ -1959,7 +1904,7 @@ window.renderExamUI = function(examData) {
                     // ถ้านี่คือข้อแรกของตอน ให้วาดป้าย Section
                     if (q._renderSection && q._renderSection !== 'ทั่วไป' && q._renderSection !== '') {
                         prependHtml += `
-                            <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-300 font-bold p-4 rounded-xl mt-10 mb-2 text-center text-lg shadow-lg">
+                            <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-300 font-bold p-4 rounded-sm mt-10 mb-2 text-center text-lg shadow-lg">
                                 <i class="fa-solid fa-folder-open mr-2"></i> ${q._renderSection}
                             </div>
                         `;
@@ -1971,7 +1916,7 @@ window.renderExamUI = function(examData) {
                         prependHtml += `
                             <div class="bg-purple-900/30 border border-purple-500/30 p-6 rounded-2xl mb-2 shadow-lg mt-6">
                                 <div class="flex items-center gap-2 mb-4 border-b border-purple-500/30 pb-3">
-                                    <span class="bg-purple-500 text-white font-bold px-3 py-1.5 rounded-full text-xs"><i class="fa-solid fa-book-open"></i> ข้อมูลสำหรับตอบคำถาม</span>
+                                    <span class="bg-purple-500 text-[#1A1A2E] font-bold px-3 py-1.5 rounded-full text-xs"><i class="fa-solid fa-book-open"></i> ข้อมูลสำหรับตอบคำถาม</span>
                                 </div>
                                 ${(p.image && p.image.startsWith('data:image')) ? `<img src="${p.image}" class="max-w-full md:max-w-lg rounded-lg mb-4 border border-white/20 mx-auto">` : ''}
                                 ${p.text ? `<p class="text-purple-100 text-md leading-relaxed whitespace-pre-line">${p.text}</p>` : ''}
@@ -1984,22 +1929,22 @@ window.renderExamUI = function(examData) {
 
                     return `
                     ${prependHtml}
-                    <div id="q-${idx}" class="bg-white/5 border border-white/10 p-6 rounded-2xl relative mb-4">
+                    <div id="q-${idx}" class="bg-[#F5F0E8] border border-gray-200 p-6 rounded-2xl relative mb-4">
                         <div class="flex gap-3 mb-4">
                             <span class="bg-yellow-500 text-black font-bold px-2 py-0.5 rounded h-fit text-sm shrink-0">ข้อ ${idx+1}</span>
                             <div class="w-full">
                                 ${(q.image && q.image.startsWith('data:image')) ? `<img src="${q.image}" class="max-w-full md:max-w-md rounded-lg mb-4 border border-white/20">` : ''}
-                                <p class="text-white text-lg leading-relaxed whitespace-pre-line">${q.text}</p>
+                                <p class="text-[#1A1A2E] text-lg leading-relaxed whitespace-pre-line">${q.text}</p>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 gap-3 pl-2 md:pl-10">
                             ${choices.map(c => `
-                                <label class="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:bg-white/10 cursor-pointer transition-all group">
+                                <label class="flex items-center gap-3 p-3 rounded-sm border border-white/5 hover:bg-white/10 cursor-pointer transition-all group">
                                     <div class="relative flex items-center shrink-0">
                                         <input type="radio" name="ans-${q.id}" value="${c.id}" onchange="selectAnswer('${q.id}', '${c.id}')" class="peer w-5 h-5 appearance-none border-2 border-white/30 rounded-full checked:border-green-500 checked:bg-green-500 transition-all">
-                                        <i class="fa-solid fa-check text-white text-[10px] absolute top-1 left-1 opacity-0 peer-checked:opacity-100"></i>
+                                        <i class="fa-solid fa-check text-[#1A1A2E] text-[10px] absolute top-1 left-1 opacity-0 peer-checked:opacity-100"></i>
                                     </div>
-                                    <span class="text-white/80 group-hover:text-white">${c.text}</span>
+                                    <span class="text-[#1A1A2E]/80 group-hover:text-[#1A1A2E]">${c.text}</span>
                                 </label>
                             `).join('')}
                         </div>
@@ -2015,8 +1960,8 @@ window.selectAnswer = function(qId, choiceId) {
     // เปลี่ยนสีปุ่ม Navigator ให้รู้ว่าทำแล้ว
     const btn = document.getElementById(`nav-btn-${qId}`);
     if(btn) {
-        btn.classList.add('bg-blue-600', 'text-white', 'border-transparent');
-        btn.classList.remove('bg-white/10', 'text-white/70');
+        btn.classList.add('bg-blue-600', 'text-[#1A1A2E]', 'border-transparent');
+        btn.classList.remove('bg-white/10', 'text-[#1A1A2E]/70');
     }
 }
 

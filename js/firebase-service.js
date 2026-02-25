@@ -4,7 +4,6 @@ let syncTimeout;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { FIREBASE_CONFIG, GOOGLE_SCRIPT_URL } from "./config.js";
 import { dataState, updateDataState, saveToLocalStorage, globalState, updateLocalState } from "./state.js";
 import { updateSyncUI, showToast, showLoading, hideLoading } from "./utils.js";
@@ -12,25 +11,19 @@ import { refreshUI } from "./ui-render.js";
 
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
-// ✅ 2. เพิ่มบรรทัดนี้ลงไปครับ
-const auth = getAuth(app); 
 
 // 🟢 หมวดหมู่ปกติ (ตัด exams ออก เพราะเราจะใช้ระบบหั่นไฟล์ให้มันพิเศษ)
 const DB_KEYS = ["tasks", "scores", "students", "subjects", "classes", "attendance", "materials", "submissions", "returns", "schedules", "examSessions"];
+
 // 🟢 ตั้งค่าจำนวนการหั่นไฟล์สำหรับ Exams
 const EXAM_CHUNKS = 10; 
 let examsDataArray = new Array(EXAM_CHUNKS).fill([]); // อาเรย์สำหรับพักข้อมูลที่หั่นแล้ว
 
-// ✅ 1. เพิ่มตัวแปรป้องกันการดึงข้อมูลซ้ำซ้อน (ใส่ไว้บนบรรทัด export async function syncData)
-let isDataSyncing = false; 
-
 export async function syncData() {
-    // ✅ 2. วาล์วป้องกัน: ถ้าเปิดท่อข้อมูลไปแล้ว ห้ามเปิดซ้ำเด็ดขาด! (แก้ปัญหา 10-sec Timeout)
-    if (isDataSyncing) {
-        console.log("กำลังดึงข้อมูลอยู่แล้ว ข้ามการเปิดท่อเชื่อมต่อใหม่...");
-        return; 
-    }
-    isDataSyncing = true; // ล็อกวาล์ว
+    //if (globalState.sheetQueue && globalState.sheetQueue.length > 0) {
+     //   processSheetQueue();
+       // return;
+   // }
 
     updateSyncUI('Connecting (Firestore)...', 'yellow');
 
@@ -39,19 +32,13 @@ export async function syncData() {
         const docRef = doc(db, "school_data", `wany_data_${key}`);
         onSnapshot(docRef, { includeMetadataChanges: true }, (docSnap) => {
             if (docSnap.metadata.hasPendingWrites) return;
-            
-            if (docSnap.exists()) {
-                dataState[key] = docSnap.data().items || [];
-            } else {
-                if (!dataState[key]) dataState[key] = [];
-            }
-            if (typeof triggerUIRefresh === 'function') triggerUIRefresh();
-        }, (error) => {
-            console.error(`Error syncing ${key}:`, error);
+            if (docSnap.exists()) dataState[key] = docSnap.data().items || [];
+            else dataState[key] = [];
+            triggerUIRefresh();
         });
     });
 
-    // 2. โหลดข้อมูล Exams (ดึงจาก 10 ไฟล์ย่อย)
+    // 2. โหลดข้อมูล Exams (ดึงจาก 10 ไฟล์ย่อยมาประกอบร่างกัน)
     for (let i = 0; i < EXAM_CHUNKS; i++) {
         const docRef = doc(db, "school_data", `wany_data_exams_part_${i}`);
         onSnapshot(docRef, { includeMetadataChanges: true }, (docSnap) => {
@@ -60,17 +47,11 @@ export async function syncData() {
             if (docSnap.exists()) {
                 examsDataArray[i] = docSnap.data().items || [];
             } else {
-                if (!examsDataArray[i]) examsDataArray[i] = [];
+                examsDataArray[i] = [];
             }
-            
-            const combinedExams = examsDataArray.flat();
-            if (combinedExams.length > 0 || !dataState.exams) {
-                dataState.exams = combinedExams;
-            }
-            
-            if (typeof triggerUIRefresh === 'function') triggerUIRefresh();
-        }, (error) => {
-            console.error(`Error syncing exams part ${i}:`, error);
+            // นำทั้ง 10 ส่วนมารวมกลับเป็น Array เดียว
+            dataState.exams = examsDataArray.flat();
+            triggerUIRefresh();
         });
     }
 }
@@ -190,62 +171,7 @@ export async function restoreFromGoogleSheet() {
         hideLoading();
     }
 }
-// ✅ แก้ไขฟังก์ชันนี้ใน firebase-service.js
-export async function studentLogin(studentCode, password) {
-    console.log("Password received:", password);
-    const email = `${studentCode}@student.wny.app`;
-    const finalPassword = password || "123456";
-    try {
-        await signInWithEmailAndPassword(auth, email, finalPassword);
-        // 1. พยายาม Login ก่อน (สำหรับคนที่เคยเข้าแล้ว)
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("เข้าสู่ระบบสำเร็จ:", userCredential.user.uid);
-        return true;
-    } catch (error) {
-        console.log("Firebase Error Code:", error.code); // บรรทัดนี้จะช่วยบอกเราว่าติดอะไร
 
-        // ตรวจสอบว่าต้องสร้างบัญชีใหม่หรือไม่
-        const shouldCreateUser = 
-            error.code === 'auth/user-not-found' || 
-            error.code === 'auth/invalid-credential' || 
-            error.code === 'auth/invalid-login-credentials';
-
-        if (shouldCreateUser) {
-            try {
-                const newUser = await createUserWithEmailAndPassword(auth, email, password);
-                console.log("บันทึกบัญชีใหม่สำเร็จ:", newUser.user.uid);
-                return true;
-            } catch (createError) {
-                // ถ้าเด้งมาตรงนี้แปลว่า 'เคยมีเมลนี้แล้ว' แต่รหัสผ่านผิด
-                if (createError.code === 'auth/email-already-in-use') {
-                    alert("รหัสผ่านไม่ถูกต้องสำหรับนักเรียนคนนี้");
-                } else {
-                    console.error("สร้างบัญชีไม่สำเร็จ:", createError.message);
-                }
-                return false;
-            }
-        }
-        return false;
-    }
-}
-
-// ✅ เพิ่มฟังก์ชันเปลี่ยนรหัสผ่าน (ให้นักเรียนใช้ภายหลัง)
-import { updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-export async function changeStudentPassword(newPassword) {
-    const user = auth.currentUser;
-    if (user) {
-        try {
-            await updatePassword(user, newPassword);
-            return true;
-        } catch (error) {
-            console.error(error);
-            return false;
-        }
-    }
-}
-
-window.studentLogin = studentLogin;
-window.changeStudentPassword = changeStudentPassword;
 // ==========================================
 // 🔄 คิวจัดการ Google Sheet (ปิดการใช้งาน Auto-sync)
 // ==========================================

@@ -30,7 +30,7 @@ export function showToast(m,c,icon){
     if(i) i.className = icon || "fa-solid fa-circle-check text-2xl";
 
     const theme = c || "bg-gradient-to-r from-green-600 to-teal-600 border-green-400/50";
-    t.className=`fixed bottom-10 left-1/2 -translate-x-1/2 text-white px-8 py-4 rounded-full shadow-2xl z-50 flex items-center gap-3 translate-y-20 opacity-0 font-bold border ${theme} toast-show`; 
+    t.className=`fixed bottom-10 left-1/2 -translate-x-1/2 text-[#1A1A2E] px-8 py-4 rounded-full shadow-2xl z-50 flex items-center gap-3 translate-y-20 opacity-0 font-bold border ${theme} toast-show`; 
     setTimeout(()=>t.classList.remove('toast-show'),3000); 
 }
 

@@ -1,68 +1,124 @@
 /* css/style.css */
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+/* เพิ่มฟอนต์ Noto Serif สำหรับหัวข้อและตราประทับให้ดูคลาสสิก */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;700&display=swap');
 
 body { 
     font-family: 'Sarabun', sans-serif; 
-    background: radial-gradient(circle at top left, #1e3a8a, #0f172a, #000000); 
-    background-attachment: fixed;
-    color: #e2e8f0;
+    /* สีพื้นหลังกระดาษข้าว (Rice Paper) */
+    background-color: #F5F0E8; 
+    /* สีหมึกดำสำหรับตัวหนังสือหลัก */
+    color: #1A1A2E; 
     -webkit-tap-highlight-color: transparent;
+    /* เพิ่มลูกเล่นลายพื้นผิวกระดาษบางๆ */
+    background-image: url('https://www.transparenttextures.com/patterns/rice-paper.png');
 }
+
+/* หัวข้อที่ต้องการความคลาสสิก */
+.font-serif-thai {
+    font-family: 'Noto Serif Thai', serif;
+}
+
+/* --- ล้างบาง Glassmorphism เดิม เปลี่ยนเป็น Paper Style --- */
 .glass-ios {
-    background: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border-radius: 4px; /* ขอบเหลี่ยมขึ้นเล็กน้อย */
 }
+
+/* ช่องกรอกข้อมูลสไตล์เส้นบรรทัด */
 .glass-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #D1D5DB;
+    color: #1A1A2E;
+    border-radius: 0;
     transition: all 0.3s;
+    padding-left: 0;
+    padding-right: 0;
 }
 .glass-input:focus {
-    background: rgba(0, 0, 0, 0.5);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: transparent;
+    border-bottom: 2px solid #C53D43; /* สีแดง Cinnabar */
     outline: none;
+    box-shadow: none;
 }
-/* Autofill Fix for Dark Theme */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.5) inset !important;
-    -webkit-text-fill-color: white !important;
-    caret-color: white !important;
-    transition: background-color 5000s ease-in-out 0s;
+.glass-input::placeholder {
+    color: #9CA3AF;
 }
 
-.btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: 1px solid rgba(255,255,255,0.2); }
-.btn-blue:hover:not(:disabled) { box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); transform: translateY(-1px); }
+/* แถบสีแดงสไตล์พู่กัน (ใช้ตกแต่งขอบบนการ์ด) */
+.brush-border-top {
+    position: relative;
+}
+.brush-border-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #C53D43;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+/* ตราประทับ (Seal Stamp) */
+.seal-stamp {
+    position: absolute;
+    border: 2px solid #C53D43;
+    color: #C53D43;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    opacity: 0.8;
+    font-weight: bold;
+    font-family: 'Noto Serif Thai', serif;
+    pointer-events: none;
+}
+
+/* ========================================= */
+/* 🎨 ปรับปรุงปุ่มกดต่างๆ ที่เคยเป็นสีสะท้อนแสง */
+/* ========================================= */
+.btn-blue { background: #1A1A2E; color: white; border: 1px solid #1A1A2E; border-radius: 4px; transition: all 0.2s;}
+.btn-blue:hover:not(:disabled) { background: #C53D43; border-color: #C53D43; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transform: translateY(-1px); }
 .btn-blue:active { transform: scale(0.98); }
 
-.btn-red { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: 1px solid rgba(255,255,255,0.2); }
-.btn-yellow { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.btn-red { background: #C53D43; color: white; border: 1px solid #C53D43; border-radius: 4px; }
+.btn-yellow { background: #D4AF37; color: white; border: 1px solid #D4AF37; border-radius: 4px; }
 
-.btn-score-active { background: #eab308 !important; color: black !important; border: 2px solid #fff !important; font-weight: bold; transform: scale(1.1); box-shadow: 0 0 15px rgba(234, 179, 8, 0.6); }
+/* ปุ่มให้คะแนนที่ถูกคลิก (Active Score) */
+.btn-score-active { 
+    background: #C53D43 !important; 
+    color: white !important; 
+    border: 2px solid #8A252A !important; 
+    font-weight: bold; 
+    transform: scale(1.1); 
+    box-shadow: 0 4px 10px rgba(197, 61, 67, 0.3); 
+}
 
-/* Attendance Buttons */
-.btn-att-active-present { background: #059669 !important; color: white !important; border-color: white !important; }
-.btn-att-active-leave { background: #d97706 !important; color: white !important; border-color: white !important; }
-.btn-att-active-absent { background: #dc2626 !important; color: white !important; border-color: white !important; }
-.btn-att-active-activity { background: #f97316 !important; color: white !important; border-color: white !important; }
+/* ปุ่มเช็คชื่อ (Attendance Buttons) */
+.btn-att-active-present { background: #2D6A4F !important; color: white !important; border-color: #1B4332 !important; }
+.btn-att-active-leave { background: #D4AF37 !important; color: white !important; border-color: #C39F2D !important; }
+.btn-att-active-absent { background: #C53D43 !important; color: white !important; border-color: #A03035 !important; }
+.btn-att-active-activity { background: #1A1A2E !important; color: white !important; border-color: #000000 !important; }
 
-.status-box { transition: all 0.2s; border-radius: 12px; }
-.status-none { background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2); color: #94a3b8; }
-.status-done { background: rgba(5, 150, 105, 0.2); border: 1px solid #059669; color: #34d399; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
+/* กล่องสถานะต่างๆ */
+.status-box { transition: all 0.2s; border-radius: 4px; }
+.status-none { background: #F5F0E8; border: 1px dashed #D1D5DB; color: #6B7280; }
+.status-done { background: #FFFFFF; border: 1px solid #2D6A4F; color: #2D6A4F; box-shadow: 0 2px 4px rgba(45, 106, 79, 0.1); }
 
-.chapter-checkbox:checked + div { background: linear-gradient(135deg, #d97706, #b45309); color: white; border-color: white; }
+.chapter-checkbox:checked + div { background: #C53D43; color: white; border-color: #C53D43; }
 
-/* Custom Scrollbar */
+/* ========================================= */
+/* 📜 Custom Scrollbar สไตล์สว่างสบายตา */
+/* ========================================= */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
 #toast-notification { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
 .toast-show { transform: translate(-50%, 0) !important; opacity: 1 !important; }
@@ -70,9 +126,10 @@ input:-webkit-autofill:active {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
+/* --- การตั้งค่าสำหรับการพิมพ์เอกสาร --- */
 @media print {
   @page { size: A4 portrait; margin: 1cm; }
-  body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; }
+  body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; background-image: none !important; }
   #app-root, #toast-notification, #loading-overlay, .no-print { display: none !important; }
   #print-area { display: block !important; position: relative !important; width: 100% !important; background: white !important; color: black !important; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -83,17 +140,18 @@ input:-webkit-autofill:active {
   .print-header-row td { border: none !important; padding-bottom: 10px; }
   .column-header th { background-color: #e5e7eb !important; color: black !important; font-weight: bold; border: 1px solid #000; }
 }
+
 /* --- เอฟเฟกต์กระพริบสำหรับงานค้าง (Student Alert) --- */
 @keyframes blink-red-alert {
-    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); border-color: rgba(220, 38, 38, 0.5); }
-    70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); border-color: rgba(220, 38, 38, 1); }
-    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); border-color: rgba(220, 38, 38, 0.5); }
+    0% { box-shadow: 0 0 0 0 rgba(197, 61, 67, 0.4); border-color: rgba(197, 61, 67, 0.3); }
+    70% { box-shadow: 0 0 0 10px rgba(197, 61, 67, 0); border-color: rgba(197, 61, 67, 1); }
+    100% { box-shadow: 0 0 0 0 rgba(197, 61, 67, 0); border-color: rgba(197, 61, 67, 0.3); }
 }
 
 .task-overdue {
     animation: blink-red-alert 2s infinite;
-    background: rgba(220, 38, 38, 0.1) !important;
-    border: 1px solid #ef4444 !important;
+    background: rgba(197, 61, 67, 0.05) !important;
+    border: 1px solid #C53D43 !important;
 }
 
 /* --- สไตล์สำหรับบัตรนักเรียน (ID Card) --- */
@@ -101,23 +159,24 @@ input:-webkit-autofill:active {
     width: 8.5cm; /* ขนาดมาตรฐานบัตร */
     height: 5.4cm;
     background: white;
-    color: black;
-    border-radius: 10px;
+    color: #1A1A2E;
+    border-radius: 4px;
     position: relative;
     overflow: hidden;
     display: flex;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #E5E7EB;
     page-break-inside: avoid;
-    transform: translateZ(0); /* ช่วยเรื่องการเรนเดอร์กราฟิก */
-    background-color: white; /* บังคับพื้นหลังขาว */
+    transform: translateZ(0);
+    background-color: white; 
 }
 
 .id-card-bg {
     position: absolute;
     top: 0; right: 0; bottom: 0; left: 0;
-    background: linear-gradient(135deg, #1e3a8a 0%, #ffffff 50%);
-    opacity: 0.1;
+    /* เปลี่ยนพื้นหลังบัตรให้สว่างและคลีน */
+    background: linear-gradient(135deg, #F5F0E8 0%, #FFFFFF 50%);
+    opacity: 0.5;
     z-index: 0;
 }
 
@@ -132,26 +191,30 @@ input:-webkit-autofill:active {
         padding: 10px;
     }
 }
-/* --- Lucky Draw Station Styles --- */
+
+/* ========================================= */
+/* 🎲 Lucky Draw Station Styles สไตล์กระดาษมงคล */
+/* ========================================= */
 .lucky-container {
     position: relative;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    background: #FFFFFF;
+    border: 2px solid #E5E7EB;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
+    border-radius: 4px;
 }
 
-/* เอฟเฟกต์ไฟวิ่ง (Running Light Border) */
+/* เอฟเฟกต์ไฟวิ่งขอบ (Running Light) เปลี่ยนเป็น ทอง-แดงมงคล */
 .running-light::before {
     content: '';
     position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    background: linear-gradient(90deg, #ff00cc, #3333ff, #00ccff, #ff00cc);
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    background: linear-gradient(90deg, #C53D43, #D4AF37, #1A1A2E, #C53D43);
     background-size: 400%;
     z-index: -1;
-    border-radius: 16px;
-    animation: glowing-border 3s linear infinite;
-    opacity: 0; /* ซ่อนก่อน เริ่มสุ่มค่อยโชว์ */
+    border-radius: 4px;
+    animation: glowing-border 2s linear infinite;
+    opacity: 0; 
     transition: opacity 0.3s;
 }
 
@@ -167,45 +230,46 @@ input:-webkit-autofill:active {
 
 /* จอแสดงผลชื่อ (Display Screen) */
 .lucky-display-screen {
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 12px;
+    background: #FFFFFF;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 150px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    border: 1px solid #E5E7EB;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
 }
 
 .lucky-name {
     font-size: 3rem;
     font-weight: bold;
-    color: white;
+    color: #1A1A2E;
     text-align: center;
     line-height: 1.2;
-    background: -webkit-linear-gradient(#fff, #ccc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background: none;
+    -webkit-text-fill-color: initial;
 }
 
+/* ชื่อผู้โชคดีตอนสุ่มเสร็จ */
 .lucky-winner .lucky-name {
-    color: #fbbf24; /* สีทอง */
-    -webkit-text-fill-color: #fbbf24;
-    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    color: #C53D43; /* สีแดง Cinnabar */
+    -webkit-text-fill-color: #C53D43;
+    text-shadow: 2px 2px 0px rgba(212, 175, 55, 0.3); /* เงาสีทอง */
     transform: scale(1.1);
     transition: all 0.3s;
 }
 
 /* รายการประวัติ (History List) */
 .history-tag {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #FFFFFF;
+    border: 1px solid #D1D5DB;
     padding: 4px 12px;
-    border-radius: 20px;
+    border-radius: 4px;
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #1A1A2E;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     animation: fadeIn 0.5s;
 }

@@ -15,584 +15,766 @@
   
   <link rel="stylesheet" href="css/style.css">
  </head>
- <body class="w-full h-full min-h-screen">
+<body class="bg-[#F5F0E8] text-[#1A1A2E] font-sans min-h-screen selection:bg-[#C53D43] selection:text-[#1A1A2E] relative">
   
-  <div id="app-root" class="w-full h-full min-h-screen flex items-stretch justify-center p-2 md:p-4">
-   <div class="w-full max-w-7xl rounded-3xl glass-ios flex flex-col relative overflow-hidden shadow-2xl">
+  <div id="app-root" class="w-full h-full min-h-screen flex items-stretch justify-center p-0 md:p-4">
+    <div class="w-full max-w-7xl bg-transparent flex flex-col relative overflow-hidden">
     
-    <header class="w-full px-6 py-4 border-b border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 z-10 no-print">
-     <div class="flex items-center gap-4">
-      <div class="relative group">
-          <div class="absolute -inset-1 bg-gradient-to-r from-red-600 via-yellow-500 to-blue-600 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-          <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="School Logo" class="relative h-16 w-16 object-contain bg-black/20 rounded-full p-1 border border-white/10">
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-white tracking-wide drop-shadow-md">Chinese<span class="text-yellow-400">Class</span> By Krukong</h1>
-        <p class="text-blue-200 text-xs">ครูกีรติ ประสพพรรังสี - กลุ่มสาระการเรียนรู้ภาษาต่างประเทศ</p>
-      </div>
-     </div>
-     <nav class="inline-flex rounded-full bg-black/20 p-1 border border-white/5">
-        <button id="tab-btn-admin" onclick="switchMainTab('admin')" class="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"><i class="fa-solid fa-chalkboard-user mr-2"></i>คุณครู</button> 
-        <button id="tab-btn-student" onclick="switchMainTab('student')" class="px-6 py-2 rounded-full text-sm font-bold text-white/50 hover:text-white transition-all"><i class="fa-solid fa-user-graduate mr-2"></i>นักเรียน</button>
-     </nav>
-    </header>
+   <header class="w-full px-6 py-4 border-b-4 border-[#C53D43] bg-white flex flex-col md:flex-row md:items-center md:justify-between gap-4 z-10 no-print relative">
+    <div class="flex items-center gap-4">
+        <div class="relative group">
+            <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="School Logo" class="relative h-16 w-16 object-contain p-1 border-2 border-[#C53D43] rounded-sm bg-[#F5F0E8]">
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-[#1A1A2E] tracking-wide font-serif-thai">Chinese<span class="text-[#C53D43]">Class</span> By Krukong</h1>
+            <p class="text-gray-500 text-xs">ครูกีรติ ประสพพรรังสี - กลุ่มสาระการเรียนรู้ภาษาต่างประเทศ</p>
+        </div>
+    </div>
+    
+    <nav class="inline-flex rounded-sm bg-[#F5F0E8] p-1 border border-gray-300">
+        <button id="tab-btn-admin" onclick="switchMainTab('admin')" class="px-6 py-2 rounded-sm text-sm font-bold text-gray-500 hover:text-[#1A1A2E] hover:bg-white transition-all">
+            <i class="fa-solid fa-chalkboard-user mr-2"></i>คุณครู
+        </button> 
+        <button id="tab-btn-student" onclick="switchMainTab('student')" class="px-6 py-2 rounded-sm text-sm font-bold text-gray-500 hover:text-[#1A1A2E] hover:bg-white transition-all">
+            <i class="fa-solid fa-user-graduate mr-2"></i>นักเรียน
+        </button>
+    </nav>
+</header>
 
     <main class="flex-1 w-full px-4 md:px-6 pb-6 overflow-y-auto no-print scroll-smooth">
      <div class="w-full max-w-7xl mx-auto mt-6 flex flex-col gap-6">
       
       <div id="section-admin" class="flex flex-col gap-5 hidden">
-        <div id="admin-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
-            <div class="glass-ios p-10 rounded-3xl w-full max-w-sm flex flex-col items-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500"></div>
-                <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-24 h-24 object-contain mb-6 drop-shadow-xl">
-                <h2 class="text-2xl font-bold text-white mb-6">เข้าสู่ระบบคุณครู</h2>
-                <form id="admin-login-form" class="space-y-4 w-full">
-                    <input id="admin-username" type="text" placeholder="Username" class="w-full rounded-xl glass-input px-4 py-3 text-white placeholder-white/30 text-center">
-                    <input id="admin-password" type="password" placeholder="Password" class="w-full rounded-xl glass-input px-4 py-3 text-white placeholder-white/30 text-center">
-                    <button type="submit" class="w-full py-3 rounded-xl btn-yellow font-bold shadow-lg text-lg mt-2">Login</button>
+       <div id="admin-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
+    <div class="bg-white p-10 rounded-sm border border-gray-200 shadow-sm w-full max-w-sm flex flex-col items-center relative overflow-hidden brush-border-top">
+        
+        <div class="seal-stamp top-6 right-6 w-12 h-12 text-lg transform rotate-12">
+            師
+        </div>
+
+        <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-20 h-20 object-contain mb-4 opacity-90">
+        <h2 class="text-2xl font-bold text-[#1A1A2E] mb-6 font-serif-thai tracking-wide">เข้าสู่ระบบคุณครู</h2>
+        
+        <form id="admin-login-form" class="space-y-6 w-full mt-4">
+            <div>
+                <input id="admin-username" type="text" placeholder="Username" class="w-full glass-input px-2 py-2 text-[#1A1A2E] text-center text-lg font-bold">
+            </div>
+            <div>
+                <input id="admin-password" type="password" placeholder="Password" class="w-full glass-input px-2 py-2 text-[#1A1A2E] text-center text-lg font-bold">
+            </div>
+            <button type="submit" class="w-full py-3 rounded-sm bg-[#1A1A2E] text-white hover:bg-[#C53D43] font-bold shadow-md text-lg mt-4 transition-colors">
+    เข้าสู่ระบบ
+</button>
+        </form>
+    </div>
+</div>
+
+        <div id="admin-content-wrapper" class="hidden flex flex-col gap-6">
+            <div class="flex flex-col md:flex-row justify-between items-center bg-white border border-gray-200 px-6 py-4 rounded-sm shadow-sm brush-border-top relative overflow-hidden">
+    
+    <div class="absolute -right-4 -top-4 text-[80px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">
+        管理
+    </div>
+
+    <div class="flex items-center gap-4 z-10 w-full md:w-auto mb-4 md:mb-0">
+        <div class="w-12 h-12 rounded-full bg-[#F5F0E8] border-2 border-[#1A1A2E] flex items-center justify-center text-[#1A1A2E] text-xl">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-[#1A1A2E] font-serif-thai">แผงควบคุมผู้ดูแลระบบ</h3>
+            <p class="text-[10px] text-green-600 font-bold tracking-widest uppercase">
+                <i class="fa-solid fa-wifi mr-1"></i><span>Online</span>
+            </p>
+        </div>
+    </div>
+
+   <div class="flex flex-wrap items-center gap-2 z-10">
+        <button onclick="window.handleManualBackup()" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-4 py-2 rounded-sm text-xs font-bold transition-colors flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-cloud-arrow-up"></i> สำรองข้อมูล
+        </button>  
+        <button onclick="handleRestoreFromSheet()" class="bg-white border border-gray-300 text-gray-600 hover:border-[#1A1A2E] hover:text-[#1A1A2E] px-3 py-2 rounded-sm text-xs transition-colors shadow-sm" title="กู้คืนข้อมูล">
+            <i class="fa-solid fa-cloud-arrow-down"></i> กู้คืน
+        </button>
+        <div class="w-px h-6 bg-gray-300 mx-2 hidden md:block"></div>
+        <button onclick="window.openChangePasswordModal()" class="text-gray-500 hover:text-[#1A1A2E] px-2 py-2 text-sm transition-colors" title="เปลี่ยนรหัสผ่าน">
+            <i class="fa-solid fa-key"></i>
+        </button>
+        <button onclick="handleLogout(true)" class="bg-white border border-gray-300 text-[#C53D43] hover:bg-[#C53D43] hover:text-white px-4 py-2 rounded-sm text-xs font-bold transition-colors shadow-sm">
+            <i class="fa-solid fa-power-off mr-1"></i> ออก
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mt-6">
+    <button onclick="switchAdminSubTab('basic')" id="menu-basic" class="menu-btn bg-[#1A1A2E] text-white rounded-sm py-4 font-bold shadow-md transition-all border border-[#1A1A2E]"><i class="fa-solid fa-folder-open block text-2xl mb-2"></i> ข้อมูล</button> 
+    
+    <button onclick="switchAdminSubTab('scan')" id="menu-scan" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-qrcode block text-2xl mb-2"></i> ให้คะแนน</button>
+    
+    <button onclick="switchAdminSubTab('exam')" id="menu-exam" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all">
+        <i class="fa-solid fa-graduation-cap block text-2xl mb-2"></i><span class="text-[11px]">วัดผล/สอบ</span>
+    </button>
+    
+    <button onclick="switchAdminSubTab('individual')" id="menu-individual" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-id-card block text-2xl mb-2"></i> รายบุคคล</button>
+    
+    <button onclick="switchAdminSubTab('report')" id="menu-report" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-print block text-2xl mb-2"></i> พิมพ์/CSV</button>
+    
+    <button onclick="switchAdminSubTab('homework')" id="menu-homework" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold relative transition-all"><i class="fa-solid fa-list-check block text-2xl mb-2"></i> ตรวจงาน<span id="badge-homework" class="absolute top-2 right-2 bg-[#C53D43] text-white text-[10px] px-2 py-0.5 rounded-sm hidden shadow-sm">0</span></button>
+    
+    <button onclick="switchAdminSubTab('management')" id="menu-management" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-table-columns block text-2xl mb-2"></i> จัดการคะแนน</button>
+    
+    <button onclick="switchAdminSubTab('attendance')" id="menu-attendance" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-user-check block text-2xl mb-2"></i> เช็คชื่อ</button>
+    
+    <button onclick="switchAdminSubTab('material')" id="menu-material" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-book-open block text-2xl mb-2"></i> เนื้อหา</button>
+    
+    <button onclick="switchAdminSubTab('lucky')" id="menu-lucky" class="menu-btn bg-white border border-gray-200 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-dice block text-2xl mb-2"></i> สุ่มชื่อ</button>
+    
+    <button onclick="switchAdminSubTab('tools')" id="menu-tools" class="menu-btn bg-white border border-gray-200 text-gray-500 hover:border-[#C53D43] hover:text-[#C53D43] rounded-sm py-4 font-bold transition-all"><i class="fa-solid fa-id-card block text-2xl mb-2"></i> ทำบัตร</button>
+</div>
+<section id="admin-panel-basic" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 brush-border-top">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-6">
+            <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-[#C53D43]"></div>
+                <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider font-serif-thai">1. วิชา & ห้องเรียน</h4>
+                <form id="form-subject" class="flex gap-2 mb-4">
+                    <input id="subject-name" class="flex-1 glass-input px-3 py-2 text-sm text-[#1A1A2E]" placeholder="ชื่อวิชา">
+                    <button type="submit" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-4 py-2 rounded-sm text-xs font-bold transition-colors shadow-sm">เพิ่ม</button>
+                </form>
+                <form id="form-class" class="flex gap-2 pt-4 border-t border-gray-300">
+                    <input id="class-name" class="flex-1 glass-input px-3 py-2 text-sm text-[#1A1A2E]" placeholder="ห้อง">
+                    <select id="class-subject-ref" class="w-1/3 glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent">
+                        <option class="text-black" value="">-- เลือก --</option>
+                    </select>
+                    <button type="submit" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-4 py-2 rounded-sm text-xs font-bold transition-colors shadow-sm">เพิ่ม</button>
+                </form>
+            </div>
+            
+            <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider font-serif-thai">2. นักเรียน</h4>
+                <form id="form-student" class="space-y-4">
+                    <div class="grid grid-cols-12 gap-3">
+                        <div class="col-span-5">
+                            <select id="student-class" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent">
+                                <option class="text-black" value="">-- เลือกห้อง --</option>
+                            </select>
+                        </div>
+                        <div class="col-span-3"><input id="student-no" type="number" class="w-full glass-input px-2 py-2 text-sm text-center text-[#1A1A2E]" placeholder="เลขที่"></div>
+                        <div class="col-span-4"><input id="student-id" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E]" placeholder="ID"></div>
+                    </div>
+                    <div><input id="student-name" class="w-full glass-input px-3 py-2 text-sm text-[#1A1A2E]" placeholder="ชื่อ-นามสกุล"></div>
+                    <button type="submit" class="w-full bg-[#C53D43] hover:bg-[#A03035] text-white py-2.5 rounded-sm text-sm font-bold transition-colors shadow-sm">บันทึกชื่อนักเรียน</button>
                 </form>
             </div>
         </div>
-
-        <div id="admin-content-wrapper" class="hidden flex flex-col gap-6">
-            <div class="flex justify-between items-center glass-ios px-4 py-3 rounded-2xl">
-                <div class="flex items-center gap-3">
-    <div>
-        <h3 class="text-sm font-bold text-white">ผู้ดูแลระบบ ...</h3>
-        <p class="text-[10px] text-green-400 font-bold">
-            <i class="fa-solid fa-wifi mr-1"></i><span>Online</span>
-            
-           <button onclick="handleManualBackup()" class="...">Sync ไป Sheet</button>
-
-<button onclick="handleRestoreFromSheet()" class="ml-1 px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/40 text-[9px] text-red-200 border border-red-500/30 transition-all" title="ระวัง! ข้อมูลในเว็บจะหายและแทนที่ด้วย Sheet">
-    <i class="fa-solid fa-cloud-arrow-down mr-1"></i>กู้คืน
-</button>
-   <button onclick="window.handleManualBackup()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
-    <i class="fa-solid fa-cloud-arrow-up"></i> สำรองข้อมูลลง Sheet
-</button>  
-       
-        </p>
+        
+        <div class="bg-white p-5 rounded-sm border border-gray-200 h-full flex flex-col shadow-sm">
+            <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider border-b border-gray-200 pb-3 flex justify-between items-center font-serif-thai">
+                <span><i class="fa-solid fa-sliders text-[#C53D43] mr-2"></i>ตั้งค่าคะแนนรายวิชา</span>
+                <span class="text-[10px] text-gray-500 font-sans">คลิกที่วิชาเพื่อแก้ไข</span>
+            </h4>
+            <div id="subject-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar"></div>
+        </div>
     </div>
-<button onclick="window.openChangePasswordModal()" class="mt-6 bg-gray-800 hover:bg-gray-700 border border-white/20 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
-            <i class="fa-solid fa-key text-yellow-400"></i> เปลี่ยนข้อมูลเข้าสู่ระบบ (Admin)
+
+    <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 mt-6 relative overflow-hidden">
+        <h4 class="text-[#1A1A2E] font-bold mb-3 text-lg font-serif-thai"><i class="fa-solid fa-cogs text-gray-400 mr-2"></i>ตั้งค่าระบบพื้นฐานการศึกษา</h4>
+        <p class="text-xs text-gray-500 mb-4">กำหนดปีการศึกษาและภาคเรียนที่กำลังใช้งาน</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="text-xs text-gray-600 ml-1 font-bold">ปีการศึกษา</label>
+                <input type="text" id="setting-academic-year" class="glass-input w-full p-2 mt-1 text-sm text-[#1A1A2E]" placeholder="เช่น 2567">
+            </div>
+            <div>
+                <label class="text-xs text-gray-600 ml-1 font-bold">ภาคเรียน</label>
+                <select id="setting-semester" class="glass-input w-full p-2 mt-1 text-sm text-[#1A1A2E] bg-transparent">
+                    <option class="text-black" value="1">ภาคเรียนที่ 1</option>
+                    <option class="text-black" value="2">ภาคเรียนที่ 2</option>
+                    <option class="text-black" value="3">ภาคเรียนฤดูร้อน</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="window.saveSystemSettings()" class="mt-4 bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-6 py-2.5 rounded-sm text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-save"></i> บันทึกการตั้งค่า
         </button>
-    
-</div>
-
-
-             
-                <button onclick="handleLogout(true)" class="bg-white/10 hover:bg-red-500/80 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-white/10"><i class="fa-solid fa-power-off mr-2"></i>ออก</button>
-            </div>
-            
-
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                <button onclick="switchAdminSubTab('basic')" id="menu-basic" class="menu-btn btn-blue rounded-2xl py-3 font-bold shadow-lg"><i class="fa-solid fa-folder-open block text-xl mb-1"></i> ข้อมูล</button> 
-                <button onclick="switchAdminSubTab('scan')" id="menu-scan" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-qrcode block text-xl mb-1"></i> ให้คะแนน</button>
-                <button onclick="switchAdminSubTab('exam')" id="menu-exam" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold transition-all">
-    <i class="fa-solid fa-graduation-cap text-xl mb-1"></i>
-    <span class="text-[10px]">วัดผล/สอบ</span>
-</button>
-                <button onclick="switchAdminSubTab('individual')" id="menu-individual" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-id-card block text-xl mb-1"></i> รายบุคคล</button>
-                <button onclick="switchAdminSubTab('report')" id="menu-report" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-print block text-xl mb-1"></i> พิมพ์/CSV</button>
-                <button onclick="switchAdminSubTab('homework')" id="menu-homework" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold relative"><i class="fa-solid fa-list-check block text-xl mb-1"></i> ตรวจงาน<span id="badge-homework" class="absolute top-2 right-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
-                <button onclick="switchAdminSubTab('management')" id="menu-management" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-table-columns block text-xl mb-1"></i> จัดการคะแนน</button>
-                <button onclick="switchAdminSubTab('attendance')" id="menu-attendance" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-user-check block text-xl mb-1"></i> เช็คชื่อ</button>
-                <button onclick="switchAdminSubTab('material')" id="menu-material" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold"><i class="fa-solid fa-book-open block text-xl mb-1"></i> เนื้อหา</button>
-                <button onclick="switchAdminSubTab('lucky')" id="menu-lucky" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold text-pink-400"><i class="fa-solid fa-dice block text-xl mb-1"></i> สุ่มชื่อ</button>
-                <button onclick="switchAdminSubTab('tools')" id="menu-tools" class="menu-btn glass-ios hover:bg-white/10 text-white/70 rounded-2xl py-3 font-bold text-teal-400"><i class="fa-solid fa-id-card block text-xl mb-1"></i> ทำบัตร</button>
-                
-            </div>
-
-            <section id="admin-panel-basic" class="admin-panel hidden glass-ios rounded-3xl p-6">
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div class="space-y-6">
-                     <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-                        <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">1. วิชา & ห้องเรียน</h4>
-                        <form id="form-subject" class="flex gap-2 mb-4"><input id="subject-name" class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" placeholder="ชื่อวิชา"><button type="submit" class="btn-yellow px-4 py-2 rounded-lg text-xs font-bold">เพิ่ม</button></form>
-                        <form id="form-class" class="flex gap-2 pt-4 border-t border-white/10"><input id="class-name" class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" placeholder="ห้อง"><select id="class-subject-ref" class="w-1/3 glass-input rounded-lg px-2 py-2 text-xs"></select><button type="submit" class="btn-yellow px-4 py-2 rounded-lg text-xs font-bold">เพิ่ม</button></form>
-                     </div>
-                     <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                        <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">2. นักเรียน</h4>
-                        <form id="form-student" class="space-y-3">
-                            <div class="grid grid-cols-12 gap-2">
-                                <div class="col-span-5"><select id="student-class" class="w-full glass-input rounded-lg px-2 py-2 text-sm"></select></div>
-                                <div class="col-span-3"><input id="student-no" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-sm text-center" placeholder="เลขที่"></div>
-                                <div class="col-span-4"><input id="student-id" class="w-full glass-input rounded-lg px-2 py-2 text-sm" placeholder="ID"></div>
-                            </div>
-                            <div><input id="student-name" class="w-full glass-input rounded-lg px-3 py-2 text-sm" placeholder="ชื่อ-นามสกุล"></div>
-                            <button type="submit" class="w-full btn-blue py-2 rounded-lg text-sm font-bold">บันทึก</button>
-                        </form>
-                     </div>
-                 </div>
-                 <div class="bg-black/20 p-5 rounded-2xl border border-white/10 h-full flex flex-col">
-                     <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2 flex justify-between items-center"><span>⚙️ ตั้งค่าคะแนนรายวิชา</span><span class="text-[10px] text-white/50">คลิกที่วิชาเพื่อแก้ไข</span></h4>
-                     <div id="subject-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
-                 </div>
-               </div>
-               <div class="bg-white/5 p-5 rounded-2xl border border-white/10 mt-6">
-            <h4 class="text-white font-bold mb-3 text-lg"><i class="fa-solid fa-cogs text-gray-400"></i> ตั้งค่าระบบพื้นฐานการศึกษา</h4>
-            <p class="text-xs text-white/50 mb-4">กำหนดปีการศึกษาและภาคเรียนที่กำลังใช้งาน</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs text-white/70 ml-1">ปีการศึกษา</label>
-                    <input type="text" id="setting-academic-year" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="เช่น 2567">
-                </div>
-                <div>
-                    <label class="text-xs text-white/70 ml-1">ภาคเรียน</label>
-                    <select id="setting-semester" class="glass-input w-full p-3 rounded-xl mt-1 text-sm">
-                        <option value="1">ภาคเรียนที่ 1</option>
-                        <option value="2">ภาคเรียนที่ 2</option>
-                        <option value="3">ภาคเรียนฤดูร้อน</option>
-                    </select>
-                </div>
-            </div>
-            <button onclick="window.saveSystemSettings()" class="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
-                <i class="fa-solid fa-save"></i> บันทึกการตั้งค่า
-            </button>
-        </div>
-
-        <div class="bg-white/5 p-5 rounded-2xl border border-white/10 mt-6">
-            <h4 class="text-white font-bold mb-3 text-lg"><i class="fa-solid fa-users text-green-400"></i> จัดการรายชื่อนักเรียนผ่านไฟล์ (CSV)</h4>
-            <p class="text-xs text-white/50 mb-4">ดาวน์โหลดแม่แบบเพื่อเพิ่มเด็กใหม่ หรืออัปเดตรายชื่อเดิม แล้วอัปโหลดกลับเข้าสู่ระบบ</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs text-white/70 ml-1">เลือกห้องเรียนเป้าหมาย</label>
-                    <select id="import-student-class" class="glass-input w-full p-3 rounded-xl mt-1 text-sm">
-                        <option value="">-- เลือกห้องเรียน --</option>
-                    </select>
-                </div>
-                <div class="flex items-end gap-2">
-                    <button onclick="window.downloadStudentCSVTemplate()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg w-full transition-transform hover:scale-105 flex justify-center items-center gap-2">
-                        <i class="fa-solid fa-download"></i> โหลดไฟล์แม่แบบ/ข้อมูลเดิม
-                    </button>
-                </div>
-            </div>
-            <div class="mt-4 p-4 border border-dashed border-white/20 rounded-xl bg-black/20">
-                <label class="text-xs text-white/70 ml-1">อัปโหลดไฟล์ CSV เพื่อนำเข้า / อัปเดต</label>
-                <input type="file" id="import-student-file" accept=".csv" class="w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20 mt-2 cursor-pointer transition-colors">
-            </div>
-            <button onclick="window.processStudentCSVImport()" class="mt-4 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i> ประมวลผลและบันทึกรายชื่อ
-            </button>
-        </div>
-               <div class="flex flex-col gap-6 mt-6">
-    <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden h-fit shadow-lg">
-         <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-         <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center">
-             <i class="fa-solid fa-file-signature mr-2 text-yellow-400"></i> 3.1 สร้างงานเก็บคะแนน (ตามช่องคะแนน)
-         </h4>
-         <form id="form-task-accum" class="space-y-4">
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
-                     <label class="text-[10px] text-white/50">วิชา</label>
-                     <select id="task-subject-accum" class="w-full glass-input rounded-lg px-2 py-2 text-xs" 
-                         onchange="renderTaskClassCheckboxesAccum(); renderTaskChapterCheckboxesAccum(); window.previewTasksBySubject('task-subject-accum', 'preview-area-accum');" required>
-                         <option value="">-- เลือกวิชา --</option>
-                     </select>
-                 </div>
-                 <div>
-                     <label class="text-[10px] text-white/50">เลือกห้องเรียน</label>
-                     <div id="task-class-accum" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-black/20 border border-white/5 rounded-lg p-2 max-h-32 overflow-y-auto"></div>
-                 </div>
-             </div>
-             
-             <div id="preview-area-accum" class="hidden animate-fade-in"></div>
-
-             <div>
-                 <label class="text-[10px] text-white/50">เลือกช่องคะแนนที่ต้องการลง (Multi-Chapter)</label>
-                 <div id="task-chapter-accum" class="flex flex-wrap gap-2"></div>
-             </div>
-             <div class="grid grid-cols-12 gap-2">
-                 <div class="col-span-8">
-                     <input id="task-name-accum" class="w-full glass-input rounded-lg px-3 py-2 text-xs" placeholder="ชื่องาน (เช่น ใบงานที่ 1)" required>
-                 </div>
-                 <div class="col-span-4">
-                     <input id="task-max-accum" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-xs text-center" value="10" required>
-                 </div>
-             </div>
-             <div class="mt-4 bg-black/20 p-3 rounded-xl border border-white/5">
-            <div class="mb-3">
-                <label class="text-xs text-white/70 ml-1"><i class="fa-solid fa-align-left text-blue-400"></i> รายละเอียดงาน (คำสั่ง/อธิบายเพิ่มเติม)</label>
-                <textarea id="task-desc-accum" rows="3" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="อธิบายรายละเอียดงานให้นักเรียนทราบ..."></textarea>
-            </div>
-            <div>
-                <label class="text-xs text-white/70 ml-1"><i class="fa-solid fa-image text-green-400"></i> รูปภาพประกอบ (ถ้ามี - ขนาดไม่เกิน 1MB)</label>
-                <input type="file" id="task-image-accum" accept="image/*" class="w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20 mt-1 cursor-pointer transition-colors" onchange="window.previewTaskImageAccum(this)">
-                
-                <div id="task-image-preview-accum-container" class="hidden mt-3 relative inline-block">
-                    <img id="task-image-preview-accum" src="" class="max-h-40 rounded-lg border border-white/20 shadow-lg">
-                    <button type="button" onclick="window.removeTaskImageAccum()" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-lg hover:bg-red-500 transition-transform hover:scale-110">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-             <button type="submit" class="w-full btn-yellow py-3 rounded-lg text-sm font-bold shadow-lg">บันทึกงานเก็บคะแนน</button>
-         </form>
     </div>
 
-    <div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden h-fit shadow-lg">
-         <div class="absolute top-0 left-0 w-1 h-full bg-red-600"></div>
-         <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center">
-             <i class="fa-solid fa-graduation-cap mr-2 text-red-400"></i> 3.2 สร้างรายการสอบ / คะแนนช่วย
-         </h4>
-         <form id="form-task-exam" class="space-y-4">
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
-                     <label class="text-[10px] text-white/50">วิชา</label>
-                     <select id="task-subject-exam" class="w-full glass-input rounded-lg px-2 py-2 text-xs" 
-                         onchange="renderTaskClassCheckboxesExam(); window.previewTasksBySubject('task-subject-exam', 'preview-area-exam');" required>
-                         <option value="">-- เลือกวิชา --</option>
-                     </select>
-                 </div>
-                 <div>
-                     <label class="text-[10px] text-white/50">เลือกห้องเรียน</label>
-                     <div id="task-class-exam" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-black/20 border border-white/5 rounded-lg p-2 max-h-32 overflow-y-auto"></div>
-                 </div>
-             </div>
-
-             <div id="preview-area-exam" class="hidden animate-fade-in"></div>
-
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                 <div>
-                     <label class="text-[10px] text-white/50">ประเภทคะแนนสอบ</label>
-                     <select id="task-category-exam" class="w-full glass-input rounded-lg px-2 py-2 text-xs font-bold text-red-400">
-                         <option value="midterm">สอบกลางภาค (Midterm)</option>
-                         <option value="special_mid">++ คะแนนช่วยกลางภาค</option>
-                         <option value="final">สอบปลายภาค (Final)</option>
-                         <option value="special_final">++ คะแนนช่วยปลายภาค</option>
-                     </select>
-                 </div>
-                 <div>
-                     <label class="text-[10px] text-white/50">คะแนนเต็ม</label>
-                     <input id="task-max-exam" type="number" class="w-full glass-input rounded-lg px-2 py-2 text-xs text-center font-bold" value="20">
-                 </div>
-             </div>
-             <button type="submit" class="w-full btn-red py-3 rounded-lg text-sm font-bold shadow-lg">สร้างรายการสอบ</button>
-         </form>
-    </div>
-</div>
-<div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden h-fit shadow-lg mt-6">
-    <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center">
-        <i class="fa-solid fa-file-csv mr-2 text-green-400"></i> 3.3 นำเข้าคะแนนจากไฟล์ (CSV Import)
-    </h4>
-    
-    <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white p-5 rounded-sm border border-gray-200 mt-6 shadow-sm relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 text-[60px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">名</div>
+        <h4 class="text-[#1A1A2E] font-bold mb-3 text-lg font-serif-thai relative z-10"><i class="fa-solid fa-users text-[#C53D43] mr-2"></i>จัดการรายชื่อนักเรียนผ่านไฟล์ (CSV)</h4>
+        <p class="text-xs text-gray-500 mb-4 relative z-10">ดาวน์โหลดแม่แบบเพื่อเพิ่มเด็กใหม่ หรืออัปเดตรายชื่อเดิม แล้วอัปโหลดกลับเข้าสู่ระบบ</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
             <div>
-                <label class="text-[10px] text-white/50">1. เลือกห้องเรียน</label>
-                <select id="import-class-select" class="w-full glass-input rounded-lg px-2 py-2 text-xs" onchange="renderImportTasks()">
-                    <option value="">-- เลือกห้อง --</option>
+                <label class="text-xs text-gray-600 ml-1 font-bold">เลือกห้องเรียนเป้าหมาย</label>
+                <select id="import-student-class" class="glass-input w-full p-2 mt-1 text-sm text-[#1A1A2E] bg-transparent">
+                    <option class="text-black" value="">-- เลือกห้องเรียน --</option>
                 </select>
             </div>
-            <div>
-                <label class="text-[10px] text-white/50">2. เลือกวิชา</label>
-                <select id="import-subject-select" class="w-full glass-input rounded-lg px-2 py-2 text-xs" onchange="renderImportTasks()">
-                    <option value="">-- เลือกวิชา --</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-[10px] text-white/50">3. เลือกงาน/ช่องคะแนน</label>
-                <select id="import-task-select" class="w-full glass-input rounded-lg px-2 py-2 text-xs text-yellow-400 font-bold">
-                    <option value="">-- กรุณาเลือกห้องและวิชาก่อน --</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-black/20 p-3 rounded-xl border border-white/5 flex justify-between items-center">
-            <div>
-                <div class="text-xs text-white font-bold">ดาวน์โหลดแม่แบบ (Template)</div>
-                <div class="text-[10px] text-white/40">ไฟล์จะมีรายชื่อเด็กให้แล้ว กรอกแค่ช่อง Score</div>
-            </div>
-            <button onclick="downloadCSVTemplate()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-lg transition-colors">
-                <i class="fa-solid fa-download mr-1"></i> โหลดไฟล์ CSV
-            </button>
-        </div>
-
-        <div>
-            <label class="text-[10px] text-white/50 mb-1 block">อัปโหลดไฟล์ CSV ที่กรอกคะแนนแล้ว</label>
-            <div class="flex gap-2">
-                <input type="file" id="import-file-input" accept=".csv" class="flex-1 glass-input rounded-lg px-2 py-1.5 text-xs text-white/70 file:mr-4 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20">
-                <button onclick="processCSVImport()" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg shadow-lg">
-                    <i class="fa-solid fa-file-import mr-1"></i> นำเข้าคะแนน
+            <div class="flex items-end gap-2">
+                <button onclick="window.downloadStudentCSVTemplate()" class="bg-[#1A1A2E] hover:bg-[#2D6A4F] text-white px-4 py-2.5 rounded-sm text-sm font-bold shadow-sm w-full transition-colors flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-download"></i> โหลดแม่แบบ/ข้อมูลเดิม
                 </button>
             </div>
         </div>
+        <div class="mt-4 p-4 border border-dashed border-gray-300 rounded-sm bg-[#F5F0E8] relative z-10">
+            <label class="text-xs text-gray-600 ml-1 font-bold">อัปโหลดไฟล์ CSV เพื่อนำเข้า / อัปเดต</label>
+            <input type="file" id="import-student-file" accept=".csv" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-sm file:font-bold file:bg-[#1A1A2E] file:text-white hover:file:bg-[#C53D43] mt-2 cursor-pointer transition-colors">
+        </div>
+        <button onclick="window.processStudentCSVImport()" class="mt-4 bg-[#C53D43] hover:bg-[#A03035] text-white px-6 py-2.5 rounded-sm text-sm font-bold shadow-sm transition-colors flex items-center gap-2 relative z-10">
+            <i class="fa-solid fa-cloud-arrow-up"></i> ประมวลผลและบันทึกรายชื่อ
+        </button>
     </div>
-</div>
-
-<div class="bg-white/5 p-5 rounded-2xl border border-white/10 relative overflow-hidden h-fit shadow-lg mt-6">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                        <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-calendar-days mr-2"></i> 4. ตารางสอน (Timetable)
-                        </h4>
-                        <form id="form-schedule" class="space-y-4">
-                            <div class="grid grid-cols-2 gap-2">
-                                <select id="sch-day" class="glass-input rounded-lg px-2 py-2 text-xs"><option value="1">จันทร์</option><option value="2">อังคาร</option><option value="3">พุธ</option><option value="4">พฤหัสบดี</option><option value="5">ศุกร์</option><option value="6">เสาร์</option><option value="0">อาทิตย์</option></select>
-                                <select id="sch-period" class="glass-input rounded-lg px-2 py-2 text-xs"><option value="1">คาบ 1 (08:30)</option><option value="2">คาบ 2 (09:20)</option><option value="3">คาบ 3 (10:10)</option><option value="4">คาบ 4 (11:00)</option><option value="5">คาบ 5 (11:50)</option><option value="6">คาบ 6 (12:40)</option><option value="7">คาบ 7 (13:30)</option><option value="8">คาบ 8 (14:20)</option></select>
+               <div class="flex flex-col gap-6 mt-6">
+    
+                    <div class="bg-white p-5 rounded-sm border border-gray-200 relative overflow-hidden h-fit shadow-sm">
+                         <div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
+                         <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider flex items-center font-serif-thai">
+                             <i class="fa-solid fa-file-signature mr-2 text-[#D4AF37]"></i> 3.1 สร้างงานเก็บคะแนน (ตามช่องคะแนน)
+                         </h4>
+                         <form id="form-task-accum" class="space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">วิชา</label>
+                                     <select id="task-subject-accum" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent" 
+                                         onchange="renderTaskClassCheckboxesAccum(); renderTaskChapterCheckboxesAccum(); window.previewTasksBySubject('task-subject-accum', 'preview-area-accum');" required>
+                                         <option class="text-black" value="">-- เลือกวิชา --</option>
+                                     </select>
+                                 </div>
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">เลือกห้องเรียน</label>
+                                     <div id="task-class-accum" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-[#F5F0E8] border border-gray-200 rounded-sm p-2 max-h-32 overflow-y-auto custom-scrollbar"></div>
+                                 </div>
+                             </div>
+                             
+                             <div id="preview-area-accum" class="hidden animate-fade-in"></div>
+                
+                             <div>
+                                 <label class="text-[10px] text-gray-500 font-bold">เลือกช่องคะแนนที่ต้องการลง (Multi-Chapter)</label>
+                                 <div id="task-chapter-accum" class="flex flex-wrap gap-2"></div>
+                             </div>
+                             <div class="grid grid-cols-12 gap-2">
+                                 <div class="col-span-8">
+                                     <input id="task-name-accum" class="w-full glass-input px-3 py-2 text-sm text-[#1A1A2E]" placeholder="ชื่องาน (เช่น ใบงานที่ 1)" required>
+                                 </div>
+                                 <div class="col-span-4">
+                                     <input id="task-max-accum" type="number" class="w-full glass-input px-2 py-2 text-sm text-center text-[#1A1A2E] font-bold" value="10" required>
+                                 </div>
+                             </div>
+                             
+                             <div class="mt-4 bg-[#F5F0E8] p-3 rounded-sm border border-gray-200">
+                                <div class="mb-3">
+                                    <label class="text-xs text-gray-600 ml-1 font-bold"><i class="fa-solid fa-align-left text-[#1A1A2E]"></i> รายละเอียดงาน (คำสั่ง/อธิบายเพิ่มเติม)</label>
+                                    <textarea id="task-desc-accum" rows="3" class="glass-input w-full p-3 mt-1 text-sm text-[#1A1A2E] bg-white border border-gray-300 rounded-sm" placeholder="อธิบายรายละเอียดงานให้นักเรียนทราบ..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 ml-1 font-bold"><i class="fa-solid fa-image text-[#1A1A2E]"></i> รูปภาพประกอบ (ถ้ามี - ขนาดไม่เกิน 1MB)</label>
+                                    <input type="file" id="task-image-accum" accept="image/*" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-sm file:font-bold file:bg-[#1A1A2E] file:text-white hover:file:bg-[#C53D43] mt-1 cursor-pointer transition-colors" onchange="window.previewTaskImageAccum(this)">
+                                    
+                                    <div id="task-image-preview-accum-container" class="hidden mt-3 relative inline-block">
+                                        <img id="task-image-preview-accum" src="" class="max-h-40 rounded-sm border border-gray-300 shadow-sm p-1 bg-white">
+                                        <button type="button" onclick="window.removeTaskImageAccum()" class="absolute -top-2 -right-2 bg-[#C53D43] text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md hover:bg-[#A03035] transition-transform hover:scale-110">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <select id="sch-class" class="w-full glass-input rounded-lg px-2 py-2 text-xs"></select>
-                            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg text-sm font-bold shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all">บันทึกตาราง</button>
-                        </form>
-                        <div id="schedule-list" class="mt-4 max-h-40 overflow-y-auto space-y-2 pr-1"></div>
-                   </div>
+                             <button type="submit" class="w-full bg-[#D4AF37] hover:bg-[#C39F2D] text-white py-3 rounded-sm text-sm font-bold shadow-sm transition-colors text-shadow-sm">บันทึกงานเก็บคะแนน</button>
+                         </form>
+                    </div>
+                
+                    <div class="bg-white p-5 rounded-sm border border-gray-200 relative overflow-hidden h-fit shadow-sm">
+                         <div class="absolute top-0 left-0 w-1 h-full bg-[#C53D43]"></div>
+                         <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider flex items-center font-serif-thai">
+                             <i class="fa-solid fa-graduation-cap mr-2 text-[#C53D43]"></i> 3.2 สร้างรายการสอบ / คะแนนช่วย
+                         </h4>
+                         <form id="form-task-exam" class="space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">วิชา</label>
+                                     <select id="task-subject-exam" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent" 
+                                         onchange="renderTaskClassCheckboxesExam(); window.previewTasksBySubject('task-subject-exam', 'preview-area-exam');" required>
+                                         <option class="text-black" value="">-- เลือกวิชา --</option>
+                                     </select>
+                                 </div>
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">เลือกห้องเรียน</label>
+                                     <div id="task-class-exam" class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-[#F5F0E8] border border-gray-200 rounded-sm p-2 max-h-32 overflow-y-auto custom-scrollbar"></div>
+                                 </div>
+                             </div>
+                
+                             <div id="preview-area-exam" class="hidden animate-fade-in"></div>
+                
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">ประเภทคะแนนสอบ</label>
+                                     <select id="task-category-exam" class="w-full glass-input px-2 py-2 text-sm font-bold text-[#C53D43] bg-transparent">
+                                         <option class="text-black" value="midterm">สอบกลางภาค (Midterm)</option>
+                                         <option class="text-black" value="special_mid">++ คะแนนช่วยกลางภาค</option>
+                                         <option class="text-black" value="final">สอบปลายภาค (Final)</option>
+                                         <option class="text-black" value="special_final">++ คะแนนช่วยปลายภาค</option>
+                                     </select>
+                                 </div>
+                                 <div>
+                                     <label class="text-[10px] text-gray-500 font-bold">คะแนนเต็ม</label>
+                                     <input id="task-max-exam" type="number" class="w-full glass-input px-2 py-2 text-sm text-center font-bold text-[#1A1A2E]" value="20">
+                                 </div>
+                             </div>
+                             <button type="submit" class="w-full bg-[#C53D43] hover:bg-[#A03035] text-white py-3 rounded-sm text-sm font-bold shadow-sm transition-colors">สร้างรายการสอบ</button>
+                         </form>
+                    </div>
+                </div>
+
+                <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 relative overflow-hidden h-fit shadow-sm mt-6">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-[#2D6A4F]"></div>
+                    <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider flex items-center font-serif-thai">
+                        <i class="fa-solid fa-file-csv mr-2 text-[#2D6A4F]"></i> 3.3 นำเข้าคะแนนจากไฟล์ (CSV Import)
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-[10px] text-gray-500 font-bold">1. เลือกห้องเรียน</label>
+                                <select id="import-class-select" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent" onchange="renderImportTasks()">
+                                    <option class="text-black" value="">-- เลือกห้อง --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 font-bold">2. เลือกวิชา</label>
+                                <select id="import-subject-select" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent" onchange="renderImportTasks()">
+                                    <option class="text-black" value="">-- เลือกวิชา --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 font-bold">3. เลือกงาน/ช่องคะแนน</label>
+                                <select id="import-task-select" class="w-full glass-input px-2 py-2 text-sm text-[#C53D43] font-bold bg-transparent">
+                                    <option class="text-black" value="">-- กรุณาเลือกห้องและวิชาก่อน --</option>
+                                </select>
+                            </div>
+                        </div>
+                
+                        <div class="bg-white p-3 rounded-sm border border-gray-200 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-[#1A1A2E] font-bold">ดาวน์โหลดแม่แบบ (Template)</div>
+                                <div class="text-[10px] text-gray-500">ไฟล์จะมีรายชื่อเด็กให้แล้ว กรอกแค่ช่อง Score</div>
+                            </div>
+                            <button onclick="downloadCSVTemplate()" class="px-3 py-2 bg-[#1A1A2E] hover:bg-[#C53D43] text-white text-xs rounded-sm transition-colors font-bold">
+                                <i class="fa-solid fa-download mr-1"></i> โหลดไฟล์ CSV
+                            </button>
+                        </div>
+                
+                        <div class="mt-2">
+                            <label class="text-[10px] text-gray-500 mb-1 block font-bold">อัปโหลดไฟล์ CSV ที่กรอกคะแนนแล้ว</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="file" id="import-file-input" accept=".csv" class="flex-1 glass-input px-2 py-1.5 text-xs text-gray-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#F5F0E8] file:text-[#1A1A2E] hover:file:bg-gray-200 cursor-pointer border-b-0">
+                                <button onclick="processCSVImport()" class="px-4 py-2 bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-xs font-bold rounded-sm shadow-sm transition-colors">
+                                    <i class="fa-solid fa-file-import mr-1"></i> นำเข้าคะแนน
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-5 rounded-sm border border-gray-200 relative overflow-hidden h-fit shadow-sm mt-6 mb-6">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                    <h4 class="text-sm font-bold text-[#1A1A2E] mb-4 uppercase tracking-wider flex items-center font-serif-thai">
+                        <i class="fa-solid fa-calendar-days mr-2"></i> 4. ตารางสอน (Timetable)
+                    </h4>
+                    <form id="form-schedule" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="sch-day" class="glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent">
+                                <option class="text-black" value="1">จันทร์</option><option class="text-black" value="2">อังคาร</option><option class="text-black" value="3">พุธ</option><option class="text-black" value="4">พฤหัสบดี</option><option class="text-black" value="5">ศุกร์</option><option class="text-black" value="6">เสาร์</option><option class="text-black" value="0">อาทิตย์</option>
+                            </select>
+                            <select id="sch-period" class="glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent">
+                                <option class="text-black" value="1">คาบ 1 (08:30)</option><option class="text-black" value="2">คาบ 2 (09:20)</option><option class="text-black" value="3">คาบ 3 (10:10)</option><option class="text-black" value="4">คาบ 4 (11:00)</option><option class="text-black" value="5">คาบ 5 (11:50)</option><option class="text-black" value="6">คาบ 6 (12:40)</option><option class="text-black" value="7">คาบ 7 (13:30)</option><option class="text-black" value="8">คาบ 8 (14:20)</option>
+                            </select>
+                        </div>
+                        <select id="sch-class" class="w-full glass-input px-2 py-2 text-sm text-[#1A1A2E] bg-transparent">
+                            <option class="text-black" value="">-- เลือกห้องเรียน --</option>
+                        </select>
+                        <button type="submit" class="w-full bg-[#1A1A2E] hover:bg-[#C53D43] text-white py-2 rounded-sm text-sm font-bold shadow-sm transition-colors">บันทึกตาราง</button>
+                    </form>
+                    <div id="schedule-list" class="mt-4 max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar"></div>
                </div>
             </section>
             
-            <section id="admin-panel-scan" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
-                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px]">
-                     <div class="lg:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-5">
-                         <h3 class="font-bold text-white text-lg border-b border-white/10 pb-2">ให้คะแนน</h3>
-                         <div><label class="text-xs text-white/50">1. เลือกห้อง/งาน</label><select id="scan-class-select" class="w-full glass-input rounded-xl px-3 py-2 text-xs mb-2"></select><select id="scan-task-select" class="w-full glass-input rounded-xl px-3 py-2 text-xs font-bold text-yellow-400"></select></div>
-                         <div class="bg-black/20 p-3 rounded-xl border border-white/5 flex flex-col gap-2"><label class="text-xs text-white/50">2. เลือกคะแนน</label><div id="score-buttons-container" class="grid grid-cols-5 gap-1"></div><button onclick="setScoreMode('manual')" id="btn-score-manual" class="w-full py-2 rounded-lg border border-white/20 bg-white/5 text-white/70 text-xs font-bold hover:bg-white/10">ระบุเอง</button></div>
-                         <div><label class="text-xs text-white/50 block mb-2">3. สแกน/พิมพ์รหัส</label><input id="scan-score-input" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-lg text-center font-bold focus:border-yellow-500 outline-none placeholder-white/20" placeholder="Scan here..."></div>
-                     </div>
-                     <div class="lg:col-span-3 bg-black/20 p-5 rounded-2xl border border-white/10 flex flex-col">
-                         <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white/80">📋 รายชื่อนักเรียน</h3><span class="text-xs text-green-400 animate-pulse"><i class="fa-solid fa-wifi"></i> Syncing (Auto 5s)</span></div>
-                         <div id="score-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1"></div>
-                     </div>
-                 </div>
-            </section>
+            <section id="admin-panel-scan" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 brush-border-top relative overflow-hidden">
+    
+    <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">
+        分
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px] relative z-10">
+        <div class="lg:col-span-1 bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 flex flex-col gap-5 relative shadow-sm">
+            <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+            
+            <h3 class="font-bold text-[#1A1A2E] text-lg border-b border-gray-300 pb-2 font-serif-thai">
+                <i class="fa-solid fa-qrcode mr-2 text-[#C53D43]"></i>ให้คะแนน
+            </h3>
+            
+            <div>
+                <label class="text-xs text-gray-500 font-bold">1. เลือกห้อง/งาน</label>
+                <select id="scan-class-select" class="w-full glass-input px-2 py-2 text-sm mb-2 text-[#1A1A2E] bg-transparent">
+                    <option class="text-black" value="">-- โหลดข้อมูล --</option>
+                </select>
+                <select id="scan-task-select" class="w-full glass-input px-2 py-2 text-sm font-bold text-[#C53D43] bg-transparent">
+                    <option class="text-black" value="">-- โหลดข้อมูล --</option>
+                </select>
+            </div>
+            
+            <div class="bg-white p-3 rounded-sm border border-gray-200 flex flex-col gap-2 shadow-sm">
+                <label class="text-xs text-gray-500 font-bold">2. เลือกคะแนน</label>
+                <div id="score-buttons-container" class="grid grid-cols-5 gap-1"></div>
+                <button onclick="setScoreMode('manual')" id="btn-score-manual" class="w-full py-2 rounded-sm border border-gray-300 bg-[#F5F0E8] text-gray-600 text-xs font-bold hover:bg-gray-200 transition-colors mt-1">
+                    ระบุเอง
+                </button>
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-500 block mb-2 font-bold">3. สแกน/พิมพ์รหัส</label>
+                <input id="scan-score-input" type="text" class="w-full px-4 py-3 text-lg text-center font-bold focus:border-[#C53D43] focus:ring-1 focus:ring-[#C53D43] outline-none text-[#1A1A2E] bg-white border-2 border-gray-300 rounded-sm transition-all" placeholder="คลิกที่นี่เพื่อสแกน...">
+            </div>
+        </div>
+        
+        <div class="lg:col-span-3 bg-white p-5 rounded-sm border border-gray-200 flex flex-col shadow-sm">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-[#1A1A2E] font-serif-thai">📋 รายชื่อนักเรียน</h3>
+                <span class="text-xs text-[#2D6A4F] font-bold tracking-widest uppercase animate-pulse flex items-center gap-1">
+                    <i class="fa-solid fa-wifi"></i> Syncing (Auto 5s)
+                </span>
+            </div>
+            <div id="score-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1 custom-scrollbar"></div>
+        </div>
+    </div>
+</section>
 
-            <section id="admin-panel-individual" class="admin-panel hidden glass-ios rounded-3xl p-6">
-                <div class="flex flex-col gap-6 min-h-[500px]">
-                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 relative">
-                        <label class="text-xs text-white/50 block mb-2 font-bold"><i class="fa-solid fa-magnifying-glass mr-1"></i> ค้นหานักเรียน (พิมพ์ชื่อหรือรหัส)</label>
-                        <input type="text" id="individual-search" class="w-full glass-input rounded-xl px-4 py-3 text-white text-lg focus:border-blue-500" placeholder="เริ่มพิมพ์ชื่อ..." onkeyup="searchIndividual(this.value)">
-                        <div id="individual-search-results" class="absolute top-[85px] left-0 w-full bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl max-h-60 overflow-y-auto hidden z-50 shadow-2xl"></div>
-                    </div>
-                    <div id="individual-result-container" class="hidden flex-col gap-6 animate-fade-in">
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-5 bg-gradient-to-r from-blue-900/40 to-blue-600/20 rounded-2xl border border-blue-500/30">
-                            <div class="flex items-center gap-4">
-                                <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-3xl shadow-lg">🎓</div>
-                                <div>
-                                    <h2 id="ind-name" class="text-2xl font-bold text-white tracking-wide"></h2>
-                                    <p class="text-blue-300 text-sm font-mono mt-1"><span id="ind-id" class="bg-black/30 px-2 py-0.5 rounded mr-2"></span> <span id="ind-class"></span></p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4 bg-black/20 p-3 rounded-2xl border border-white/5">
-                                <div class="text-center px-4 border-r border-white/10">
-                                    <div class="text-[10px] text-white/50 uppercase mb-1">กลางภาค</div>
-                                    <div id="ind-score-mid" class="text-xl font-bold text-blue-300">-</div>
-                                </div>
-                                <div class="text-center px-4 border-r border-white/10">
-                                    <div class="text-[10px] text-white/50 uppercase mb-1">ปลายภาค</div>
-                                    <div id="ind-score-final" class="text-xl font-bold text-purple-300">-</div>
-                                </div>
-                                <div class="text-center px-4">
-                                    <div class="text-[10px] text-yellow-500/70 uppercase mb-1">เกรดเฉลี่ย</div>
-                                    <div id="ind-gpa" class="text-2xl font-bold text-yellow-400 drop-shadow-sm">-</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden">
-                                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-                                <h3 class="text-lg font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-user-clock mr-2 text-green-400"></i>ประวัติการเข้าเรียน</h3>
-                                <div class="grid grid-cols-4 gap-2 text-center mb-4">
-                                    <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-3"><div id="ind-att-present" class="text-2xl font-bold text-green-400">0</div><div class="text-[10px] text-white/50 uppercase">มาเรียน</div></div>
-                                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3"><div id="ind-att-leave" class="text-2xl font-bold text-yellow-400">0</div><div class="text-[10px] text-white/50 uppercase">ลา</div></div>
-                                    <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3"><div id="ind-att-absent" class="text-2xl font-bold text-red-400">0</div><div class="text-[10px] text-white/50 uppercase">ขาด</div></div>
-                                    <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3"><div id="ind-att-activity" class="text-2xl font-bold text-orange-400">0</div><div class="text-[10px] text-white/50 uppercase">กิจกรรม</div></div>
-                                </div>
-                                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
-                                    <div class="text-xs text-red-300 font-bold mb-1"><i class="fa-solid fa-calendar-xmark mr-1"></i> วันที่ขาดเรียน:</div>
-                                    <div id="ind-absent-dates" class="text-xs text-white/70 leading-relaxed">-</div>
-                                </div>
-                            </div>
-                            <div class="glass-ios p-5 rounded-2xl border border-white/10 relative overflow-hidden">
-                                <div class="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-                                <h3 class="text-lg font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check mr-2 text-yellow-400"></i>สถานะการส่งงาน</h3>
-                                <div class="flex items-center gap-4 mb-6">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between text-xs text-white/70 mb-1"><span>ความคืบหน้า</span><span id="ind-work-progress-text" class="text-white font-bold">0%</span></div>
-                                        <div class="w-full bg-white/10 rounded-full h-2.5 overflow-hidden"><div id="ind-work-bar" class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
-                                    </div>
-                                </div>
-                                <h4 class="text-xs font-bold text-white/50 mb-2 border-b border-white/10 pb-1">⚠️ งานที่ยังค้างส่ง (Missing Tasks)</h4>
-                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1" id="ind-missing-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+<section id="admin-panel-individual" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 brush-border-top relative overflow-hidden">
+    <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">人</div>
+    
+    <div class="flex flex-col gap-6 min-h-[500px] relative z-10">
+        <div class="bg-[#F5F0E8] p-4 rounded-sm border border-gray-200 relative">
+            <label class="text-xs text-[#1A1A2E] block mb-2 font-bold font-serif-thai">
+                <i class="fa-solid fa-magnifying-glass mr-1 text-[#C53D43]"></i> ค้นหานักเรียน (พิมพ์ชื่อหรือรหัส)
+            </label>
+            <input type="text" id="individual-search" class="w-full bg-white border-b-2 border-gray-300 rounded-none px-4 py-3 text-[#1A1A2E] text-lg focus:border-[#C53D43] outline-none transition-colors" placeholder="เริ่มพิมพ์ชื่อ..." onkeyup="searchIndividual(this.value)">
+            <div id="individual-search-results" class="absolute top-[85px] left-0 w-full bg-white border border-gray-200 rounded-sm max-h-60 overflow-y-auto hidden z-50 shadow-md"></div>
+        </div>
 
-            <section id="admin-panel-report" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4"><h3 class="text-xl font-bold text-white">รายงานผลการเรียน</h3><div class="flex gap-3"><button onclick="printOfficialReport()" class="btn-blue px-6 py-2.5 rounded-xl text-sm font-bold flex gap-2 shadow-lg items-center"><i class="fa-solid fa-print"></i> พิมพ์ PDF</button><button onclick="exportGradeCSV()" class="btn-yellow px-6 py-2.5 rounded-xl text-sm font-bold flex gap-2 shadow-lg items-center"><i class="fa-solid fa-file-csv"></i> โหลด CSV</button></div></div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-4"><div class="flex-1"><label class="text-xs text-white/50 block mb-1">1. เลือกวิชา</label><select id="report-subject" class="w-full glass-input rounded-xl px-4 py-2 text-sm"></select></div><div class="flex-1"><label class="text-xs text-white/50 block mb-1">2. เลือกห้องเรียน</label><select id="report-class" class="w-full glass-input rounded-xl px-4 py-2 text-sm"><option value="">-- กรุณาเลือกวิชาก่อน --</option></select></div></div>
-                <div class="flex flex-col sm:flex-row gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/10">
-                    <label class="text-xs text-white/50 my-auto mr-2">รูปแบบรายงาน:</label>
-                    <label class="flex items-center gap-2 cursor-pointer bg-black/20 px-3 py-2 rounded-lg border border-white/5 hover:border-yellow-400/50 transition-all">
-                        <input type="radio" name="reportType" value="summary" checked class="accent-yellow-400 w-4 h-4">
-                        <span class="text-white text-xs font-bold">แบบสรุป (5 ช่องเก็บ + สอบ)</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer bg-black/20 px-3 py-2 rounded-lg border border-white/5 hover:border-blue-400/50 transition-all">
-                        <input type="radio" name="reportType" value="detailed" class="accent-blue-400 w-4 h-4">
-                        <span class="text-white text-xs font-bold">แบบละเอียด (แสดงทุกชิ้นงาน)</span>
-                    </label>
-                </div>
-                <div class="overflow-x-auto bg-black/20 rounded-2xl border border-white/10"><table class="min-w-full text-sm text-white/80"><thead class="bg-white/5 text-xs uppercase font-semibold text-white/60"><tr id="report-table-header"></tr></thead><tbody id="report-table-body" class="divide-y divide-white/5"></tbody></table></div>
-            </section>
-
-            <section id="admin-panel-exam" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6 h-full">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/10 pb-4 shrink-0">
+        <div id="individual-result-container" class="hidden flex-col gap-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-5 bg-white border border-[#D4AF37] rounded-sm shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-[#F5F0E8] border border-gray-300 flex items-center justify-center text-3xl shadow-sm text-[#1A1A2E]">🎓</div>
                     <div>
-                        <h3 class="text-xl font-bold text-white">จัดการสอบ & ตัดเกรด</h3>
-                        <p class="text-xs text-white/50">กำหนดคะแนนกลางภาค/ปลายภาค และนำเข้าคะแนน</p>
-                    </div>
-                    <div class="flex gap-2 bg-black/20 p-1 rounded-xl">
-                        <button onclick="setExamTab('midterm')" id="tab-exam-mid" class="px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-lg transition-all">กลางภาค</button>
-                        <button onclick="setExamTab('final')" id="tab-exam-final" class="px-6 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all">ปลายภาค</button>
+                        <h2 id="ind-name" class="text-2xl font-bold text-[#1A1A2E] tracking-wide font-serif-thai"></h2>
+                        <p class="text-gray-600 text-sm font-mono mt-1">
+                            <span id="ind-id" class="bg-[#F5F0E8] border border-gray-200 px-2 py-0.5 rounded-sm mr-2 text-[#1A1A2E]"></span> 
+                            <span id="ind-class"></span>
+                        </p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0">
-                    <div class="md:col-span-1 flex flex-col gap-4 overflow-y-auto pr-1">
-                        <div class="bg-white/5 p-5 rounded-2xl border border-white/10 shadow-lg">
-                            <label class="text-xs text-white/50 mb-1 block font-bold">1. เลือกห้องเรียน</label>
-                            <select id="exam-class-select" class="w-full glass-input rounded-xl px-4 py-2 text-sm mb-4" onchange="renderExamPanel()"></select>
-                            <label class="text-xs text-white/50 mb-1 block font-bold">2. ตั้งค่าคะแนนเต็ม (Max)</label>
+                <div class="flex gap-4 bg-[#F5F0E8] p-3 rounded-sm border border-gray-200">
+                    <div class="text-center px-4 border-r border-gray-300">
+                        <div class="text-[10px] text-gray-500 uppercase mb-1 font-bold">กลางภาค</div>
+                        <div id="ind-score-mid" class="text-xl font-bold text-[#1A1A2E]">-</div>
+                    </div>
+                    <div class="text-center px-4 border-r border-gray-300">
+                        <div class="text-[10px] text-gray-500 uppercase mb-1 font-bold">ปลายภาค</div>
+                        <div id="ind-score-final" class="text-xl font-bold text-[#1A1A2E]">-</div>
+                    </div>
+                    <div class="text-center px-4">
+                        <div class="text-[10px] text-[#C53D43] uppercase mb-1 font-bold">เกรดเฉลี่ย</div>
+                        <div id="ind-gpa" class="text-2xl font-bold text-[#C53D43] drop-shadow-sm">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-sm border border-gray-200 relative overflow-hidden shadow-sm">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-[#2D6A4F]"></div>
+                    <h3 class="text-lg font-bold text-[#1A1A2E] mb-4 flex items-center font-serif-thai"><i class="fa-solid fa-user-clock mr-2 text-[#2D6A4F]"></i>ประวัติการเข้าเรียน</h3>
+                    <div class="grid grid-cols-4 gap-2 text-center mb-4">
+                        <div class="bg-white border border-[#2D6A4F] rounded-sm p-3"><div id="ind-att-present" class="text-2xl font-bold text-[#2D6A4F]">0</div><div class="text-[10px] text-gray-500 uppercase font-bold">มาเรียน</div></div>
+                        <div class="bg-white border border-[#D4AF37] rounded-sm p-3"><div id="ind-att-leave" class="text-2xl font-bold text-[#D4AF37]">0</div><div class="text-[10px] text-gray-500 uppercase font-bold">ลา</div></div>
+                        <div class="bg-white border border-[#C53D43] rounded-sm p-3"><div id="ind-att-absent" class="text-2xl font-bold text-[#C53D43]">0</div><div class="text-[10px] text-gray-500 uppercase font-bold">ขาด</div></div>
+                        <div class="bg-white border border-blue-500 rounded-sm p-3"><div id="ind-att-activity" class="text-2xl font-bold text-blue-600">0</div><div class="text-[10px] text-gray-500 uppercase font-bold">กิจกรรม</div></div>
+                    </div>
+                    <div class="bg-[#F5F0E8] rounded-sm p-3 border border-gray-200">
+                        <div class="text-xs text-[#C53D43] font-bold mb-1"><i class="fa-solid fa-calendar-xmark mr-1"></i> วันที่ขาดเรียน:</div>
+                        <div id="ind-absent-dates" class="text-xs text-gray-600 leading-relaxed">-</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-sm border border-gray-200 relative overflow-hidden shadow-sm">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
+                    <h3 class="text-lg font-bold text-[#1A1A2E] mb-4 flex items-center font-serif-thai"><i class="fa-solid fa-list-check mr-2 text-[#D4AF37]"></i>สถานะการส่งงาน</h3>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="flex-1">
+                            <div class="flex justify-between text-xs text-gray-500 mb-1 font-bold"><span>ความคืบหน้า</span><span id="ind-work-progress-text" class="text-[#1A1A2E] font-bold">0%</span></div>
+                            <div class="w-full bg-[#F5F0E8] rounded-sm h-2.5 overflow-hidden border border-gray-200"><div id="ind-work-bar" class="bg-[#D4AF37] h-2.5 transition-all duration-1000" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <h4 class="text-xs font-bold text-gray-500 mb-2 border-b border-gray-200 pb-1 uppercase tracking-wider">⚠️ งานที่ยังค้างส่ง (Missing Tasks)</h4>
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1 text-[#1A1A2E]" id="ind-missing-list"></div>
+                </div>
+            </div>
+
+            <div class="bg-[#F5F0E8] p-6 rounded-sm border border-gray-200 relative overflow-hidden shadow-inner">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-300 pb-3">
+                    <h3 class="text-lg font-bold text-[#1A1A2E] flex items-center font-serif-thai">
+                        <i class="fa-solid fa-scroll mr-2 text-[#C53D43]"></i> จดหมายเหตุ: ประวัติการส่งและการตรวจงาน
+                    </h3>
+                    <span class="text-[10px] bg-white px-2 py-1 border border-gray-300 rounded-sm text-gray-400 font-bold">LOG SYSTEM ACTIVE</span>
+                </div>
+                
+                <div id="ind-timeline-container" class="max-h-[500px] overflow-y-auto custom-scrollbar pr-4">
+                    <div class="text-center text-gray-400 py-10 italic">ค้นหารายชื่อเพื่อดูประวัติเส้นเวลา...</div>
+                </div>
+            </div>
+            
+        </div> </div>
+</section>
+
+            <section id="admin-panel-report" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 brush-border-top relative overflow-hidden">
+                <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">报</div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 z-10">
+                    <h3 class="text-xl font-bold text-[#1A1A2E] font-serif-thai">รายงานผลการเรียน</h3>
+                    <div class="flex gap-3">
+                        <button onclick="printOfficialReport()" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-6 py-2.5 rounded-sm text-sm font-bold flex gap-2 shadow-sm items-center transition-colors"><i class="fa-solid fa-print"></i> พิมพ์ PDF</button>
+                        <button onclick="exportGradeCSV()" class="bg-white hover:bg-gray-100 border border-gray-300 text-[#1A1A2E] px-6 py-2.5 rounded-sm text-sm font-bold flex gap-2 shadow-sm items-center transition-colors"><i class="fa-solid fa-file-csv"></i> โหลด CSV</button>
+                    </div>
+                </div>
+                <div class="bg-[#F5F0E8] p-4 rounded-sm border border-gray-200 flex flex-col md:flex-row gap-4 z-10">
+                    <div class="flex-1"><label class="text-xs text-gray-500 block mb-1 font-bold">1. เลือกวิชา</label><select id="report-subject" class="w-full bg-white border border-gray-300 rounded-sm px-4 py-2 text-sm text-[#1A1A2E] outline-none"></select></div>
+                    <div class="flex-1"><label class="text-xs text-gray-500 block mb-1 font-bold">2. เลือกห้องเรียน</label><select id="report-class" class="w-full bg-white border border-gray-300 rounded-sm px-4 py-2 text-sm text-[#1A1A2E] outline-none"><option value="">-- กรุณาเลือกวิชาก่อน --</option></select></div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4 bg-white p-3 rounded-sm border border-gray-200 z-10">
+                    <label class="text-xs text-gray-500 my-auto mr-2 font-bold">รูปแบบรายงาน:</label>
+                    <label class="flex items-center gap-2 cursor-pointer bg-[#F5F0E8] px-3 py-2 rounded-sm border border-gray-300 hover:border-[#C53D43] transition-all">
+                        <input type="radio" name="reportType" value="summary" checked class="accent-[#C53D43] w-4 h-4">
+                        <span class="text-[#1A1A2E] text-xs font-bold">แบบสรุป (5 ช่องเก็บ + สอบ)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer bg-[#F5F0E8] px-3 py-2 rounded-sm border border-gray-300 hover:border-[#1A1A2E] transition-all">
+                        <input type="radio" name="reportType" value="detailed" class="accent-[#1A1A2E] w-4 h-4">
+                        <span class="text-[#1A1A2E] text-xs font-bold">แบบละเอียด (แสดงทุกชิ้นงาน)</span>
+                    </label>
+                </div>
+                <div class="overflow-x-auto bg-white rounded-sm border border-gray-200 z-10">
+                    <table class="min-w-full text-sm text-[#1A1A2E]">
+                        <thead class="bg-[#F5F0E8] text-xs uppercase font-bold text-gray-600 border-b border-gray-300"><tr id="report-table-header"></tr></thead>
+                        <tbody id="report-table-body" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="admin-panel-exam" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 h-full brush-border-top relative overflow-hidden">
+                <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">考</div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200 pb-4 shrink-0 z-10">
+                    <div>
+                        <h3 class="text-xl font-bold text-[#1A1A2E] font-serif-thai">จัดการสอบ & ตัดเกรด</h3>
+                        <p class="text-xs text-gray-500">กำหนดคะแนนกลางภาค/ปลายภาค และนำเข้าคะแนน</p>
+                    </div>
+                    <div class="flex gap-2 bg-[#F5F0E8] p-1 rounded-sm border border-gray-200">
+                        <button onclick="setExamTab('midterm')" id="tab-exam-mid" class="px-6 py-2 rounded-sm text-sm font-bold bg-[#1A1A2E] text-white shadow-sm transition-all">กลางภาค</button>
+                        <button onclick="setExamTab('final')" id="tab-exam-final" class="px-6 py-2 rounded-sm text-sm font-bold text-gray-500 hover:text-[#1A1A2E] transition-all">ปลายภาค</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 z-10">
+                    <div class="md:col-span-1 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
+                        <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 shadow-sm relative">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                            <label class="text-xs text-gray-600 mb-1 block font-bold">1. เลือกห้องเรียน</label>
+                            <select id="exam-class-select" class="w-full bg-white border border-gray-300 rounded-sm px-4 py-2 text-sm mb-4 text-[#1A1A2E]" onchange="renderExamPanel()"></select>
+                            <label class="text-xs text-gray-600 mb-1 block font-bold">2. ตั้งค่าคะแนนเต็ม (Max)</label>
                             <div class="flex gap-2">
-                                <input type="number" id="exam-max-score" class="w-full glass-input rounded-xl px-3 py-2 text-center font-bold text-yellow-400 focus:ring-2 focus:ring-yellow-500/50" value="20">
-                                <button onclick="updateExamConfig()" class="btn-yellow px-4 rounded-xl font-bold text-xs shadow-lg hover:scale-105 transition-transform">บันทึก</button>
+                                <input type="number" id="exam-max-score" class="w-full bg-white border border-gray-300 rounded-sm px-3 py-2 text-center font-bold text-[#C53D43] outline-none focus:border-[#C53D43]" value="20">
+                                <button onclick="updateExamConfig()" class="bg-[#1A1A2E] text-white px-4 rounded-sm font-bold text-xs shadow-sm hover:bg-[#C53D43] transition-colors">บันทึก</button>
                             </div>
                         </div>
-                        <div class="bg-blue-600/10 p-5 rounded-2xl border border-blue-500/30 shadow-lg">
-                            <h4 class="text-sm font-bold text-blue-300 mb-3 flex items-center"><i class="fa-solid fa-file-csv mr-2 text-lg"></i>นำเข้าคะแนน (CSV)</h4>
-                            <button onclick="downloadExamTemplate()" class="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 font-bold text-xs shadow mb-4 hover:bg-white/10 hover:text-white transition-all flex justify-center items-center gap-2 group">
-                                <i class="fa-solid fa-download group-hover:translate-y-0.5 transition-transform"></i> โหลดแม่แบบรายชื่อ
+                        <div class="bg-white p-5 rounded-sm border border-gray-200 shadow-sm relative">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-[#C53D43]"></div>
+                            <h4 class="text-sm font-bold text-[#1A1A2E] mb-3 flex items-center font-serif-thai"><i class="fa-solid fa-file-csv mr-2 text-[#C53D43]"></i>นำเข้าคะแนน (CSV)</h4>
+                            <button onclick="downloadExamTemplate()" class="w-full py-2.5 rounded-sm bg-[#F5F0E8] border border-gray-300 text-[#1A1A2E] font-bold text-xs mb-4 hover:border-[#C53D43] transition-all flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-download"></i> โหลดแม่แบบรายชื่อ
                             </button>
-                            <div class="border-t border-white/10 pt-3">
-                                <p class="text-[10px] text-white/60 mb-2">อัปโหลดไฟล์ (Format: รหัส, คะแนน)</p>
+                            <div class="border-t border-gray-200 pt-3">
+                                <p class="text-[10px] text-gray-500 mb-2 font-bold">อัปโหลดไฟล์ (Format: รหัส, คะแนน)</p>
                                 <input type="file" id="exam-csv-input" accept=".csv" class="hidden">
-                                <button onclick="document.getElementById('exam-csv-input').click()" class="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-lg mb-2 hover:bg-blue-500 transition-all flex justify-center items-center gap-2">
+                                <button onclick="document.getElementById('exam-csv-input').click()" class="w-full py-2.5 rounded-sm bg-[#1A1A2E] text-white font-bold text-xs shadow-sm mb-2 hover:bg-[#C53D43] transition-colors flex justify-center items-center gap-2">
                                     <i class="fa-solid fa-folder-open"></i> เลือกไฟล์ CSV
                                 </button>
-                                <div id="csv-file-name" class="text-[10px] text-center text-white/40 mb-2 h-4 truncate">- ยังไม่เลือกไฟล์ -</div>
-                                <button onclick="processExamCSV()" id="btn-process-csv" class="w-full py-2.5 rounded-xl bg-white/10 text-white/50 font-bold text-xs pointer-events-none transition-all border border-white/5">
+                                <div id="csv-file-name" class="text-[10px] text-center text-gray-500 mb-2 h-4 truncate">- ยังไม่เลือกไฟล์ -</div>
+                                <button onclick="processExamCSV()" id="btn-process-csv" class="w-full py-2.5 rounded-sm bg-gray-200 text-gray-400 font-bold text-xs pointer-events-none transition-all">
                                     ยืนยันนำเข้า
                                 </button>
                             </div>
                         </div>
                     </div>
-                    <div class="md:col-span-2 bg-black/20 p-1 rounded-2xl border border-white/10 flex flex-col shadow-inner relative overflow-hidden">
-                        <div class="p-4 flex justify-between items-center bg-white/5 border-b border-white/5 rounded-t-xl shrink-0">
-                            <h4 class="font-bold text-white flex items-center"><i class="fa-solid fa-users-viewfinder mr-2 text-blue-400"></i>รายชื่อนักเรียน</h4>
-                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span><span class="text-xs text-white/50">Auto Save</span></div>
+                    <div class="md:col-span-2 bg-white p-1 rounded-sm border border-gray-200 flex flex-col shadow-sm relative overflow-hidden">
+                        <div class="p-4 flex justify-between items-center bg-[#F5F0E8] border-b border-gray-200 shrink-0">
+                            <h4 class="font-bold text-[#1A1A2E] flex items-center font-serif-thai"><i class="fa-solid fa-users-viewfinder mr-2 text-[#C53D43]"></i>รายชื่อนักเรียน</h4>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#2D6A4F] animate-pulse"></span><span class="text-xs text-[#2D6A4F] font-bold">Auto Save</span></div>
                         </div>
                         <div class="flex-1 overflow-y-auto custom-scrollbar">
-                            <table class="w-full text-sm text-left text-white/80">
-                                <thead class="text-xs text-white/50 uppercase bg-black/40 sticky top-0 backdrop-blur-md z-10 shadow-sm">
+                            <table class="w-full text-sm text-left text-[#1A1A2E]">
+                                <thead class="text-xs text-gray-600 uppercase bg-white sticky top-0 shadow-sm border-b border-gray-200 z-10">
                                     <tr><th class="px-4 py-3 text-center w-16">เลขที่</th><th class="px-4 py-3">ชื่อ-นามสกุล</th><th class="px-4 py-3 text-center w-32">คะแนน</th></tr>
                                 </thead>
-                                <tbody id="exam-table-body" class="divide-y divide-white/5"></tbody>
+                                <tbody id="exam-table-body" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="admin-panel-attendance" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
-                <div id="smart-att-banner" class="hidden bg-gradient-to-r from-blue-900/50 to-blue-600/50 border border-blue-400/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
+            <section id="admin-panel-attendance" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 brush-border-top relative overflow-hidden">
+                <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">勤</div>
+                
+                <div id="smart-att-banner" class="hidden bg-[#F5F0E8] border-l-4 border-[#D4AF37] border-y border-r border-gray-200 rounded-sm p-4 flex items-center justify-between shadow-sm z-10">
                     <div class="flex items-center gap-4">
-                        <div class="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-2xl animate-pulse"><i class="fa-solid fa-bell"></i></div>
-                        <div><h3 class="font-bold text-white text-lg">ถึงเวลาสอนแล้ว!</h3><p class="text-blue-200 text-sm">คาบ <span id="smart-period" class="font-bold text-white"></span> : ห้อง <span id="smart-class-name" class="font-bold text-amber-400 text-lg"></span></p></div>
+                        <div class="h-12 w-12 rounded-full bg-white border border-[#D4AF37] flex items-center justify-center text-[#D4AF37] text-2xl animate-pulse"><i class="fa-solid fa-bell"></i></div>
+                        <div><h3 class="font-bold text-[#1A1A2E] text-lg font-serif-thai">ถึงเวลาสอนแล้ว!</h3><p class="text-gray-600 text-sm">คาบ <span id="smart-period" class="font-bold text-[#1A1A2E]"></span> : ห้อง <span id="smart-class-name" class="font-bold text-[#C53D43] text-lg"></span></p></div>
                     </div>
-                    <button onclick="useSmartClass()" class="btn-yellow px-6 py-2 rounded-xl font-bold shadow-lg">เช็คชื่อห้องนี้</button>
+                    <button onclick="useSmartClass()" class="bg-[#D4AF37] hover:bg-[#C39F2D] text-white px-6 py-2 rounded-sm font-bold shadow-sm transition-colors">เช็คชื่อห้องนี้</button>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px]">
-                    <div class="lg:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-5">
-                        <h3 class="font-bold text-white text-lg border-b border-white/10 pb-2">ควบคุม & ค้นหา</h3>
-                        <div class="bg-black/30 p-3 rounded-xl mb-2">
-                            <label class="text-xs text-white/50 mb-1 block">วันที่</label>
-                            <input id="att-date-input" type="date" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-mono text-center mb-2">
-                            <select id="att-class-select" class="w-full glass-input rounded-xl px-3 py-2 text-sm mb-2 mt-1"></select>
-                            <div id="att-stats" class="text-center py-2 border-t border-white/10 mt-2">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[500px] z-10">
+                    <div class="lg:col-span-1 bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 flex flex-col gap-5 relative">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                        <h3 class="font-bold text-[#1A1A2E] text-lg border-b border-gray-300 pb-2 font-serif-thai">ควบคุม & ค้นหา</h3>
+                        <div class="bg-white p-3 rounded-sm border border-gray-200 mb-2 shadow-sm">
+                            <label class="text-xs text-gray-500 mb-1 block font-bold">วันที่</label>
+                            <input id="att-date-input" type="date" class="w-full border-b border-gray-300 bg-transparent px-3 py-2 text-sm font-mono text-center mb-2 outline-none focus:border-[#C53D43] text-[#1A1A2E]">
+                            <select id="att-class-select" class="w-full border-b border-gray-300 bg-transparent px-3 py-2 text-sm mb-2 mt-1 outline-none focus:border-[#C53D43] text-[#1A1A2E]"></select>
+                            <div id="att-stats" class="text-center py-2 border-t border-gray-200 mt-2">
                                 <div class="grid grid-cols-4 gap-1 mt-1 text-sm font-bold">
-                                    <div class="text-green-400"><i class="fa-solid fa-check"></i> <span id="stat-present">0</span></div>
-                                    <div class="text-yellow-400"><i class="fa-solid fa-envelope"></i> <span id="stat-leave">0</span></div>
-                                    <div class="text-red-400"><i class="fa-solid fa-xmark"></i> <span id="stat-absent">0</span></div>
-                                    <div class="text-orange-400"><i class="fa-solid fa-star"></i> <span id="stat-activity">0</span></div>
+                                    <div class="text-[#2D6A4F]"><i class="fa-solid fa-check"></i> <span id="stat-present">0</span></div>
+                                    <div class="text-[#D4AF37]"><i class="fa-solid fa-envelope-open-text"></i> <span id="stat-leave">0</span></div>
+                                    <div class="text-[#C53D43]"><i class="fa-solid fa-xmark"></i> <span id="stat-absent">0</span></div>
+                                    <div class="text-blue-600"><i class="fa-solid fa-flag"></i> <span id="stat-activity">0</span></div>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-2">
-                            <label class="text-xs text-white/50 block mb-1">📷 โหมดสแกน</label>
-                            <input id="att-scan-input" type="text" class="w-full glass-input rounded-xl px-4 py-3 text-lg text-center font-bold text-yellow-400 focus:border-yellow-500 outline-none placeholder-white/20" placeholder="ยิงบาร์โค้ด..." autocomplete="off">
+                            <label class="text-xs text-gray-500 block mb-1 font-bold">📷 โหมดสแกน</label>
+                            <input id="att-scan-input" type="text" class="w-full bg-white border-2 border-gray-300 rounded-sm px-4 py-3 text-lg text-center font-bold text-[#1A1A2E] focus:border-[#C53D43] outline-none transition-colors" placeholder="ยิงบาร์โค้ด..." autocomplete="off">
                         </div>
-                        <div class="space-y-3">
-                            <button onclick="setAttMode('มา')" id="btn-att-present" class="w-full py-2 rounded-xl border border-green-500/50 bg-green-500/10 text-green-400 font-bold flex justify-between px-4 transition-all"><span>มาเรียน</span> <i class="fa-solid fa-check"></i></button>
-                            <button onclick="setAttMode('ลา')" id="btn-att-leave" class="w-full py-2 rounded-xl border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-bold flex justify-between px-4 transition-all"><span>ลา</span> <i class="fa-solid fa-envelope"></i></button>
-                            <button onclick="setAttMode('ขาด')" id="btn-att-absent" class="w-full py-2 rounded-xl border border-red-500/50 bg-red-500/10 text-red-400 font-bold flex justify-between px-4 transition-all"><span>ขาด</span> <i class="fa-solid fa-xmark"></i></button>
-                            <button onclick="setAttMode('กิจกรรม')" id="btn-att-activity" class="w-full py-2 rounded-xl border border-orange-500/50 bg-orange-500/10 text-orange-400 font-bold flex justify-between px-4 transition-all"><span>กิจกรรม</span> <i class="fa-solid fa-star"></i></button>
+                        <div class="space-y-2">
+                            <button onclick="setAttMode('มา')" id="btn-att-present" class="w-full py-2.5 rounded-sm border border-gray-300 bg-white text-gray-600 hover:border-[#2D6A4F] hover:text-[#2D6A4F] font-bold flex justify-between px-4 transition-all"><span>มาเรียน</span> <i class="fa-solid fa-check"></i></button>
+                            <button onclick="setAttMode('ลา')" id="btn-att-leave" class="w-full py-2.5 rounded-sm border border-gray-300 bg-white text-gray-600 hover:border-[#D4AF37] hover:text-[#D4AF37] font-bold flex justify-between px-4 transition-all"><span>ลา</span> <i class="fa-solid fa-envelope-open-text"></i></button>
+                            <button onclick="setAttMode('ขาด')" id="btn-att-absent" class="w-full py-2.5 rounded-sm border border-gray-300 bg-white text-gray-600 hover:border-[#C53D43] hover:text-[#C53D43] font-bold flex justify-between px-4 transition-all"><span>ขาด</span> <i class="fa-solid fa-xmark"></i></button>
+                            <button onclick="setAttMode('กิจกรรม')" id="btn-att-activity" class="w-full py-2.5 rounded-sm border border-gray-300 bg-white text-gray-600 hover:border-blue-500 hover:text-blue-600 font-bold flex justify-between px-4 transition-all"><span>กิจกรรม</span> <i class="fa-solid fa-flag"></i></button>
                         </div>
-                        <div class="mt-auto pt-4 border-t border-white/10"><button onclick="exportAttendanceCSV()" class="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-green-600 text-white font-bold shadow-lg"><i class="fa-solid fa-file-csv mr-2"></i>เช็คชื่อ (CSV)</button></div>
+                        <div class="mt-auto pt-4 border-t border-gray-300">
+                            <button onclick="exportAttendanceCSV()" class="w-full py-3 rounded-sm bg-[#1A1A2E] hover:bg-[#C53D43] text-white font-bold shadow-sm transition-colors"><i class="fa-solid fa-file-csv mr-2"></i>เช็คชื่อ (CSV)</button>
+                        </div>
                     </div>
-                    <div class="lg:col-span-3 bg-black/20 p-5 rounded-2xl border border-white/10 flex flex-col"><div id="att-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1"></div></div>
+                    <div class="lg:col-span-3 bg-white p-5 rounded-sm border border-gray-200 flex flex-col shadow-sm">
+                        <div id="att-roster-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto max-h-[600px] p-1 custom-scrollbar"></div>
+                    </div>
                 </div>
             </section>
             
-            <section id="admin-panel-homework" class="admin-panel hidden glass-ios rounded-3xl p-6"><div id="incoming-list" class="grid grid-cols-1 gap-4"></div></section>
-            
-            <section id="admin-panel-material" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6"><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="md:col-span-1 bg-white/5 p-5 rounded-2xl border border-white/10 h-fit"><h3 class="font-bold text-white mb-4 border-b border-white/10 pb-2">เพิ่มเนื้อหา</h3><form id="form-material" class="space-y-4"><div><label class="text-xs text-white/50">วิชา</label><select id="mat-subject" class="w-full glass-input rounded-xl px-3 py-2 text-sm" required></select></div><div><label class="text-xs text-white/50">หัวข้อ</label><input id="mat-title" type="text" class="w-full glass-input rounded-xl px-3 py-2 text-sm" required></div><div><label class="text-xs text-white/50">ลิงก์</label><input id="mat-link" type="url" class="w-full glass-input rounded-xl px-3 py-2 text-blue-300 text-sm" placeholder="https://..." required></div><button type="submit" class="w-full btn-yellow py-2 rounded-xl font-bold shadow-lg">บันทึก</button></form></div><div class="md:col-span-2 flex flex-col gap-4"><div id="admin-mat-list" class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[600px] pr-2"></div></div></div></section>
-        <section id="admin-panel-management" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/10 pb-4">
-        <div>
-            <h3 class="text-xl font-bold text-white">ตารางจัดการคะแนน (Score Manager)</h3>
-            <p class="text-xs text-white/50">ลบงาน แก้ไขคะแนนรายช่อง หรือเพิ่มงานใหม่ได้ที่นี่</p>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="document.getElementById('menu-basic').click()" class="btn-yellow px-4 py-2 rounded-xl text-xs font-bold shadow-lg">
-                <i class="fa-solid fa-plus mr-1"></i> สร้างงานใหม่
-            </button>
-        </div>
-    </div>
+            <section id="admin-panel-homework" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 brush-border-top">
+    <div id="incoming-list" class="grid grid-cols-1 gap-4"></div>
 
-    <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-        <label class="text-xs text-white/50 block mb-1">เลือกห้องเรียนเพื่อจัดการคะแนน</label>
-        <select id="manage-class-select" class="w-full glass-input rounded-xl px-4 py-2 text-sm" onchange="renderScoreManagerPanel()">
-            </select>
-    </div>
-
-    <div class="flex-1 overflow-auto bg-black/20 rounded-2xl border border-white/10 custom-scrollbar relative min-h-[400px]">
-        <table class="w-full text-sm text-left text-white/80 border-collapse">
-            <thead class="text-xs text-white/70 uppercase bg-black/40 sticky top-0 z-10 backdrop-blur-md">
-                <tr id="manage-table-header">
-                    </tr>
-            </thead>
-            <tbody id="manage-table-body" class="divide-y divide-white/5">
-                </tbody>
-        </table>
+    <div class="mt-12 border-t-2 border-dashed border-gray-200 pt-10 relative overflow-hidden">
+        <div class="absolute -right-4 top-10 text-[100px] text-gray-400 opacity-5 font-serif-thai pointer-events-none">史</div>
         
-        <div id="manage-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-white/30">
-            <i class="fa-solid fa-hand-pointer text-4xl mb-4"></i>
-            <p>กรุณาเลือกห้องเรียนด้านบน</p>
+        <div class="flex justify-between items-center mb-6 relative z-10">
+            <h3 class="text-xl font-bold text-[#1A1A2E] flex items-center gap-2 font-serif-thai">
+                <i class="fa-solid fa-clock-rotate-left text-[#D4AF37]"></i> ประวัติกิจกรรมล่าสุด (History Log)
+            </h3>
+            <span class="text-[10px] bg-[#F5F0E8] px-3 py-1 border border-gray-300 rounded-sm text-gray-500 font-bold">แสดง 50 รายการล่าสุด</span>
+        </div>
+        
+        <div id="homework-history-list" class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-2 relative z-10">
+            <div class="text-center text-gray-400 py-10 italic">กำลังโหลดประวัติ...</div>
         </div>
     </div>
 </section>
-<section id="admin-panel-lucky" class="admin-panel hidden glass-ios rounded-3xl p-6 flex flex-col gap-6 relative overflow-hidden min-h-[600px]">
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-black z-0"></div>
+            
+            <section id="admin-panel-material" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 brush-border-top relative overflow-hidden">
+                <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">书</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 z-10">
+                    <div class="md:col-span-1 bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 h-fit shadow-sm relative">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                        <h3 class="font-bold text-[#1A1A2E] mb-4 border-b border-gray-300 pb-2 font-serif-thai">เพิ่มเนื้อหา</h3>
+                        <form id="form-material" class="space-y-4">
+                            <div>
+                                <label class="text-xs text-gray-600 font-bold">วิชา</label>
+                                <select id="mat-subject" class="w-full bg-white border-b-2 border-gray-300 px-3 py-2 text-sm text-[#1A1A2E] outline-none focus:border-[#C53D43]" required></select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600 font-bold">หัวข้อ</label>
+                                <input id="mat-title" type="text" class="w-full bg-white border-b-2 border-gray-300 px-3 py-2 text-sm text-[#1A1A2E] outline-none focus:border-[#C53D43]" required>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600 font-bold">ลิงก์</label>
+                                <input id="mat-link" type="url" class="w-full bg-white border-b-2 border-gray-300 px-3 py-2 text-sm text-[#C53D43] outline-none focus:border-[#C53D43]" placeholder="https://..." required>
+                            </div>
+                            <button type="submit" class="w-full bg-[#1A1A2E] hover:bg-[#C53D43] text-white py-3 rounded-sm font-bold shadow-sm transition-colors mt-2">บันทึกเนื้อหา</button>
+                        </form>
+                    </div>
+                    <div class="md:col-span-2 flex flex-col gap-4">
+                        <div id="admin-mat-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="admin-panel-management" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 brush-border-top relative overflow-hidden">
+                <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">绩</div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200 pb-4 z-10">
+                    <div>
+                        <h3 class="text-xl font-bold text-[#1A1A2E] font-serif-thai">ตารางจัดการคะแนน (Score Manager)</h3>
+                        <p class="text-xs text-gray-500">ลบงาน แก้ไขคะแนนรายช่อง หรือเพิ่มงานใหม่ได้ที่นี่</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="document.getElementById('menu-basic').click()" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-4 py-2 rounded-sm text-xs font-bold shadow-sm transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i> สร้างงานใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-[#F5F0E8] p-4 rounded-sm border border-gray-200 z-10">
+                    <label class="text-xs text-gray-600 block mb-1 font-bold">เลือกห้องเรียนเพื่อจัดการคะแนน</label>
+                    <select id="manage-class-select" class="w-full bg-white border border-gray-300 rounded-sm px-4 py-2 text-sm text-[#1A1A2E] outline-none focus:border-[#C53D43]" onchange="renderScoreManagerPanel()"></select>
+                </div>
+
+                <div class="flex-1 overflow-auto bg-white rounded-sm border border-gray-200 custom-scrollbar relative min-h-[400px] shadow-sm z-10">
+                    <table class="w-full text-sm text-left text-[#1A1A2E] border-collapse">
+                        <thead class="text-xs text-gray-600 uppercase bg-[#F5F0E8] sticky top-0 z-10 shadow-sm border-b border-gray-300">
+                            <tr id="manage-table-header"></tr>
+                        </thead>
+                        <tbody id="manage-table-body" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                    
+                    <div id="manage-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-white/90 backdrop-blur-sm z-20">
+                        <i class="fa-solid fa-hand-pointer text-4xl mb-4 text-gray-300"></i>
+                        <p class="font-bold text-[#1A1A2E]">กรุณาเลือกห้องเรียนด้านบน</p>
+                    </div>
+                </div>
+            </section>
+<section id="admin-panel-lucky" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col gap-6 relative overflow-hidden min-h-[600px] brush-border-top">
+    <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none z-0">运</div>
     
-    <div class="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+    <div class="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-4 bg-[#F5F0E8] p-4 rounded-sm border border-gray-200 shadow-sm">
         <div class="flex items-center gap-3 w-full lg:w-auto">
-            <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 border border-pink-500/30">
-                <i class="fa-solid fa-gamepad text-xl"></i>
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#C53D43] border border-gray-300 shadow-sm">
+                <i class="fa-solid fa-dice text-xl"></i>
             </div>
             <div>
-                <h3 class="text-white font-bold">Lucky Station</h3>
-                <p class="text-xs text-white/50">ระบบสุ่มผู้โชคดี</p>
+                <h3 class="text-[#1A1A2E] font-bold font-serif-thai text-lg">Lucky Station</h3>
+                <p class="text-xs text-gray-500 font-bold">ระบบสุ่มผู้โชคดี</p>
             </div>
         </div>
         
         <div class="flex flex-wrap gap-2 justify-center">
-            <select id="lucky-class-select" class="glass-input rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10" onchange="clearLuckyHistory()">
+            <select id="lucky-class-select" class="bg-white border border-gray-300 rounded-sm px-3 py-2 text-sm text-[#1A1A2E] focus:border-[#C53D43] outline-none transition-colors" onchange="clearLuckyHistory()">
                 <option value="">-- เลือกห้อง --</option>
             </select>
             
-            <select id="lucky-filter-att" class="glass-input rounded-xl px-3 py-2 text-sm bg-black/40 border-white/10 text-green-400 font-bold">
+            <select id="lucky-filter-att" class="bg-white border border-gray-300 rounded-sm px-3 py-2 text-sm text-[#2D6A4F] font-bold focus:border-[#C53D43] outline-none transition-colors">
                 <option value="all">🌐 สุ่มทุกคน</option>
                 <option value="present" selected>✅ เฉพาะคนมาเรียน</option>
             </select>
@@ -600,84 +782,90 @@
     </div>
 
     <div class="relative z-10 flex-1 flex flex-col items-center justify-center gap-8 py-4">
-        
-        <div id="lucky-box" class="lucky-container w-full max-w-4xl rounded-2xl p-1 running-light transition-all duration-300">
-            <div class="lucky-display-screen p-8">
-                <div id="lucky-result" class="lucky-name">READY?</div>
+        <div id="lucky-box" class="lucky-container w-full max-w-4xl rounded-sm p-1 transition-all duration-300">
+            <div class="p-8 bg-white border border-gray-200 rounded-sm shadow-sm flex items-center justify-center min-h-[150px] relative overflow-hidden">
+                <div id="lucky-result" class="text-4xl md:text-5xl font-extrabold text-gray-300 text-center tracking-widest font-serif-thai drop-shadow-sm">READY?</div>
             </div>
         </div>
 
         <div class="flex flex-col items-center gap-4 w-full max-w-2xl">
-            
-            <div class="flex flex-wrap justify-center gap-2 bg-black/30 p-2 rounded-xl border border-white/10">
-                <button onclick="setLuckyMode('1')" id="btn-mode-1" class="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-lg transition-all mode-btn">เดี่ยว (1)</button>
-                <button onclick="setLuckyMode('2')" id="btn-mode-2" class="px-4 py-2 rounded-lg text-xs font-bold text-white/50 hover:text-white transition-all mode-btn">คู่ (2)</button>
-                <button onclick="setLuckyMode('group')" id="btn-mode-group" class="px-4 py-2 rounded-lg text-xs font-bold text-white/50 hover:text-white transition-all mode-btn">กลุ่ม</button>
-                <input type="number" id="lucky-group-size" class="w-16 glass-input rounded-lg px-2 py-1 text-center text-xs hidden" placeholder="จำนวน" min="3" value="3">
+            <div class="flex flex-wrap justify-center gap-2 bg-[#F5F0E8] p-2 rounded-sm border border-gray-200 shadow-sm">
+                <button onclick="setLuckyMode('1')" id="btn-mode-1" class="px-4 py-2 rounded-sm text-xs font-bold bg-[#1A1A2E] text-white shadow-sm transition-all mode-btn">เดี่ยว (1)</button>
+                <button onclick="setLuckyMode('2')" id="btn-mode-2" class="px-4 py-2 rounded-sm text-xs font-bold text-gray-600 bg-white hover:border-[#1A1A2E] border border-gray-300 transition-all mode-btn">คู่ (2)</button>
+                <button onclick="setLuckyMode('group')" id="btn-mode-group" class="px-4 py-2 rounded-sm text-xs font-bold text-gray-600 bg-white hover:border-[#1A1A2E] border border-gray-300 transition-all mode-btn">กลุ่ม</button>
+                <input type="number" id="lucky-group-size" class="w-16 bg-white border border-gray-300 rounded-sm px-2 py-1 text-center text-xs hidden outline-none focus:border-[#C53D43]" placeholder="จำนวน" min="3" value="3">
             </div>
 
             <div class="flex gap-4 items-center">
-                <div class="flex items-center gap-2 bg-black/30 px-3 py-2 rounded-lg border border-white/5">
-                    <i class="fa-regular fa-clock text-white/50 text-xs"></i>
-                    <select id="lucky-duration" class="bg-transparent text-white text-xs font-bold outline-none cursor-pointer">
+                <div class="flex items-center gap-2 bg-[#F5F0E8] px-3 py-2 rounded-sm border border-gray-200 shadow-sm">
+                    <i class="fa-regular fa-clock text-gray-500 text-xs"></i>
+                    <select id="lucky-duration" class="bg-transparent text-[#1A1A2E] text-xs font-bold outline-none cursor-pointer">
                         <option value="3000">3 วินาที</option>
                         <option value="5000" selected>5 วินาที</option>
                         <option value="10000">10 วินาที</option>
                     </select>
                 </div>
-                <label class="flex items-center gap-2 cursor-pointer bg-black/30 px-3 py-2 rounded-lg border border-white/5 hover:bg-white/5 transition-all">
-                    <input type="checkbox" id="lucky-no-repeat" class="accent-red-500 w-4 h-4" checked>
-                    <span class="text-xs text-white/80">ห้ามซ้ำ</span>
+                <label class="flex items-center gap-2 cursor-pointer bg-[#F5F0E8] px-3 py-2 rounded-sm border border-gray-200 shadow-sm hover:border-[#C53D43] transition-all">
+                    <input type="checkbox" id="lucky-no-repeat" class="accent-[#C53D43] w-4 h-4" checked>
+                    <span class="text-xs text-[#1A1A2E] font-bold">ห้ามซ้ำ</span>
                 </label>
             </div>
 
-            <button onclick="startLuckyDraw()" id="btn-lucky-action" class="w-64 py-4 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 text-white text-xl font-bold shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:scale-105 hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] transition-all active:scale-95">
+            <button onclick="startLuckyDraw()" id="btn-lucky-action" class="w-64 py-4 rounded-sm bg-[#C53D43] hover:bg-[#A03035] text-white text-xl font-bold shadow-md transition-all active:scale-95 border-b-4 border-[#8A252A]">
                 <i class="fa-solid fa-play mr-2"></i> สุ่มเลย!
             </button>
         </div>
     </div>
 
-    <div class="relative z-10 bg-white/5 rounded-2xl p-4 border border-white/10 min-h-[100px]">
-        <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-            <h4 class="text-sm font-bold text-white/70"><i class="fa-solid fa-clock-rotate-left mr-2"></i>ประวัติคนดวงดี</h4>
-            <button onclick="clearLuckyHistory()" class="text-[10px] text-red-400 hover:text-red-300"><i class="fa-solid fa-trash mr-1"></i>ล้างประวัติ</button>
+    <div class="relative z-10 bg-white rounded-sm p-4 border border-gray-200 min-h-[100px] shadow-sm">
+        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+            <h4 class="text-sm font-bold text-[#1A1A2E] font-serif-thai"><i class="fa-solid fa-clock-rotate-left mr-2 text-[#D4AF37]"></i>ประวัติคนดวงดี</h4>
+            <button onclick="clearLuckyHistory()" class="text-[10px] text-gray-400 hover:text-[#C53D43] font-bold transition-colors"><i class="fa-solid fa-trash mr-1"></i>ล้างประวัติ</button>
         </div>
         <div id="lucky-history-list" class="flex flex-wrap gap-2">
-            <div class="text-xs text-white/30 italic w-full text-center py-2">ยังไม่มีประวัติการสุ่ม</div>
+            <div class="text-xs text-gray-400 italic w-full text-center py-2">ยังไม่มีประวัติการสุ่ม</div>
         </div>
     </div>
 </section>
 
-<section id="admin-panel-tools" class="admin-panel hidden glass-ios rounded-3xl p-6">
-    <h3 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2"><i class="fa-solid fa-id-card mr-2 text-teal-400"></i> สร้างบัตรประจำตัวนักเรียน (QR Code)</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white/5 p-5 rounded-2xl border border-white/10 h-fit">
-            <label class="text-xs text-white/50 block mb-2">1. เลือกห้องเรียน</label>
-            <select id="card-class-select" class="w-full glass-input rounded-xl px-3 py-2 text-sm mb-4"></select>
+<section id="admin-panel-tools" class="admin-panel hidden bg-white border border-gray-200 shadow-sm rounded-sm p-6 brush-border-top relative overflow-hidden">
+    <div class="absolute -right-4 top-10 text-[120px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none z-0">卡</div>
+    
+    <h3 class="text-xl font-bold text-[#1A1A2E] mb-6 border-b border-gray-200 pb-3 font-serif-thai relative z-10"><i class="fa-solid fa-id-card mr-2 text-[#1A1A2E]"></i> สร้างบัตรประจำตัวนักเรียน (QR Code)</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <div class="bg-[#F5F0E8] p-5 rounded-sm border border-gray-200 h-fit shadow-sm relative">
+            <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
             
-            <button onclick="generateIDCards()" class="w-full btn-yellow py-3 rounded-xl font-bold shadow-lg mb-2">
-                <i class="fa-solid fa-eye mr-2"></i> แสดงตัวอย่าง
+            <label class="text-xs text-gray-600 block mb-2 font-bold">1. เลือกห้องเรียน</label>
+            <select id="card-class-select" class="w-full bg-white border border-gray-300 rounded-sm px-3 py-2.5 text-sm mb-5 text-[#1A1A2E] outline-none focus:border-[#C53D43] shadow-sm"></select>
+            
+            <button onclick="generateIDCards()" class="w-full bg-[#D4AF37] hover:bg-[#C39F2D] text-white py-3 rounded-sm font-bold shadow-sm mb-3 transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-eye"></i> แสดงตัวอย่าง
             </button>
             
-            <button onclick="downloadSelectedCards()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg mb-2 hover:bg-green-500 transition-all">
-                <i class="fa-solid fa-file-zipper mr-2"></i> ดาวน์โหลด (ZIP)
+            <button onclick="downloadSelectedCards()" class="w-full bg-[#2D6A4F] hover:bg-[#1B4332] text-white py-3 rounded-sm font-bold shadow-sm mb-3 transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-file-zipper"></i> ดาวน์โหลดรูป (ZIP)
             </button>
             
-            <button onclick="printIDCards()" class="w-full bg-white/10 text-white py-3 rounded-xl font-bold border border-white/10 hover:bg-white/20">
-                <i class="fa-solid fa-print mr-2"></i> พิมพ์เอกสาร
+            <button onclick="printIDCards()" class="w-full bg-white text-[#1A1A2E] border border-gray-300 hover:border-[#1A1A2E] py-3 rounded-sm font-bold shadow-sm transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-print"></i> พิมพ์เอกสาร (PDF/Print)
             </button>
             
-            <div class="mt-4 pt-4 border-t border-white/10">
-                <label class="flex items-center gap-2 cursor-pointer text-white/70 hover:text-white text-sm">
-                    <input type="checkbox" id="select-all-cards" class="accent-green-500 w-4 h-4" onchange="toggleSelectAllCards(this)">
-                    เลือกทั้งหมด
+            <div class="mt-5 pt-4 border-t border-gray-300">
+                <label class="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-[#C53D43] text-sm font-bold transition-colors">
+                    <input type="checkbox" id="select-all-cards" class="accent-[#C53D43] w-4 h-4 rounded-sm" onchange="toggleSelectAllCards(this)">
+                    เลือกบัตรทั้งหมด
                 </label>
             </div>
         </div>
         
-        <div class="md:col-span-2 bg-gray-200 rounded-2xl p-4 overflow-y-auto max-h-[600px] border-4 border-white/10">
+        <div class="md:col-span-2 bg-[#FBF9F6] rounded-sm p-4 overflow-y-auto max-h-[600px] border border-gray-200 shadow-inner custom-scrollbar">
             <div id="id-card-preview-area" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="text-gray-400 text-center col-span-2 py-20">กรุณาเลือกห้องและกดแสดงตัวอย่าง</div>
+                <div class="text-gray-400 text-center col-span-2 py-20 flex flex-col items-center gap-3">
+                    <i class="fa-solid fa-address-card text-4xl text-gray-300"></i>
+                    <p class="font-bold text-sm">กรุณาเลือกห้องเรียนและกด "แสดงตัวอย่าง"</p>
+                </div>
             </div>
         </div>
     </div>
@@ -686,30 +874,29 @@
       </div>
 
       <div id="section-student" class="hidden flex flex-col gap-5">
-         <div id="student-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
-            <div class="glass-ios p-10 rounded-3xl w-full max-w-sm flex flex-col items-center relative">
-                <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-24 h-24 object-contain mb-6 drop-shadow-lg">
-                <h2 class="text-2xl font-bold text-white mb-6">นักเรียน</h2>
-                <div class="space-y-4">
-    <div>
-        <div class="mt-4">
-    <label class="text-xs text-white/70 ml-1">เลขประจำตัวนักเรียน</label>
-    <input type="text" id="student-login-id" class="glass-input w-full p-4 rounded-2xl mt-1 text-center text-xl font-bold" placeholder="กรอกเลขประจำตัว">
-</div>
-
-<div class="mt-4">
-    <label class="text-xs text-white/70 ml-1">รหัสผ่าน (Password)</label>
-    <input type="password" id="student-login-password" class="glass-input w-full p-4 rounded-2xl mt-1 text-center text-xl font-bold" placeholder="">
-    <p class="text-[10px] text-yellow-300 mt-1 ml-1">* เข้าใช้งานครั้งแรกใช้รหัส: 123456</p>
-</div>
-</div>
-                <button onclick="handleStudentLogin()" class="w-full py-3 rounded-xl btn-blue font-bold shadow-lg mt-4 text-lg">เข้าใช้งาน</button>
-            </div>
+        <div id="student-login-wrapper" class="flex flex-col items-center justify-center py-20 gap-8">
+    <div class="bg-white p-10 rounded-sm border border-gray-200 shadow-sm w-full max-w-sm flex flex-col items-center relative brush-border-top">
+        
+        <div class="seal-stamp top-6 right-6 w-12 h-12 text-lg transform rotate-12">
+            生
         </div>
+
+        <img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" alt="Logo" class="w-20 h-20 object-contain mb-4 opacity-90">
+        <h2 class="text-2xl font-bold text-[#1A1A2E] mb-6 font-serif-thai tracking-wide">ห้องเรียนนักเรียน</h2>
+        
+        <div class="w-full mt-4 space-y-6">
+            <input id="student-login-id" type="text" class="w-full glass-input px-2 py-2 text-center text-[#1A1A2E] text-xl font-bold tracking-widest" placeholder="รหัสนักเรียน">
+            
+            <button onclick="handleStudentLogin()" class="w-full py-3 rounded-sm bg-[#C53D43] hover:bg-[#A03035] text-white font-bold shadow-md mt-4 text-lg transition-colors">
+    เข้าสู่ระบบ
+</button>
+        </div>
+    </div>
+</div>
         <div id="student-dashboard" class="hidden flex flex-col gap-6">
              <div class="glass-ios p-6 rounded-3xl flex items-center justify-between">
-                 <div><h2 id="std-dash-name" class="text-2xl font-bold text-white">-</h2><span id="std-dash-class" class="text-blue-300 font-bold text-sm">-</span> <button onclick="openEmailModal('student')" class="text-yellow-400 hover:text-white ml-2" title="แก้ไขอีเมล"><i class="fa-solid fa-envelope"></i></button></div>
-                 <button onclick="handleLogout(true)" class="text-white/50 hover:text-red-400 text-xl"><i class="fa-solid fa-right-from-bracket"></i></button>
+                 <div><h2 id="std-dash-name" class="text-2xl font-bold text-[#1A1A2E]">-</h2><span id="std-dash-class" class="text-blue-300 font-bold text-sm">-</span> <button onclick="openEmailModal('student')" class="text-[#C53D43] hover:text-[#1A1A2E] ml-2" title="แก้ไขอีเมล"><i class="fa-solid fa-envelope"></i></button></div>
+                 <button onclick="handleLogout(true)" class="text-[#1A1A2E]/50 hover:text-red-400 text-xl"><i class="fa-solid fa-right-from-bracket"></i></button>
              </div>
              <div id="std-subjects-container" class="flex flex-col gap-6"></div>
         </div>
@@ -717,142 +904,154 @@
 
      </div>
     </main>
-    
-    <div id="subject-config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="glass-ios p-6 rounded-3xl w-full max-w-sm shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-4">ตั้งค่าคะแนนรายวิชา</h3>
-            <p id="config-subject-name" class="text-yellow-400 text-sm mb-4"></p>
+    <div id="subject-config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A2E]/60 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-sm w-full max-w-sm shadow-md border border-gray-200 brush-border-top relative overflow-hidden">
+            <div class="seal-stamp top-4 right-4 w-10 h-10 text-sm transform rotate-12 opacity-40">科</div>
+            <h3 class="text-lg font-bold text-[#1A1A2E] mb-2 font-serif-thai">ตั้งค่าคะแนนรายวิชา</h3>
+            <p id="config-subject-name" class="text-[#C53D43] text-sm mb-4 font-bold border-b border-gray-200 pb-2"></p>
             <input type="hidden" id="config-subject-id">
-            <div id="config-slots-container" class="space-y-3 max-h-60 overflow-y-auto mb-4"></div>
-            <div class="flex justify-between text-xs text-white/60 mb-2"><span>คะแนนเก็บรวม: <span id="config-total-score" class="font-bold text-white">0</span>/50</span><button onclick="addConfigSlot()" id="btn-add-slot" class="text-blue-400 hover:text-blue-300 font-bold">+ เพิ่มช่อง</button></div>
-            <div class="grid grid-cols-2 gap-3 pt-2"><button onclick="document.getElementById('subject-config-modal').classList.add('hidden')" class="py-2 rounded-xl bg-white/10 text-white font-bold text-sm">ยกเลิก</button><button onclick="saveSubjectConfig()" class="py-2 rounded-xl btn-blue text-white font-bold text-sm">บันทึก</button></div>
+            <div id="config-slots-container" class="space-y-3 max-h-60 overflow-y-auto mb-4 custom-scrollbar pr-1"></div>
+            <div class="flex justify-between items-center text-xs text-gray-500 mb-4 border-t border-gray-200 pt-3"><span>คะแนนเก็บรวม: <span id="config-total-score" class="font-bold text-[#1A1A2E] text-sm">0</span>/50</span><button onclick="addConfigSlot()" id="btn-add-slot" class="text-[#C53D43] hover:text-[#A03035] font-bold transition-colors"><i class="fa-solid fa-plus"></i> เพิ่มช่อง</button></div>
+            <div class="grid grid-cols-2 gap-3 pt-2"><button onclick="document.getElementById('subject-config-modal').classList.add('hidden')" class="py-2.5 rounded-sm bg-[#F5F0E8] text-gray-600 hover:bg-gray-200 font-bold text-sm transition-colors border border-gray-300">ยกเลิก</button><button onclick="saveSubjectConfig()" class="py-2.5 rounded-sm bg-[#1A1A2E] text-white hover:bg-[#C53D43] font-bold text-sm transition-colors shadow-sm">บันทึก</button></div>
         </div>
     </div>
 
-    <div id="score-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="glass-ios p-8 rounded-3xl w-full max-w-xs shadow-2xl transform scale-100 transition-all">
-            <h3 class="text-lg font-bold text-white mb-2 text-center">บันทึกคะแนน</h3>
-            <p class="text-white/60 text-sm mb-1 text-center" id="modal-task-name"></p>
-            <p class="text-yellow-400 text-xl font-bold mb-6 text-center" id="modal-student-name"></p>
-            <div class="relative mb-6"><input id="modal-score-input" type="number" class="w-full bg-black/40 border-2 border-yellow-500 rounded-2xl px-4 py-4 text-4xl text-center text-white font-bold focus:outline-none"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">/ <span id="modal-max-score"></span></span></div>
-            <div class="grid grid-cols-2 gap-3"><button onclick="closeScoreModal()" class="py-3 rounded-xl bg-white/10 text-white font-bold">ยกเลิก</button><button id="btn-modal-save" class="py-3 rounded-xl btn-blue font-bold">บันทึก</button></div>
+    <div id="score-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A2E]/60 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-sm w-full max-w-xs shadow-md transform scale-100 transition-all border border-gray-200 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-[#D4AF37]"></div>
+            <h3 class="text-lg font-bold text-[#1A1A2E] mb-2 text-center font-serif-thai">บันทึกคะแนน</h3>
+            <p class="text-gray-500 text-sm mb-1 text-center font-bold" id="modal-task-name"></p>
+            <p class="text-[#1A1A2E] text-xl font-bold mb-6 text-center border-b border-gray-200 pb-4" id="modal-student-name"></p>
+            <div class="relative mb-6">
+                <input id="modal-score-input" type="number" class="w-full bg-[#F5F0E8] border-b-4 border-[#C53D43] rounded-sm px-4 py-4 text-4xl text-center text-[#C53D43] font-bold focus:outline-none focus:bg-white transition-colors">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">/ <span id="modal-max-score"></span></span>
+            </div>
+            <div class="grid grid-cols-2 gap-3"><button onclick="closeScoreModal()" class="py-3 rounded-sm bg-gray-100 text-gray-600 hover:bg-gray-200 font-bold border border-gray-300 transition-colors">ยกเลิก</button><button id="btn-modal-save" class="py-3 rounded-sm bg-[#1A1A2E] hover:bg-[#2D6A4F] text-white font-bold transition-colors shadow-sm">บันทึก</button></div>
         </div>
     </div>
     
-    <div id="submit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="glass-ios border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-paper-plane mr-2 text-blue-400"></i>ส่งงาน</h3>
-            <p class="text-sm text-white/50 mb-2" id="submit-modal-title"></p>
+    <div id="submit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A2E]/60 backdrop-blur-sm">
+        <div class="bg-white border border-gray-200 rounded-sm p-6 w-full max-w-sm shadow-md brush-border-top relative">
+            <h3 class="text-lg font-bold text-[#1A1A2E] mb-2 font-serif-thai"><i class="fa-solid fa-paper-plane mr-2 text-[#C53D43]"></i>ส่งงาน</h3>
+            <p class="text-sm text-gray-500 mb-4 font-bold border-b border-gray-100 pb-2" id="submit-modal-title"></p>
             <form id="form-submit-work" class="space-y-4">
                 <input type="hidden" id="submit-task-id"><input type="hidden" id="submit-student-id">
-                <div><label class="text-xs text-white/50 mb-1 block">1. ลิงก์งาน</label><input id="submit-link-input" type="url" class="w-full glass-input rounded-xl px-3 py-2 text-white text-sm focus:border-blue-500 outline-none" placeholder="https://..." required></div>
-                <div><label class="text-xs text-white/50 mb-1 block">2. ข้อความถึงครู</label><textarea id="submit-comment-input" class="w-full glass-input rounded-xl px-3 py-2 text-white text-sm h-16 resize-none" placeholder="เช่น รายชื่อสมาชิก..."></textarea></div>
-                <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label class="text-xs text-yellow-400 mb-2 block font-bold"><i class="fa-solid fa-users mr-1"></i> เพิ่มเพื่อนร่วมกลุ่ม (ถ้ามี)</label><input type="text" id="friend-search" placeholder="🔍 ค้นหาชื่อเพื่อน..." class="w-full glass-input rounded-lg px-2 py-1 text-xs mb-2"><div id="friend-selector-container" class="max-h-48 overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div></div>
-                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="document.getElementById('submit-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-white/10 text-white/70 text-sm">ยกเลิก</button><button type="submit" id="btn-submit-final" class="px-4 py-2 rounded-xl btn-blue text-white text-sm font-bold shadow-lg">ส่งงาน</button></div>
+                <div><label class="text-xs text-gray-600 mb-1 block font-bold">1. ลิงก์งาน</label><input id="submit-link-input" type="url" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] text-sm focus:border-[#C53D43] outline-none" placeholder="https://..." required></div>
+                <div><label class="text-xs text-gray-600 mb-1 block font-bold">2. ข้อความถึงครู</label><textarea id="submit-comment-input" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] text-sm h-16 resize-none focus:border-[#C53D43] outline-none" placeholder="เช่น รายชื่อสมาชิก..."></textarea></div>
+                <div class="bg-[#F5F0E8] p-3 rounded-sm border border-gray-200">
+                    <label class="text-xs text-[#1A1A2E] mb-2 block font-bold"><i class="fa-solid fa-users mr-1 text-[#D4AF37]"></i> เพิ่มเพื่อนร่วมกลุ่ม (ถ้ามี)</label>
+                    <input type="text" id="friend-search" placeholder="🔍 ค้นหาชื่อเพื่อน..." class="w-full bg-white border border-gray-300 rounded-sm px-2 py-1.5 text-xs mb-2 outline-none focus:border-[#C53D43]">
+                    <div id="friend-selector-container" class="max-h-48 overflow-y-auto grid grid-cols-1 gap-1 pr-1 custom-scrollbar"></div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t border-gray-200"><button type="button" onclick="document.getElementById('submit-modal').classList.add('hidden')" class="px-5 py-2.5 rounded-sm bg-gray-100 text-gray-600 font-bold border border-gray-300 hover:bg-gray-200 transition-colors">ยกเลิก</button><button type="submit" id="btn-submit-final" class="px-5 py-2.5 rounded-sm bg-[#1A1A2E] hover:bg-[#2D6A4F] text-white text-sm font-bold shadow-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i> ส่งงาน</button></div>
             </form>
         </div>
     </div>
 
-    <div id="email-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md">
-        <div class="glass-ios p-8 rounded-3xl w-full max-w-sm shadow-2xl relative">
-            <h3 class="text-xl font-bold text-white mb-2 text-center">📧 แจ้งเตือนผ่านอีเมล</h3>
-            <p class="text-white/60 text-sm mb-6 text-center">กรุณาระบุอีเมลเพื่อรับการแจ้งเตือนงานและการบ้านสำคัญจากระบบ (บังคับ)</p>
+    <div id="email-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-[#1A1A2E]/80 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-sm w-full max-w-sm shadow-md relative border border-gray-200">
+            <h3 class="text-xl font-bold text-[#1A1A2E] mb-2 text-center font-serif-thai"><i class="fa-solid fa-envelope text-[#C53D43] mr-2"></i>อีเมลแจ้งเตือน</h3>
+            <p class="text-gray-500 text-sm mb-6 text-center">กรุณาระบุอีเมลเพื่อรับการแจ้งเตือนงานและการบ้านสำคัญจากระบบ (บังคับ)</p>
             <input type="hidden" id="email-modal-role">
-            <input type="email" id="user-email-input" class="w-full glass-input rounded-xl px-4 py-3 text-white text-center mb-4" placeholder="yourname@email.com">
-            <button type="button" onclick="saveUserEmail()" class="w-full btn-blue py-3 rounded-xl font-bold shadow-lg">บันทึกอีเมล</button>
-            <button id="btn-close-email" onclick="document.getElementById('email-modal').classList.add('hidden')" class="w-full mt-2 py-2 text-xs text-white/30 hover:text-white hidden">ปิดหน้าต่าง</button>
+            <input type="email" id="user-email-input" class="w-full bg-[#F5F0E8] border-b-2 border-gray-300 rounded-none px-4 py-3 text-[#1A1A2E] text-center mb-6 focus:border-[#C53D43] outline-none font-bold" placeholder="yourname@email.com">
+            <button type="button" onclick="saveUserEmail()" class="w-full bg-[#1A1A2E] hover:bg-[#C53D43] text-white py-3 rounded-sm font-bold shadow-sm transition-colors">บันทึกข้อมูล</button>
+            <button id="btn-close-email" onclick="document.getElementById('email-modal').classList.add('hidden')" class="w-full mt-3 py-2 text-xs text-gray-400 hover:text-gray-600 hidden transition-colors font-bold">ปิดหน้าต่าง</button>
         </div>
     </div>
     
-    <div id="loading-overlay" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm hidden flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mb-4"></div>
-        <p id="loading-text" class="text-white font-bold text-lg animate-pulse">กำลังประมวลผล...</p>
+    <div id="loading-overlay" class="fixed inset-0 z-[70] bg-[#F5F0E8]/90 backdrop-blur-sm hidden flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#C53D43] mb-6 shadow-sm"></div>
+        <p id="loading-text" class="text-[#1A1A2E] font-bold text-lg animate-pulse font-serif-thai tracking-widest">กำลังประมวลผล...</p>
     </div>
 
-    <div id="toast-notification" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-600 to-teal-600 text-white px-8 py-4 rounded-full shadow-2xl z-50 flex items-center gap-3 translate-y-20 opacity-0 font-bold border border-green-400/50"><i class="fa-solid fa-circle-check text-2xl"></i><span id="toast-message" class="text-lg">บันทึกสำเร็จ</span></div>
-   </div>
-  </div>
-  
+    <div id="toast-notification" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[#1A1A2E] text-white px-6 py-3 rounded-sm shadow-md z-50 flex items-center gap-3 translate-y-20 opacity-0 font-bold border-l-4 border-[#2D6A4F] transition-all duration-300">
+        <i class="fa-solid fa-circle-check text-[#2D6A4F] text-xl"></i>
+        <span id="toast-message" class="text-sm">บันทึกสำเร็จ</span>
+    </div>
+
   <div id="print-area" class="hidden"><table id="print-table" style="width: 100%;"><thead><tr class="print-header-row"><td colspan="13" style="text-align:center; border: none; padding-bottom: 10px;"><img src="https://img2.pic.in.th/pic/Logoc404dc85753b800c.png" style="width: 70px; height: auto; margin-bottom: 5px; margin-top: 10px; display: inline-block;"><h2 style="font-size: 18px; font-weight: bold; margin: 0; line-height: 1.2;">รายงานผลสัมฤทธิ์ทางการเรียน</h2><h3 style="font-size: 16px; margin: 0; line-height: 1.2;">รายวิชาภาษาจีน (ChineseClass System)</h3><p id="print-subtitle" style="font-size: 14px; margin-top: 5px;">ชั้นมัธยมศึกษาปีที่ ... ภาคเรียนที่ ... ปีการศึกษา ...</p></td></tr><tr class="column-header" id="print-column-header"></tr></thead><tbody id="print-table-body"></tbody></table><div style="margin-top: 30px; display: flex; justify-content: space-between; font-size: 14px; page-break-inside: avoid;"><div style="text-align: center; width: 40%;"><p>ลงชื่อ ...........................................................</p><p>( ........................................................... )</p><p>ครูประจำวิชา</p></div><div style="text-align: center; width: 40%;"><p>ลงชื่อ ...........................................................</p><p>( ........................................................... )</p><p>หัวหน้ากลุ่มสาระฯ</p></div></div></div>
 
   <script type="module" src="js/main.js"></script>
-  <div id="edit-column-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-white/20 p-6 rounded-2xl w-96 shadow-2xl transform transition-all scale-100">
-        <h3 class="text-xl font-bold text-white mb-4"><i class="fa-solid fa-pen-to-square mr-2 text-yellow-400"></i>แก้ไขช่องคะแนน</h3>
+  
+  <div id="edit-column-modal" class="fixed inset-0 bg-[#1A1A2E]/60 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white border border-gray-200 p-6 rounded-sm w-96 shadow-md transform transition-all scale-100 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-[#1A1A2E]"></div>
+        <h3 class="text-lg font-bold text-[#1A1A2E] mb-4 font-serif-thai"><i class="fa-solid fa-pen-to-square mr-2 text-[#C53D43]"></i>แก้ไขช่องคะแนน</h3>
         
-        <input type="hidden" id="edit-mode"> <input type="hidden" id="edit-col-id"> <input type="hidden" id="edit-col-index"> <div class="mb-4">
-            <label class="text-xs text-white/50 block mb-1">ชื่อช่องคะแนน</label>
-            <input type="text" id="edit-col-name" class="w-full glass-input rounded-xl px-3 py-2 text-white" placeholder="เช่น สอบบทที่ 1, จิตพิสัย">
+        <input type="hidden" id="edit-mode"> <input type="hidden" id="edit-col-id"> <input type="hidden" id="edit-col-index"> 
+        <div class="mb-4">
+            <label class="text-xs text-gray-500 block mb-1 font-bold">ชื่อช่องคะแนน</label>
+            <input type="text" id="edit-col-name" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] outline-none focus:border-[#C53D43]" placeholder="เช่น สอบบทที่ 1, จิตพิสัย">
         </div>
 
         <div class="mb-4">
-            <label class="text-xs text-white/50 block mb-1">คะแนนเต็ม (Max)</label>
-            <input type="number" id="edit-col-max" class="w-full glass-input rounded-xl px-3 py-2 text-white">
+            <label class="text-xs text-gray-500 block mb-1 font-bold">คะแนนเต็ม (Max)</label>
+            <input type="number" id="edit-col-max" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] outline-none focus:border-[#C53D43]">
         </div>
 
         <div class="mb-6">
-            <label class="text-xs text-white/50 block mb-1">ประเภทคะแนน</label>
-            <select id="edit-col-category" class="w-full glass-input rounded-xl px-3 py-2 text-white bg-slate-800">
-                </select>
-            <div id="edit-col-desc" class="text-[10px] text-yellow-400 mt-2 bg-yellow-400/10 p-2 rounded hidden"></div>
+            <label class="text-xs text-gray-500 block mb-1 font-bold">ประเภทคะแนน</label>
+            <select id="edit-col-category" class="w-full bg-white border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] outline-none focus:border-[#C53D43] font-bold">
+            </select>
+            <div id="edit-col-desc" class="text-[10px] text-[#C53D43] mt-2 bg-red-50 p-2 rounded-sm border border-red-100 hidden"></div>
         </div>
 
         <div class="flex gap-2">
-            <button onclick="document.getElementById('edit-column-modal').classList.add('hidden')" class="flex-1 py-2 rounded-xl bg-white/10 text-white hover:bg-white/20">ยกเลิก</button>
-            <button onclick="window.saveColumnEdit()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg">บันทึก</button>
+            <button onclick="document.getElementById('edit-column-modal').classList.add('hidden')" class="flex-1 py-2.5 rounded-sm bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300 font-bold transition-colors">ยกเลิก</button>
+            <button onclick="window.saveColumnEdit()" class="flex-1 py-2.5 rounded-sm bg-[#1A1A2E] text-white font-bold hover:bg-[#C53D43] shadow-sm transition-colors">บันทึก</button>
         </div>
     </div>
 </div>
-<div id="student-task-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-md">
-    <div class="bg-slate-900 border border-white/20 p-6 rounded-2xl w-full max-w-lg shadow-2xl m-4 transform transition-all scale-100 relative">
-        
-        <div id="task-modal-detail" class="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
-            </div>
 
-        <button onclick="document.getElementById('student-task-modal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50 hover:text-white">
-            <i class="fa-solid fa-xmark text-xl"></i>
+<div id="student-task-modal" class="fixed inset-0 bg-[#1A1A2E]/80 hidden items-center justify-center z-50 backdrop-blur-md">
+    <div class="bg-white border border-gray-200 p-6 md:p-8 rounded-sm w-full max-w-lg shadow-md m-4 transform transition-all scale-100 relative brush-border-top">
+        
+        <div id="task-modal-detail" class="mb-6 p-4 bg-[#F5F0E8] rounded-sm border border-gray-200">
+        </div>
+
+        <button onclick="document.getElementById('student-task-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-[#C53D43] transition-colors bg-white rounded-full w-8 h-8 flex items-center justify-center border border-gray-200 shadow-sm">
+            <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <div class="mb-6">
+        <div class="mb-6 border-b border-gray-200 pb-4">
             <div class="flex items-center gap-3 mb-2">
-                <span id="st-modal-badge" class="px-2 py-1 rounded text-[10px] font-bold bg-gray-700 text-gray-300">TODO</span>
-                <span id="st-modal-date" class="text-xs text-white/50"><i class="fa-regular fa-clock mr-1"></i>--/--/--</span>
+                <span id="st-modal-badge" class="px-2 py-1 rounded-sm text-[10px] font-bold bg-[#1A1A2E] text-white tracking-widest">TODO</span>
+                <span id="st-modal-date" class="text-xs text-[#C53D43] font-bold"><i class="fa-regular fa-clock mr-1"></i>--/--/--</span>
             </div>
-            <h3 id="st-modal-title" class="text-2xl font-bold text-white leading-tight">ชื่องาน...</h3>
-            <p id="st-modal-desc" class="text-sm text-white/60 mt-2 leading-relaxed">รายละเอียดงาน...</p>
+            <h3 id="st-modal-title" class="text-xl font-bold text-[#1A1A2E] leading-tight font-serif-thai">ชื่องาน...</h3>
+            <p id="st-modal-desc" class="text-sm text-gray-600 mt-2 leading-relaxed">รายละเอียดงาน...</p>
         </div>
 
         <div class="space-y-4">
-            <div id="st-modal-feedback-area" class="bg-white/5 rounded-xl p-4 border border-white/10 hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-sm font-bold text-blue-300"><i class="fa-solid fa-chalkboard-user mr-2"></i>ผลการตรวจ</h4>
-                    <span id="st-modal-score" class="text-xl font-bold text-yellow-400">10/10</span>
+            <div id="st-modal-feedback-area" class="bg-[#F5F0E8] rounded-sm p-4 border border-[#2D6A4F] hidden relative overflow-hidden">
+                <div class="absolute left-0 top-0 w-1 h-full bg-[#2D6A4F]"></div>
+                <div class="flex justify-between items-center mb-2 pl-2">
+                    <h4 class="text-sm font-bold text-[#1A1A2E]"><i class="fa-solid fa-chalkboard-user mr-2 text-[#2D6A4F]"></i>ผลการตรวจ</h4>
+                    <span id="st-modal-score" class="text-xl font-bold text-[#2D6A4F]">10/10</span>
                 </div>
-                <div id="st-modal-comment" class="text-sm text-white/80 italic bg-black/20 p-3 rounded-lg border-l-4 border-blue-500/50">
+                <div id="st-modal-comment" class="text-sm text-gray-600 italic bg-white p-3 rounded-sm border-l-4 border-gray-300 shadow-sm ml-2 mt-2">
                     "ดีมากครับ ทำต่อไป!"
                 </div>
             </div>
 
             <div>
-                <label class="text-sm font-bold text-white block mb-2"><i class="fa-solid fa-link mr-2 text-green-400"></i>งานของฉัน (ลิงก์ หรือ ข้อความ)</label>
-                <textarea id="st-modal-submission" rows="3" class="w-full glass-input rounded-xl px-4 py-3 text-white text-sm" placeholder="วางลิงก์ Google Drive, Canva หรือพิมพ์คำตอบที่นี่..."></textarea>
-                <p class="text-[10px] text-white/40 mt-1 text-right">สามารถแก้ไขได้ตลอดจนกว่าครูจะตรวจ</p>
+                <label class="text-sm font-bold text-[#1A1A2E] block mb-2"><i class="fa-solid fa-link mr-2 text-[#C53D43]"></i>งานของฉัน (ลิงก์ หรือ ข้อความ)</label>
+                <textarea id="st-modal-submission" rows="3" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-3 text-[#1A1A2E] text-sm outline-none focus:border-[#C53D43] transition-colors" placeholder="วางลิงก์ Google Drive, Canva หรือพิมพ์คำตอบที่นี่..."></textarea>
+                <p class="text-[10px] text-gray-500 mt-1 text-right font-bold">สามารถแก้ไขได้ตลอดจนกว่าครูจะตรวจ</p>
             </div>
         </div>
-<div>
-<div>
-            <div class="bg-white/5 p-3 rounded-xl border border-white/10 mt-4">
-                <label class="text-xs text-yellow-400 mb-2 block font-bold">
-                    <i class="fa-solid fa-users mr-1"></i> เพิ่มเพื่อนร่วมกลุ่ม (ถ้ามี)
-                </label>
-                <input type="text" id="st-friend-search" placeholder="🔍 ค้นหาชื่อเพื่อน..." class="w-full glass-input rounded-lg px-2 py-1 text-xs mb-2">
-                <div id="st-friend-list" class="max-h-32 overflow-y-auto grid grid-cols-1 gap-2 pr-1 custom-scrollbar">
-                    </div>
-            </div>
-            </div>
-        <div class="mt-6 flex gap-3">
-            <button onclick="document.getElementById('student-task-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">ปิด</button>
-            <button onclick="window.submitWork()" id="st-modal-submit-btn" class="flex-1 px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-500 shadow-lg transition-all flex justify-center items-center gap-2">
+        
+        <div class="bg-white p-4 rounded-sm border border-gray-200 mt-4 shadow-sm">
+            <label class="text-xs text-[#1A1A2E] mb-2 block font-bold">
+                <i class="fa-solid fa-users mr-1 text-[#D4AF37]"></i> เพิ่มเพื่อนร่วมกลุ่ม (ถ้ามี)
+            </label>
+            <input type="text" id="st-friend-search" placeholder="🔍 ค้นหาชื่อเพื่อน..." class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-xs mb-2 outline-none focus:border-[#D4AF37]">
+            <div id="st-friend-list" class="max-h-32 overflow-y-auto grid grid-cols-1 gap-1 pr-1 custom-scrollbar"></div>
+        </div>
+
+        <div class="mt-6 flex gap-3 pt-4 border-t border-gray-100">
+            <button onclick="document.getElementById('student-task-modal').classList.add('hidden')" class="px-5 py-2.5 rounded-sm bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200 transition-colors font-bold">ปิด</button>
+            <button onclick="window.submitWork()" id="st-modal-submit-btn" class="flex-1 px-4 py-2.5 rounded-sm bg-[#1A1A2E] text-white font-bold hover:bg-[#2D6A4F] shadow-sm transition-all flex justify-center items-center gap-2">
                 <i class="fa-solid fa-paper-plane"></i> ส่งงาน
             </button>
         </div>
@@ -860,299 +1059,302 @@
         <input type="hidden" id="st-modal-student-id">
     </div>
 </div>
-</div>
-<div id="exam-editor-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-    <div class="bg-gray-900 w-full max-w-5xl h-[90vh] rounded-2xl border border-white/10 shadow-2xl flex flex-col overflow-hidden">
-        
-        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-gray-800">
-    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <i class="fa-solid fa-file-pen text-yellow-400"></i> สร้าง/แก้ไข ข้อสอบ
-    </h2>
-    
-    <div class="flex gap-2">
-        <button onclick="downloadWordTemplate()" class="text-xs bg-blue-600/20 text-blue-300 px-3 py-1.5 rounded hover:bg-blue-600/50 transition-colors">
-            <i class="fa-solid fa-download mr-1"></i>โหลดแม่แบบ
-        </button>
-        <label class="text-xs bg-green-600/20 text-green-300 px-3 py-1.5 rounded hover:bg-green-600/50 transition-colors cursor-pointer flex items-center">
-            <i class="fa-solid fa-file-word mr-1"></i> นำเข้า Word
-            <input type="file" id="import-word-input" accept=".docx" class="hidden" onchange="importExamFromWord(this)">
-        </label>
-        <button onclick="closeExamModal()" class="text-white/50 hover:text-white transition-colors ml-2">
-            <i class="fa-solid fa-xmark text-2xl"></i>
-        </button>
-    </div>
-</div>
 
-        <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+<div id="exam-editor-modal" class="fixed inset-0 bg-[#1A1A2E]/80 hidden z-50 flex items-center justify-center backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-5xl h-[95vh] rounded-sm border border-gray-200 shadow-md flex flex-col overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-[#C53D43] z-50"></div>
+        
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-[#F5F0E8]">
+            <h2 class="text-lg md:text-xl font-bold text-[#1A1A2E] flex items-center gap-2 font-serif-thai">
+                <i class="fa-solid fa-file-pen text-[#C53D43]"></i> สร้าง/แก้ไข ข้อสอบ
+            </h2>
+            
+            <div class="flex gap-2">
+                <button onclick="downloadWordTemplate()" class="text-xs bg-white text-[#1A1A2E] border border-gray-300 px-3 py-1.5 rounded-sm hover:bg-gray-100 transition-colors font-bold shadow-sm">
+                    <i class="fa-solid fa-download mr-1"></i>โหลดแม่แบบ
+                </button>
+                <label class="text-xs bg-[#1A1A2E] text-white px-3 py-1.5 rounded-sm hover:bg-[#C53D43] transition-colors cursor-pointer flex items-center shadow-sm font-bold">
+                    <i class="fa-solid fa-file-word mr-1"></i> นำเข้า Word
+                    <input type="file" id="import-word-input" accept=".docx" class="hidden" onchange="importExamFromWord(this)">
+                </label>
+                <button onclick="closeExamModal()" class="text-gray-400 hover:text-[#C53D43] transition-colors ml-2 bg-white rounded-full w-8 h-8 flex items-center justify-center border border-gray-200 shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-white">
             <form id="exam-form" onsubmit="event.preventDefault(); saveExamData();">
-                <input type="hidden" id="exam-id"> <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <input type="hidden" id="exam-id"> 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div class="col-span-2">
-                        <label class="block text-xs text-white/60 mb-1">ชื่อชุดข้อสอบ</label>
-                        <input type="text" id="exam-title" required class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none" placeholder="เช่น สอบกลางภาค ภาษาจีน 1">
+                        <label class="block text-xs text-gray-500 mb-1 font-bold">ชื่อชุดข้อสอบ</label>
+                        <input type="text" id="exam-title" required class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-2.5 text-[#1A1A2E] focus:border-[#C53D43] outline-none font-bold" placeholder="เช่น สอบกลางภาค ภาษาจีน 1">
                     </div>
                     <div>
-                        <label class="block text-xs text-white/60 mb-1">วิชา</label>
-                        <select id="exam-subject" required class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 focus:outline-none">
+                        <label class="block text-xs text-gray-500 mb-1 font-bold">วิชา</label>
+                        <select id="exam-subject" required class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-2.5 text-[#1A1A2E] focus:border-[#C53D43] outline-none font-bold">
                             <option value="">-- เลือกวิชา --</option>
-                            </select>
-                    </div>
-                </div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
-    <div>
-        <label class="block text-xs text-blue-400 mb-1">นำคะแนนไปรวมใน (หมวดหมู่)</label>
-        <select id="exam-category" class="w-full bg-black/20 rounded px-2 py-2 text-white outline-none">
-            <option value="none">ไม่รวม (ทดสอบแยก)</option>
-            <option value="accum">คะแนนเก็บรายบทเรียน</option>
-            <option value="midterm">คะแนนสอบกลางภาค</option>
-            <option value="final">คะแนนสอบปลายภาค</option>
-        </select>
-    </div>
-    <div>
-        <label class="block text-xs text-yellow-400 mb-1">บทที่ (กรณีเลือกคะแนนเก็บรายบท)</label>
-        <div>
-    <div id="exam-chapter-container" class="grid grid-cols-5 md:grid-cols-10 gap-2 p-3 bg-black/20 rounded-lg max-h-32 overflow-y-auto border border-white/5">
-        <script>
-            for(let i=1; i<=6; i++) {
-                document.write(`
-                    <label class="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 p-1 rounded transition-colors">
-                        <input type="checkbox" value="${i}" class="exam-chapter-cb w-3.5 h-3.5 accent-yellow-500 rounded">
-                        <span class="text-xs text-white/90">${i}</span>
-                    </label>
-                `);
-            }
-        </script>
-    </div>
-</div>
-    </div>
-</div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
-                    <div>
-                        <label class="block text-xs text-yellow-400 mb-1">เวลาสอบ (นาที)</label>
-                        <input type="number" id="exam-duration" value="60" class="w-full bg-black/20 rounded px-2 py-1 text-white text-center">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-red-400 mb-1">สลับหน้าจอได้ (ครั้ง)</label>
-                        <input type="number" id="exam-max-switch" value="2" class="w-full bg-black/20 rounded px-2 py-1 text-white text-center">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-green-400 mb-1">รหัสเข้าสอบ</label>
-                        <input type="text" id="exam-password" value="1234" class="w-full bg-black/20 rounded px-2 py-1 text-white text-center tracking-widest">
-                    </div>
-                    <div class="flex items-center gap-2 pt-4">
-                        <input type="checkbox" id="exam-shuffle-q" class="w-4 h-4">
-                        <label for="exam-shuffle-q" class="text-sm text-white/80">สลับข้อ</label>
-                        
-                        <input type="checkbox" id="exam-shuffle-c" class="w-4 h-4 ml-2">
-                        <label for="exam-shuffle-c" class="text-sm text-white/80">สลับช้อยส์</label>
+                        </select>
                     </div>
                 </div>
 
-                <div class="mb-4 flex justify-between items-end">
-    <h3 class="text-lg font-bold text-white">รายการคำถาม <span id="q-count-badge" class="bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full">0</span></h3>
-    <div class="flex gap-2">
-        <button type="button" onclick="addQuestionItem()" class="text-sm bg-yellow-500 text-black font-bold px-4 py-1.5 rounded-lg hover:bg-yellow-400 shadow-lg transition-colors">
-            <i class="fa-solid fa-plus"></i> เพิ่มข้อ
-        </button>
-        
-        <button type="button" onclick="addSectionDivider()" class="text-sm bg-blue-600 text-white font-bold px-4 py-1.5 rounded-lg hover:bg-blue-500 shadow-lg transition-colors">
-            <i class="fa-solid fa-layer-group"></i> เพิ่มตอน
-        </button>
-
-        <button type="button" onclick="addPassageDivider()" class="text-sm bg-purple-600 text-white font-bold px-4 py-1.5 rounded-lg hover:bg-purple-500 shadow-lg transition-colors">
-            <i class="fa-solid fa-book-open"></i> เพิ่มบทอ่าน
-        </button>
-    </div>
-</div>
-
-                <div id="questions-container" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-5 bg-[#F5F0E8] rounded-sm border border-gray-200">
+                    <div>
+                        <label class="block text-xs text-[#1A1A2E] mb-2 font-bold"><i class="fa-solid fa-bullseye text-[#C53D43] mr-1"></i> นำคะแนนไปรวมใน (หมวดหมู่)</label>
+                        <select id="exam-category" class="w-full bg-white border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] outline-none font-bold">
+                            <option value="none">ไม่รวม (ทดสอบแยก)</option>
+                            <option value="accum">คะแนนเก็บรายบทเรียน</option>
+                            <option value="midterm">คะแนนสอบกลางภาค</option>
+                            <option value="final">คะแนนสอบปลายภาค</option>
+                        </select>
                     </div>
+                    <div>
+                        <label class="block text-xs text-[#1A1A2E] mb-2 font-bold"><i class="fa-solid fa-book-bookmark text-[#D4AF37] mr-1"></i> บทที่ (กรณีเลือกคะแนนเก็บรายบท)</label>
+                        <div id="exam-chapter-container" class="grid grid-cols-5 md:grid-cols-10 gap-2 p-3 bg-white border border-gray-200 rounded-sm max-h-32 overflow-y-auto">
+                            <script>
+                                for(let i=1; i<=6; i++) {
+                                    document.write(`
+                                        <label class="flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 p-1 rounded-sm transition-colors border border-transparent hover:border-gray-200">
+                                            <input type="checkbox" value="${i}" class="exam-chapter-cb w-3.5 h-3.5 accent-[#C53D43] rounded-sm">
+                                            <span class="text-xs text-[#1A1A2E] font-bold">${i}</span>
+                                        </label>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 p-5 bg-white border border-gray-200 rounded-sm shadow-sm relative">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-[#1A1A2E]"></div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1 font-bold"><i class="fa-regular fa-clock mr-1"></i> เวลาสอบ (นาที)</label>
+                        <input type="number" id="exam-duration" value="60" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] text-center font-bold outline-none focus:border-[#C53D43]">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1 font-bold"><i class="fa-solid fa-desktop mr-1"></i> สลับหน้าจอได้ (ครั้ง)</label>
+                        <input type="number" id="exam-max-switch" value="2" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#C53D43] text-center font-bold outline-none focus:border-[#C53D43]">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1 font-bold"><i class="fa-solid fa-key mr-1"></i> รหัสเข้าสอบ</label>
+                        <input type="text" id="exam-password" value="1234" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] text-center tracking-widest font-mono font-bold outline-none focus:border-[#C53D43]">
+                    </div>
+                    <div class="flex items-center justify-center gap-4 pt-4 bg-[#F5F0E8] border border-gray-200 rounded-sm">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="exam-shuffle-q" class="w-4 h-4 accent-[#1A1A2E]">
+                            <span class="text-sm text-[#1A1A2E] font-bold group-hover:text-[#C53D43]">สลับข้อ</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="exam-shuffle-c" class="w-4 h-4 accent-[#1A1A2E]">
+                            <span class="text-sm text-[#1A1A2E] font-bold group-hover:text-[#C53D43]">สลับช้อยส์</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4 flex flex-col sm:flex-row justify-between sm:items-end gap-4 border-b border-gray-200 pb-3">
+                    <h3 class="text-lg font-bold text-[#1A1A2E] flex items-center gap-2 font-serif-thai">
+                        รายการคำถาม <span id="q-count-badge" class="bg-[#C53D43] text-white text-xs px-2.5 py-0.5 rounded-sm shadow-sm font-sans">0</span>
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="addQuestionItem()" class="text-sm bg-[#1A1A2E] text-white font-bold px-4 py-2 rounded-sm hover:bg-[#C53D43] shadow-sm transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> ข้อสอบ
+                        </button>
+                        <button type="button" onclick="addSectionDivider()" class="text-sm bg-white border border-gray-300 text-[#1A1A2E] font-bold px-4 py-2 rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] shadow-sm transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-layer-group"></i> ตอนที่
+                        </button>
+                        <button type="button" onclick="addPassageDivider()" class="text-sm bg-[#F5F0E8] border border-gray-300 text-[#1A1A2E] font-bold px-4 py-2 rounded-sm hover:bg-white hover:border-[#1A1A2E] shadow-sm transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-book-open"></i> บทอ่าน
+                        </button>
+                    </div>
+                </div>
+
+                <div id="questions-container" class="space-y-4 pb-10"></div>
             </form>
         </div>
 
-        <div class="p-4 border-t border-white/10 bg-gray-800 flex justify-end gap-3">
-            <button onclick="closeExamModal()" class="px-6 py-2 rounded-lg text-white/60 hover:text-white transition-colors">ยกเลิก</button>
-            <button onclick="saveExamData()" class="px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 shadow-lg shadow-green-900/50 transition-all">
-                <i class="fa-solid fa-save mr-2"></i> บันทึกชุดข้อสอบ
+        <div class="p-4 border-t border-gray-200 bg-[#F5F0E8] flex justify-end gap-3 z-10">
+            <button onclick="closeExamModal()" class="px-6 py-2.5 rounded-sm bg-white text-gray-600 border border-gray-300 font-bold hover:bg-gray-100 transition-colors">ยกเลิก</button>
+            <button onclick="saveExamData()" class="px-8 py-2.5 rounded-sm bg-[#2D6A4F] text-white font-bold hover:bg-[#1B4332] shadow-sm transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-save"></i> บันทึกชุดข้อสอบ
             </button>
         </div>
     </div>
 </div>
-<div id="exam-room-overlay" class="fixed inset-0 bg-gray-900 z-[9999] hidden flex flex-col">
-    <div class="h-16 bg-gray-800 border-b border-white/10 flex justify-between items-center px-6 shadow-lg">
-        <div class="text-white font-bold text-lg truncate w-1/3" id="exam-room-title">ชื่อวิชา - ชื่อการสอบ</div>
+
+<div id="exam-room-overlay" class="fixed inset-0 bg-[#F5F0E8] z-[9999] hidden flex flex-col">
+    <div class="h-16 bg-white border-b border-gray-300 flex justify-between items-center px-4 md:px-6 shadow-sm">
+        <div class="text-[#1A1A2E] font-bold text-base md:text-lg truncate w-1/3 font-serif-thai" id="exam-room-title">ชื่อวิชา - ชื่อการสอบ</div>
         
         <div class="flex items-center gap-4">
-            <div class="bg-black/30 px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2">
-                <i class="fa-regular fa-clock text-yellow-400 animate-pulse"></i>
-                <span id="exam-timer" class="font-mono text-2xl text-white font-bold">00:00</span>
+            <div class="bg-[#F5F0E8] px-4 py-1.5 rounded-sm border border-[#C53D43] flex items-center gap-2 shadow-[inset_0_0_5px_rgba(197,61,67,0.1)]">
+                <i class="fa-regular fa-clock text-[#C53D43] animate-pulse"></i>
+                <span id="exam-timer" class="font-mono text-2xl text-[#C53D43] font-extrabold tracking-wider">00:00</span>
             </div>
-            <div id="cheat-warning-box" class="hidden bg-red-600/20 border border-red-500 text-red-400 px-3 py-1 rounded text-xs">
-                ⚠️ เตือน: <span id="warn-count">0</span>/<span id="max-warn">2</span>
+            <div id="cheat-warning-box" class="hidden bg-red-50 border border-[#C53D43] text-[#C53D43] px-3 py-1.5 rounded-sm text-xs font-bold shadow-sm">
+                ⚠️ เตือนทุจริต: <span id="warn-count" class="text-lg">0</span>/<span id="max-warn">2</span>
             </div>
         </div>
 
         <div class="w-1/3 text-right">
-            <button onclick="submitExam()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-transform hover:scale-105">
-                ส่งข้อสอบ <i class="fa-solid fa-paper-plane ml-2"></i>
+            <button onclick="submitExam()" class="bg-[#1A1A2E] hover:bg-[#2D6A4F] text-white px-5 md:px-6 py-2.5 rounded-sm font-bold shadow-sm transition-colors flex items-center gap-2 ml-auto">
+                ส่งข้อสอบ <i class="fa-solid fa-paper-plane"></i>
             </button>
         </div>
     </div>
 
     <div class="flex-1 overflow-hidden flex">
-        <div class="w-64 bg-gray-800/50 border-r border-white/5 p-4 flex flex-col hidden md:flex">
-            <h3 class="text-white/60 text-sm mb-4 font-bold">ข้อสอบทั้งหมด</h3>
-            <div id="exam-nav-grid" class="grid grid-cols-4 gap-2 overflow-y-auto custom-scrollbar content-start">
-                </div>
+        <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col hidden md:flex shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] z-10">
+            <h3 class="text-[#1A1A2E] text-sm mb-4 font-bold border-b border-gray-200 pb-2 font-serif-thai"><i class="fa-solid fa-list-check text-[#C53D43] mr-2"></i> ข้อสอบทั้งหมด</h3>
+            <div id="exam-nav-grid" class="grid grid-cols-4 gap-2 overflow-y-auto custom-scrollbar content-start pr-1"></div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar flex justify-center bg-gray-900" id="question-display-area">
-            </div>
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar flex justify-center bg-[#FBF9F6]" id="question-display-area">
+        </div>
     </div>
 </div>
-<div id="exam-monitor-modal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center backdrop-blur-md">
-    
-    <div class="bg-gray-900 w-full max-w-7xl h-[95vh] rounded-2xl border border-white/10 shadow-2xl flex flex-col overflow-hidden">
-        
-        <div class="p-4 border-b border-white/10 flex flex-col gap-3 bg-gray-800">
-            
+
+<div id="exam-monitor-modal" class="fixed inset-0 bg-[#1A1A2E]/80 hidden z-[100] flex items-center justify-center backdrop-blur-md p-4">
+    <div class="bg-[#F5F0E8] w-full max-w-7xl h-[95vh] rounded-sm border border-gray-200 shadow-md flex flex-col overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-[#1A1A2E] z-50"></div>
+
+        <div class="p-4 border-b border-gray-300 flex flex-col gap-4 bg-white shadow-sm z-10">
             <div class="flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-tv text-green-400 mr-2"></i> ห้องควบคุมการสอบ</h2>
-                    <div class="h-6 w-px bg-white/20"></div>
-                    <span id="monitor-exam-title" class="text-white/60">กำลังโหลด...</span>
+                <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <h2 class="text-xl font-bold text-[#1A1A2E] font-serif-thai"><i class="fa-solid fa-tv text-[#C53D43] mr-2"></i> ห้องควบคุมการสอบ</h2>
+                    <div class="h-6 w-px bg-gray-300 hidden md:block"></div>
+                    <span id="monitor-exam-title" class="text-[#1A1A2E] font-bold bg-[#F5F0E8] px-3 py-1 rounded-sm border border-gray-200 shadow-sm text-sm">กำลังโหลด...</span>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="refreshMonitor()" class="text-white/60 hover:text-white transition-colors"><i class="fa-solid fa-rotate"></i> รีเฟรช</button>
-                    <button onclick="closeMonitorModal()" class="text-white/40 hover:text-red-400 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="refreshMonitor()" class="bg-white border border-gray-300 text-gray-600 hover:text-[#1A1A2E] hover:border-[#1A1A2E] px-4 py-2 rounded-sm text-sm font-bold transition-colors shadow-sm"><i class="fa-solid fa-rotate"></i> รีเฟรช</button>
+                    <button onclick="closeMonitorModal()" class="bg-[#1A1A2E] hover:bg-[#C53D43] text-white px-4 py-2 rounded-sm text-sm font-bold transition-colors shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> ปิด</button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 bg-black/30 p-2 rounded-lg border border-white/5 overflow-x-auto custom-scrollbar">
-                <span class="text-xs text-white/40 whitespace-nowrap font-bold"><i class="fa-solid fa-filter mr-1"></i> เลือกห้อง:</span>
-                
-                <div id="monitor-class-filter" class="flex items-center gap-3">
-                </div>
+            <div class="flex items-center gap-3 bg-[#F5F0E8] p-3 rounded-sm border border-gray-200 overflow-x-auto custom-scrollbar shadow-inner">
+                <span class="text-xs text-[#1A1A2E] whitespace-nowrap font-bold"><i class="fa-solid fa-filter mr-1 text-[#C53D43]"></i> เลือกห้อง:</span>
+                <div id="monitor-class-filter" class="flex items-center gap-2"></div>
             </div>
         </div>
 
-        <div class="grid grid-cols-4 gap-4 p-4 bg-white/5 border-b border-white/10">
-           <div class="stat-card bg-blue-600/10 border border-blue-500/30 p-3 rounded-xl text-center">
-                <div class="text-2xl font-bold text-blue-400" id="stat-total">0</div>
-                <div class="text-xs text-white/50">นักเรียนในห้องที่เลือก</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white border-b border-gray-200 z-10">
+           <div class="bg-white border-t-4 border-t-[#1A1A2E] border-x border-b border-gray-200 p-4 rounded-sm text-center shadow-sm">
+                <div class="text-3xl font-bold text-[#1A1A2E]" id="stat-total">0</div>
+                <div class="text-[10px] text-gray-500 font-bold uppercase mt-1">นักเรียนทั้งหมด</div>
             </div>
-            <div class="stat-card bg-yellow-600/10 border border-yellow-500/30 p-3 rounded-xl text-center">
-                <div class="text-2xl font-bold text-yellow-400" id="stat-testing">0</div>
-                <div class="text-xs text-white/50">กำลังสอบ</div>
+            <div class="bg-[#F5F0E8] border-t-4 border-t-[#D4AF37] border-x border-b border-gray-200 p-4 rounded-sm text-center shadow-sm">
+                <div class="text-3xl font-bold text-[#D4AF37]" id="stat-testing">0</div>
+                <div class="text-[10px] text-gray-500 font-bold uppercase mt-1">กำลังสอบ</div>
             </div>
-            <div class="stat-card bg-green-600/10 border border-green-500/30 p-3 rounded-xl text-center">
-                <div class="text-2xl font-bold text-green-400" id="stat-finished">0</div>
-                <div class="text-xs text-white/50">ส่งแล้ว</div>
+            <div class="bg-white border-t-4 border-t-[#2D6A4F] border-x border-b border-gray-200 p-4 rounded-sm text-center shadow-sm">
+                <div class="text-3xl font-bold text-[#2D6A4F]" id="stat-finished">0</div>
+                <div class="text-[10px] text-gray-500 font-bold uppercase mt-1">ส่งข้อสอบแล้ว</div>
             </div>
-            <div class="stat-card bg-red-600/10 border border-red-500/30 p-3 rounded-xl text-center">
-                <div class="text-2xl font-bold text-red-400" id="stat-cheated">0</div>
-                <div class="text-xs text-white/50">ทุจริต/ผิดกฎ</div>
+            <div class="bg-red-50 border-t-4 border-t-[#C53D43] border-x border-b border-gray-200 p-4 rounded-sm text-center shadow-sm">
+                <div class="text-3xl font-bold text-[#C53D43]" id="stat-cheated">0</div>
+                <div class="text-[10px] text-[#C53D43] font-bold uppercase mt-1">ทุจริต/ผิดกฎ</div>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 bg-black/20 custom-scrollbar">
-            <div id="monitor-student-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            </div>
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#FBF9F6] custom-scrollbar">
+            <div id="monitor-student-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4"></div>
         </div>
     </div>
-
 </div>
-<div id="material-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
-        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-layer-group text-yellow-400"></i> จัดการเนื้อหา/บทเรียน
+
+<div id="material-modal" class="fixed inset-0 bg-[#1A1A2E]/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white border border-gray-200 rounded-sm w-full max-w-lg p-8 shadow-md relative brush-border-top">
+        <h3 class="text-xl font-bold text-[#1A1A2E] mb-6 flex items-center gap-2 font-serif-thai border-b border-gray-200 pb-3">
+            <i class="fa-solid fa-layer-group text-[#D4AF37]"></i> จัดการเนื้อหา/บทเรียน
         </h3>
         
-        <div class="space-y-3">
+        <div class="space-y-4">
             <div>
-                <label class="text-xs text-white/50 block mb-1">หัวข้อ/ชื่อเนื้อหา</label>
-                <input type="text" id="mat-input-title" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 outline-none" placeholder="เช่น บทที่ 1 คำศัพท์พื้นฐาน">
+                <label class="text-xs text-gray-600 block mb-1 font-bold">หัวข้อ/ชื่อเนื้อหา</label>
+                <input type="text" id="mat-input-title" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-2.5 text-[#1A1A2E] focus:border-[#C53D43] outline-none font-bold" placeholder="เช่น บทที่ 1 คำศัพท์พื้นฐาน">
             </div>
             
             <div>
-                <label class="text-xs text-white/50 block mb-1">วิชา</label>
-                <select id="mat-input-subject" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 outline-none">
-                    </select>
+                <label class="text-xs text-gray-600 block mb-1 font-bold">วิชา</label>
+                <select id="mat-input-subject" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-2.5 text-[#1A1A2E] focus:border-[#C53D43] outline-none font-bold"></select>
             </div>
 
             <div>
-                <label class="text-xs text-white/50 block mb-1">ลิงก์เนื้อหา (URL)</label>
-                <input type="text" id="mat-input-link" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 outline-none" placeholder="https://...">
+                <label class="text-xs text-gray-600 block mb-1 font-bold">ลิงก์เนื้อหา (URL)</label>
+                <input type="text" id="mat-input-link" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-2.5 text-[#C53D43] focus:border-[#C53D43] outline-none font-bold" placeholder="https://...">
             </div>
 
             <div>
-                <label class="text-xs text-white/50 block mb-1">รูปปก/ตัวอย่าง (URL รูปภาพ)</label>
-                <input type="text" id="mat-input-img" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 outline-none" placeholder="https://... (เว้นว่างได้)">
+                <label class="text-xs text-gray-600 block mb-1 font-bold">รูปปก/ตัวอย่าง (URL รูปภาพ - เว้นว่างได้)</label>
+                <input type="text" id="mat-input-img" class="w-full bg-white border border-gray-300 rounded-sm px-4 py-2.5 text-[#1A1A2E] focus:border-[#C53D43] outline-none text-sm" placeholder="https://...">
             </div>
 
-            <div>
-                <label class="text-xs text-white/50 block mb-1">รูปแบบการแสดงผล</label>
-                <select id="mat-input-type" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-yellow-400 outline-none">
+            <div class="bg-[#F5F0E8] p-3 rounded-sm border border-gray-200">
+                <label class="text-xs text-[#1A1A2E] block mb-2 font-bold"><i class="fa-solid fa-display mr-1 text-gray-400"></i> รูปแบบการแสดงผล</label>
+                <select id="mat-input-type" class="w-full bg-white border border-gray-300 rounded-sm px-3 py-2 text-[#1A1A2E] focus:border-[#C53D43] outline-none font-bold text-sm">
                     <option value="newtab">🔗 เปิดแท็บใหม่ (External Link)</option>
-                    <option value="embed">🖥️ เปิดในเว็บนี้ (Embed View)</option>
+                    <option value="embed">🖥️ เปิดในกรอบเว็บนี้ (Embed View)</option>
                 </select>
             </div>
         </div>
 
-        <div class="flex justify-end gap-2 mt-6">
-            <button onclick="document.getElementById('material-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-white/50 hover:text-white transition-colors">ยกเลิก</button>
-            <button onclick="window.saveMaterial()" class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold shadow-lg transition-all">บันทึก</button>
+        <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
+            <button onclick="document.getElementById('material-modal').classList.add('hidden')" class="px-5 py-2.5 rounded-sm bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300 transition-colors font-bold">ยกเลิก</button>
+            <button onclick="window.saveMaterial()" class="px-6 py-2.5 rounded-sm bg-[#1A1A2E] hover:bg-[#D4AF37] text-white font-bold shadow-sm transition-colors flex items-center gap-2"><i class="fa-solid fa-save"></i> บันทึก</button>
         </div>
     </div>
 </div>
 
-<div id="material-viewer-modal" class="fixed inset-0 bg-black/90 z-[70] hidden flex flex-col backdrop-blur-md">
-    <div class="flex justify-between items-center p-4 bg-gray-900/80 border-b border-white/10">
-        <h3 id="viewer-title" class="text-lg font-bold text-white truncate max-w-[80%]">เนื้อหา</h3>
-        <button onclick="closeMaterialViewer()" class="text-white/50 hover:text-red-400 text-xl px-4">
+<div id="material-viewer-modal" class="fixed inset-0 bg-[#1A1A2E]/90 z-[70] hidden flex flex-col backdrop-blur-md">
+    <div class="flex justify-between items-center p-4 bg-white border-b border-gray-300 shadow-sm z-10">
+        <h3 id="viewer-title" class="text-lg font-bold text-[#1A1A2E] truncate max-w-[80%] font-serif-thai">เนื้อหา</h3>
+        <button onclick="closeMaterialViewer()" class="bg-[#1A1A2E] text-white hover:bg-[#C53D43] font-bold px-4 py-1.5 rounded-sm transition-colors flex items-center gap-2 shadow-sm">
             <i class="fa-solid fa-xmark"></i> ปิด
         </button>
     </div>
-    <div class="flex-1 w-full h-full relative overflow-hidden bg-white">
+    <div class="flex-1 w-full h-full relative overflow-hidden bg-[#F5F0E8]">
         <iframe id="viewer-iframe" class="w-full h-full border-0" src="" allowfullscreen></iframe>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<div id="admin-password-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
-        <div class="bg-gradient-to-r from-yellow-600 to-yellow-800 p-4 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-user-shield"></i> เปลี่ยนข้อมูลเข้าสู่ระบบ
+
+<div id="admin-password-modal" class="fixed inset-0 bg-[#1A1A2E]/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white border border-gray-200 rounded-sm w-full max-w-md overflow-hidden shadow-md transform transition-all brush-border-top relative">
+        <div class="absolute -right-4 top-10 text-[80px] text-[#C53D43] opacity-5 font-serif-thai pointer-events-none">管</div>
+        <div class="bg-[#F5F0E8] border-b border-gray-200 p-5 flex justify-between items-center relative z-10">
+            <h3 class="text-lg font-bold text-[#1A1A2E] flex items-center gap-2 font-serif-thai">
+                <i class="fa-solid fa-user-shield text-[#D4AF37]"></i> เปลี่ยนข้อมูลผู้ดูแลระบบ
             </h3>
-            <button onclick="window.closeChangePasswordModal()" class="text-white/70 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-xl"></i>
+            <button onclick="window.closeChangePasswordModal()" class="text-gray-400 hover:text-[#C53D43] transition-colors bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm border border-gray-200">
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <div class="p-6">
-            <p class="text-xs text-white/50 mb-4">ตั้งค่า Username และ Password สำหรับเข้าสู่โหมดผู้ดูแลระบบ</p>
-            <div class="space-y-4">
+        <div class="p-6 md:p-8 relative z-10">
+            <div class="bg-red-50 border border-red-100 rounded-sm p-3 mb-6">
+                <p class="text-xs text-[#C53D43] font-bold text-center"><i class="fa-solid fa-circle-info mr-1"></i> ตั้งค่า Username และ Password สำหรับเข้าสู่โหมดครูผู้สอน</p>
+            </div>
+            <div class="space-y-5">
                 <div>
-                    <label class="text-xs text-white/70 ml-1">ชื่อผู้ใช้ (Username) ใหม่</label>
-                    <input type="text" id="setting-admin-user" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="เช่น admin">
+                    <label class="text-xs text-gray-600 block mb-1 font-bold">ชื่อผู้ใช้ (Username) ใหม่</label>
+                    <input type="text" id="setting-admin-user" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-3 text-[#1A1A2E] text-center font-bold text-lg focus:border-[#C53D43] outline-none transition-colors" placeholder="เช่น admin">
                 </div>
                 <div>
-                    <label class="text-xs text-white/70 ml-1">รหัสผ่าน (Password) ใหม่</label>
-                    <input type="text" id="setting-admin-pass" class="glass-input w-full p-3 rounded-xl mt-1 text-sm" placeholder="รหัสผ่านใหม่">
+                    <label class="text-xs text-gray-600 block mb-1 font-bold">รหัสผ่าน (Password) ใหม่</label>
+                    <input type="text" id="setting-admin-pass" class="w-full bg-[#F5F0E8] border border-gray-300 rounded-sm px-4 py-3 text-[#1A1A2E] text-center font-bold text-lg tracking-widest focus:border-[#C53D43] outline-none transition-colors" placeholder="รหัสผ่านใหม่">
                 </div>
             </div>
-            <div class="mt-8 flex justify-end gap-3">
-                <button onclick="window.closeChangePasswordModal()" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all">
+            <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onclick="window.closeChangePasswordModal()" class="px-5 py-3 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold border border-gray-300 transition-colors">
                     ยกเลิก
                 </button>
-                <button onclick="window.saveAdminCredentials()" class="px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                <button onclick="window.saveAdminCredentials()" class="px-6 py-3 rounded-sm bg-[#1A1A2E] hover:bg-[#D4AF37] text-white font-bold shadow-sm transition-colors flex items-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
                 </button>
             </div>
         </div>
     </div>
 </div>
- </body>
+</body>
 </html>
-
-
